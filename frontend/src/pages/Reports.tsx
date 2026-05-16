@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { FileText, Printer, Share2, Filter, User, Calendar } from 'lucide-react';
+import { FileText, Printer, Share2, Filter, User, Calendar, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { getSetting } from '../services/db';
 import { useSettings } from '../context/useSettings';
 
@@ -12,11 +12,12 @@ const Reports = () => {
   const [reportType, setReportType] = useState<'FULL' | 'INDIVIDUAL'>('FULL');
   const [selectedMonth, setSelectedMonth] = useState('ALL');
   const [selectedMember, setSelectedMember] = useState('');
+  const [showOnlyConfirmed, setShowOnlyConfirmed] = useState(true);
   
-  const [members, setMembers] = useState<Record<string, unknown>[]>([]);
-  const [contributions, setContributions] = useState<Record<string, unknown>[]>([]);
-  const [loans, setLoans] = useState<Record<string, unknown>[]>([]);
-  const [repayments, setRepayments] = useState<Record<string, unknown>[]>([]);
+  const [members, setMembers] = useState<any[]>([]);
+  const [contributions, setContributions] = useState<any[]>([]);
+  const [loans, setLoans] = useState<any[]>([]);
+  const [repayments, setRepayments] = useState<any[]>([]);
 
   const reportRef = useRef<HTMLDivElement>(null);
 
@@ -34,17 +35,18 @@ const Reports = () => {
       const cachedRepayments = await getSetting('repayments') || [];
       
       if (isMounted) {
-        setMembers(cachedMembers as Record<string, unknown>[]);
-        setContributions(cachedContribs as Record<string, unknown>[]);
-        setLoans(cachedLoans as Record<string, unknown>[]);
-        setRepayments(cachedRepayments as Record<string, unknown>[]);
+        setMembers(cachedMembers);
+        setContributions(cachedContribs);
+        setLoans(cachedLoans);
+        setRepayments(cachedRepayments);
       }
     })();
     return () => { isMounted = false; };
   }, []);
 
   const filteredContributions = contributions.filter(c => {
-    if (selectedMonth !== 'ALL' && c.month !== selectedMonth) return false;
+    if (showOnlyConfirmed && c.status !== 'CONFIRMED') return false;
+    if (selectedMonth !== 'ALL' && c.monthName !== selectedMonth) return false;
     if (reportType === 'INDIVIDUAL' && c.memberId !== selectedMember) return false;
     return true;
   });
@@ -55,6 +57,7 @@ const Reports = () => {
   });
 
   const filteredRepayments = repayments.filter(r => {
+    if (showOnlyConfirmed && r.status !== 'CONFIRMED') return false;
     if (reportType === 'INDIVIDUAL' && r.memberId !== selectedMember) return false;
     return true;
   });
@@ -64,25 +67,14 @@ const Reports = () => {
   const activeLoansTotal = filteredLoans.filter(l => l.status !== 'FULLY_PAID').reduce((sum, l) => sum + (Number(l.balance) || 0), 0);
   const totalRepaymentsAmount = filteredRepayments.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => { window.print(); };
 
   const handleShare = async () => {
-    const reportText = `*${settings.systemName} - Financial Report*\nType: ${reportType === 'FULL' ? 'Full Report' : 'Individual Report'}\nMonth: ${selectedMonth}\n\n*Summary:*\nTotal Shares: MWK ${totalShares.toLocaleString()}\nTotal Emergency: MWK ${totalEmergency.toLocaleString()}\nActive Loans: MWK ${activeLoansTotal.toLocaleString()}\nTotal Repayments: MWK ${totalRepaymentsAmount.toLocaleString()}\n\nGenerated on: ${new Date().toLocaleDateString()}`;
-    
+    const reportText = `*${settings.systemName} - Financial Report*\nStatus: ${showOnlyConfirmed ? 'VERIFIED ONLY' : 'ALL ENTRIES'}\nSummary: MWK ${(totalShares + totalEmergency).toLocaleString()}`;
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Financial Report',
-          text: reportText,
-        });
-      } catch (err) {
-        console.error('Error sharing:', err);
-      }
+      await navigator.share({ title: 'Financial Report', text: reportText });
     } else {
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(reportText)}`;
-      window.open(whatsappUrl, '_blank');
+      window.open(`https://wa.me/?text=${encodeURIComponent(reportText)}`, '_blank');
     }
   };
 
@@ -90,263 +82,143 @@ const Reports = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* Controls - Hidden when printing */}
       <div className="print:hidden space-y-6">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex flex-col gap-1">
-            <h1 className="text-3xl font-bold tracking-tight">{t('reports.title')}</h1>
-            <p className="text-muted-foreground">Generate, print, and share professional financial reports.</p>
+            <h1 className="text-3xl font-black tracking-tight">{t('reports.title')}</h1>
+            <p className="text-muted-foreground font-medium">Verified audit reports and financial statements.</p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button 
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-secondary-foreground font-medium rounded-xl hover:bg-secondary/80 transition-all"
+              onClick={() => setShowOnlyConfirmed(!showOnlyConfirmed)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all border ${showOnlyConfirmed ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'}`}
             >
-              <Printer className="w-5 h-5" />
-              <span className="hidden sm:inline">{t('reports.print')}</span>
+              {showOnlyConfirmed ? <ShieldCheck className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
+              {showOnlyConfirmed ? 'Verified Only' : 'Include Pending'}
             </button>
-            <button 
-              onClick={handleShare}
-              className="flex items-center gap-2 px-4 py-2.5 bg-green-500 text-white font-medium rounded-xl hover:bg-green-600 transition-all shadow-lg shadow-green-500/20"
-            >
-              <Share2 className="w-5 h-5" />
-              <span className="hidden sm:inline">{t('reports.share')}</span>
+            <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-secondary-foreground font-bold rounded-xl hover:bg-secondary/80 transition-all border border-transparent">
+              <Printer className="w-4 h-4" /> Print
+            </button>
+            <button onClick={handleShare} className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+              <Share2 className="w-4 h-4" /> Share
             </button>
           </div>
         </div>
 
-        <div className="glass p-6 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="glass p-6 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-3 gap-6 shadow-sm border border-primary/5">
           <div>
-            <label className="block text-sm font-medium mb-2 text-muted-foreground flex items-center gap-2">
-              <Filter className="w-4 h-4" /> Report Type
-            </label>
-            <div className="flex bg-secondary/50 p-1 rounded-xl">
-              <button
-                onClick={() => setReportType('FULL')}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${reportType === 'FULL' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-              >
-                {t('reports.full_report')}
-              </button>
-              <button
-                onClick={() => setReportType('INDIVIDUAL')}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${reportType === 'INDIVIDUAL' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-              >
-                {t('reports.individual_report')}
-              </button>
+            <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-muted-foreground ml-1">Report Scope</label>
+            <div className="flex bg-secondary/50 p-1.5 rounded-[1.25rem]">
+              <button onClick={() => setReportType('FULL')} className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all ${reportType === 'FULL' ? 'bg-background shadow-md text-primary' : 'text-muted-foreground'}`}>{t('reports.full_report')}</button>
+              <button onClick={() => setReportType('INDIVIDUAL')} className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all ${reportType === 'INDIVIDUAL' ? 'bg-background shadow-md text-primary' : 'text-muted-foreground'}`}>{t('reports.individual_report')}</button>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2 text-muted-foreground flex items-center gap-2">
-              <Calendar className="w-4 h-4" /> {t('reports.select_month')}
-            </label>
-            <select
-              title="Select Month"
-              aria-label="Select Month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary appearance-none font-medium"
-            >
-              {months.map(m => (
-                <option key={m} value={m}>{m === 'ALL' ? t('reports.all_months') : m}</option>
-              ))}
+            <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-muted-foreground ml-1">Timeframe</label>
+            <select title="Month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none">
+              {months.map(m => <option key={m} value={m}>{m === 'ALL' ? 'Entire Cycle' : m}</option>)}
             </select>
           </div>
 
           {reportType === 'INDIVIDUAL' && (
             <div>
-              <label className="block text-sm font-medium mb-2 text-muted-foreground flex items-center gap-2">
-                <User className="w-4 h-4" /> {t('reports.select_member')}
-              </label>
-              <select
-                title="Select Member"
-                aria-label="Select Member"
-                value={selectedMember}
-                onChange={(e) => setSelectedMember(e.target.value)}
-                className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary appearance-none font-medium"
-              >
-                <option value="">-- Select Member --</option>
-                {members.map(m => (
-                  <option key={String(m.id)} value={String(m.id)}>{String(m.fullname)} ({String(m.memberNumber)})</option>
-                ))}
+              <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-muted-foreground ml-1">Select Member</label>
+              <select title="Member" value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none">
+                <option value="">Choose Member</option>
+                {members.map(m => <option key={String(m.id)} value={String(m.id)}>{String(m.fullname)}</option>)}
               </select>
             </div>
           )}
         </div>
       </div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white text-black p-8 md:p-12 rounded-2xl shadow-xl print:shadow-none print:p-0 print:m-0"
-        ref={reportRef}
-        id="printable-report"
-      >
-        <style>
-          {`
-            @media print {
-              body * {
-                visibility: hidden;
-              }
-              #printable-report, #printable-report * {
-                visibility: visible;
-              }
-              #printable-report {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-              }
-              .print\\:hidden {
-                display: none !important;
-              }
-            }
-          `}
-        </style>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black p-10 md:p-16 rounded-[3rem] shadow-2xl print:shadow-none print:p-0 print:m-0" ref={reportRef} id="printable-report">
+        <style>{`@media print { body * { visibility: hidden; } #printable-report, #printable-report * { visibility: visible; } #printable-report { position: absolute; left: 0; top: 0; width: 100%; } .print\\:hidden { display: none !important; } }`}</style>
 
-        {/* Report Header */}
-        <div className="flex flex-col items-center justify-center text-center border-b-2 border-gray-200 pb-8 mb-8">
-          {settings.logo && (
-            <img src={settings.logo} alt="Logo" className="h-20 mb-4 object-contain" />
-          )}
-          <h1 className="text-3xl font-black uppercase text-gray-900 tracking-wider mb-2">
-            {settings.organizationName}
-          </h1>
-          <h2 className="text-xl text-gray-600 font-medium mb-4">
-            {reportType === 'FULL' ? t('reports.full_report') : t('reports.individual_report')}
-          </h2>
+        <div className="flex flex-col items-center justify-center text-center border-b-4 border-gray-100 pb-10 mb-10">
+          <img src="/icon-192x192.png" alt="Logo" className="h-20 mb-6 grayscale" />
+          <h1 className="text-4xl font-black uppercase text-gray-900 tracking-tighter mb-2">{settings.organizationName}</h1>
+          <div className="px-6 py-1.5 bg-gray-900 text-white rounded-full text-xs font-black uppercase tracking-[0.2em] mb-6">{reportType === 'FULL' ? 'General Financial Statement' : 'Member Activity Statement'}</div>
           
-          <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-gray-500 font-medium">
-            <span className="bg-gray-100 px-3 py-1 rounded-full">
-              {t('reports.report_for')}: {selectedMonth === 'ALL' ? t('reports.all_months') : selectedMonth}
-            </span>
-            <span className="bg-gray-100 px-3 py-1 rounded-full">
-              {t('reports.date_generated')}: {new Date().toLocaleDateString()}
-            </span>
-            {reportType === 'INDIVIDUAL' && currentMember && (
-              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full">
-                Member: {String(currentMember.fullname)} ({String(currentMember.memberNumber)})
-              </span>
-            )}
+          <div className="flex flex-wrap justify-center gap-4 text-[10px] font-black uppercase tracking-widest text-gray-400">
+            <span>Period: {selectedMonth}</span>
+            <span className="w-1.5 h-1.5 bg-gray-200 rounded-full my-auto"></span>
+            <span>Generated: {new Date().toLocaleDateString()}</span>
+            <span className="w-1.5 h-1.5 bg-gray-200 rounded-full my-auto"></span>
+            <span>Status: {showOnlyConfirmed ? 'VERIFIED' : 'PROVISIONAL'}</span>
           </div>
         </div>
 
-        {/* Financial Summary */}
-        <div className="mb-10">
-          <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-200 pb-2">
-            <FileText className="w-5 h-5" />
-            Financial Summary
-          </h3>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 shadow-sm">
-              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">{t('reports.total_shares')}</p>
-              <h4 className="text-2xl font-black text-gray-900">MWK {totalShares.toLocaleString()}</h4>
-            </div>
-            <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 shadow-sm">
-              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">{t('reports.total_emergency')}</p>
-              <h4 className="text-2xl font-black text-gray-900">MWK {totalEmergency.toLocaleString()}</h4>
-            </div>
-            <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 shadow-sm">
-              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">{t('reports.active_loans')}</p>
-              <h4 className="text-2xl font-black text-gray-900">MWK {activeLoansTotal.toLocaleString()}</h4>
-            </div>
-            <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 shadow-sm">
-              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">{t('reports.total_repayments')}</p>
-              <h4 className="text-2xl font-black text-gray-900">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
-            </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+          <div className="border-l-4 border-gray-900 pl-6">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Shares</p>
+            <h4 className="text-2xl font-black text-gray-900">MWK {totalShares.toLocaleString()}</h4>
+          </div>
+          <div className="border-l-4 border-gray-900 pl-6">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Emergency Fund</p>
+            <h4 className="text-2xl font-black text-gray-900">MWK {totalEmergency.toLocaleString()}</h4>
+          </div>
+          <div className="border-l-4 border-gray-900 pl-6">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Loan Recovery</p>
+            <h4 className="text-2xl font-black text-gray-900">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
+          </div>
+          <div className="border-l-4 border-gray-900 pl-6">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Outstanding Loans</p>
+            <h4 className="text-2xl font-black text-rose-600">MWK {activeLoansTotal.toLocaleString()}</h4>
           </div>
         </div>
 
-        {/* Detailed Breakdown - Contributions */}
         {filteredContributions.length > 0 && (
-          <div className="mb-10">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">Contributions Breakdown</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
-                    <th className="p-3 font-semibold rounded-tl-lg">Date</th>
-                    {reportType === 'FULL' && <th className="p-3 font-semibold">Member</th>}
-                    <th className="p-3 font-semibold">Type</th>
-                    <th className="p-3 font-semibold">Month</th>
-                    <th className="p-3 font-semibold text-right rounded-tr-lg">Amount</th>
+          <div className="mb-16">
+            <h3 className="text-sm font-black uppercase tracking-widest text-gray-900 mb-6 flex items-center gap-3">
+              <span className="w-8 h-1 bg-gray-900"></span> Contribution Detail
+            </h3>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b-2 border-gray-900 text-[10px] font-black uppercase text-gray-400">
+                  <th className="py-4 pr-4">Date</th>
+                  {reportType === 'FULL' && <th className="py-4">Member</th>}
+                  <th className="py-4">Type</th>
+                  <th className="py-4">Period</th>
+                  <th className="py-4 text-right">Amount (MWK)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredContributions.map((c, i) => (
+                  <tr key={i} className="text-xs font-bold">
+                    <td className="py-4 text-gray-400">{new Date(c.timestamp).toLocaleDateString()}</td>
+                    {reportType === 'FULL' && <td className="py-4">{c.memberName}</td>}
+                    <td className="py-4 uppercase tracking-tighter text-[10px]">{c.type}</td>
+                    <td className="py-4 text-gray-400">{c.monthName} {c.year}</td>
+                    <td className="py-4 text-right font-black">{c.amount.toLocaleString()}</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredContributions.map((c, i) => (
-                    <tr key={i} className="hover:bg-gray-50/50">
-                      <td className="p-3 text-sm text-gray-600">{new Date(String(c.timestamp)).toLocaleDateString()}</td>
-                      {reportType === 'FULL' && <td className="p-3 font-medium text-gray-900">{String(c.memberName)}</td>}
-                      <td className="p-3">
-                        <span className={`px-2 py-1 text-xs font-bold rounded-md ${c.type === 'SHARE' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                          {String(c.type)}
-                        </span>
-                      </td>
-                      <td className="p-3 text-sm text-gray-600">{String(c.month)} {String(c.year)}</td>
-                      <td className="p-3 font-bold text-right text-gray-900">MWK {Number(c.amount).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
-        {/* Detailed Breakdown - Loans */}
-        {filteredLoans.length > 0 && (
-          <div className="mb-10">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">Loans Overview</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
-                    <th className="p-3 font-semibold rounded-tl-lg">Date</th>
-                    {reportType === 'FULL' && <th className="p-3 font-semibold">Member</th>}
-                    <th className="p-3 font-semibold">Principal</th>
-                    <th className="p-3 font-semibold">Status</th>
-                    <th className="p-3 font-semibold text-right rounded-tr-lg">Balance</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredLoans.map((l, i) => (
-                    <tr key={i} className="hover:bg-gray-50/50">
-                      <td className="p-3 text-sm text-gray-600">{new Date(String(l.timestamp)).toLocaleDateString()}</td>
-                      {reportType === 'FULL' && <td className="p-3 font-medium text-gray-900">{String(l.memberName)}</td>}
-                      <td className="p-3 text-sm font-medium text-gray-900">MWK {Number(l.principal).toLocaleString()}</td>
-                      <td className="p-3">
-                         <span className="px-2 py-1 text-xs font-bold rounded-md bg-blue-100 text-blue-800">
-                          {String(l.status)}
-                        </span>
-                      </td>
-                      <td className="p-3 font-bold text-right text-rose-600">MWK {Number(l.balance).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <div className="mt-20 pt-16 border-t-2 border-gray-100 flex justify-between items-end">
+          <div className="space-y-8">
+            <div className="space-y-1">
+              <div className="w-48 h-0.5 bg-gray-900"></div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Secretary Signature</p>
+            </div>
+            <div className="space-y-1">
+              <div className="w-48 h-0.5 bg-gray-900"></div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Treasurer Signature</p>
             </div>
           </div>
-        )}
-
-        {/* Footer */}
-        <div className="mt-16 pt-8 border-t border-gray-200 flex flex-col items-center">
-          <p className="text-gray-500 text-sm font-medium mb-12">This is a system generated report and does not require a physical signature unless printed for official use.</p>
-          
-          <div className="flex justify-between w-full max-w-2xl px-8 mt-8">
-            <div className="text-center">
-              <div className="w-48 h-px bg-gray-400 mb-2"></div>
-              <p className="text-sm font-bold text-gray-700">Prepared By</p>
-              <p className="text-xs text-gray-500">System Administrator / Accountant</p>
-            </div>
-            <div className="text-center">
-              <div className="w-48 h-px bg-gray-400 mb-2"></div>
-              <p className="text-sm font-bold text-gray-700">Approved By</p>
-              <p className="text-xs text-gray-500">Chairperson / Treasurer</p>
+          <div className="text-right">
+            <p className="text-[10px] font-black uppercase text-gray-300 mb-2">System Authenticated</p>
+            <div className="flex items-center gap-2 justify-end text-gray-900">
+              <ShieldCheck className="w-5 h-5" />
+              <span className="font-black text-lg tracking-tighter">{settings.systemName} SECURE</span>
             </div>
           </div>
         </div>
-
       </motion.div>
     </div>
   );

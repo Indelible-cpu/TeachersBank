@@ -15,7 +15,9 @@ interface AuthContextType {
   login: (token: string, user: User) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
-  isReadOnly: boolean;
+  isReadOnly: boolean; // General UI restriction
+  canConfirm: boolean; // Treasurer verification power
+  canWriteFinance: boolean; // Secretary recording power
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,15 +62,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('auth_token');
   };
 
-  // Treasurer is read-only as per user requirement
-  const isReadOnly = user?.role === 'TREASURER';
+  // ADMIN is now read-only for finance as per new requirement
+  const isReadOnly = user?.role === 'ADMIN';
+  
+  // TREASURER has confirmation power
+  const canConfirm = user?.role === 'TREASURER';
+  
+  // SECRETARY records finance
+  const canWriteFinance = user?.role === 'SECRETARY';
 
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token, isReadOnly }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      login, 
+      logout, 
+      isAuthenticated: !!token, 
+      isReadOnly,
+      canConfirm,
+      canWriteFinance
+    }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, CreditCard, Banknote, Calendar, Lock } from 'lucide-react';
+import { Plus, CreditCard, Banknote, Calendar, Lock, ShieldAlert } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting, addToSyncQueue } from '../services/db';
@@ -22,7 +22,7 @@ interface Loan {
 const Loans = () => {
   const { t } = useTranslation();
   const { isOnline, settings } = useSettings();
-  const { isReadOnly } = useAuth();
+  const { isReadOnly, canWriteFinance } = useAuth();
   const [loans, setLoans] = useState<Loan[]>([]);
   const [members, setMembers] = useState<Record<string, any>[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,7 +49,7 @@ const Loans = () => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isReadOnly) return;
+    if (isReadOnly || !canWriteFinance) return;
 
     const selectedMember = members.find(m => m.id === newLoan.memberId);
     
@@ -86,11 +86,11 @@ const Loans = () => {
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-bold tracking-tight">{t('loans.title')}</h1>
-          <p className="text-muted-foreground">Manage member loans and track balances.</p>
+          <h1 className="text-3xl font-black tracking-tight">{t('loans.title')}</h1>
+          <p className="text-muted-foreground font-medium">Official organization loan issuance and tracking.</p>
         </div>
         
-        {!isReadOnly ? (
+        {canWriteFinance && (
           <button 
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-bold rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-primary/20"
@@ -98,21 +98,22 @@ const Loans = () => {
             <Plus className="w-5 h-5" />
             {t('loans.create_loan')}
           </button>
-        ) : (
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-muted-foreground font-medium rounded-xl border border-dashed">
-            <Lock className="w-4 h-4" />
-            Read Only Access
+        )}
+
+        {isReadOnly && (
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-muted-foreground font-black uppercase text-[10px] rounded-xl border border-dashed tracking-widest">
+            <Lock className="w-4 h-4 text-rose-500" />
+            Admin Read-Only Access
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {loans.map((loan, i) => (
           <motion.div 
             key={loan.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
             className="glass rounded-[2rem] p-6 flex flex-col gap-4 hover:border-primary/30 transition-all relative overflow-hidden shadow-sm"
           >
             {loan.status === 'FULLY_PAID' && (
@@ -122,11 +123,11 @@ const Loans = () => {
             )}
             
             <div className="flex items-center gap-4">
-              <div className={`p-4 rounded-2xl ${loan.balance > 0 ? 'bg-blue-500/10 text-blue-500 shadow-blue-500/5' : 'bg-emerald-500/10 text-emerald-500 shadow-emerald-500/5'} shadow-inner`}>
+              <div className={`p-4 rounded-2xl ${loan.balance > 0 ? 'bg-blue-500/10 text-blue-500' : 'bg-emerald-500/10 text-emerald-500'} shadow-inner`}>
                 <CreditCard className="w-7 h-7" />
               </div>
-              <div>
-                <h3 className="font-bold text-lg leading-tight">{loan.memberName}</h3>
+              <div className="overflow-hidden">
+                <h3 className="font-bold text-lg leading-tight truncate">{loan.memberName}</h3>
                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${loan.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-secondary text-secondary-foreground'}`}>
                   {loan.status}
                 </span>
@@ -135,15 +136,15 @@ const Loans = () => {
             
             <div className="space-y-3 pt-4 border-t border-border/50 text-sm">
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium">{t('loans.principal')}</span>
-                <span className="font-bold text-foreground tracking-tight">MWK {loan.principal.toLocaleString()}</span>
+                <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider">{t('loans.principal')}</span>
+                <span className="font-black text-foreground">MWK {loan.principal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium">{t('loans.expected_return')} ({loan.interestRate}%)</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">MWK {loan.expectedReturn.toLocaleString()}</span>
+                <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider">Interest Pool ({loan.interestRate}%)</span>
+                <span className="font-black text-emerald-600 dark:text-emerald-400">MWK {(loan.expectedReturn - loan.principal).toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-border/50">
-                <span className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">{t('loans.balance')}</span>
+                <span className="font-black text-xs text-muted-foreground uppercase tracking-widest">{t('loans.balance')}</span>
                 <span className="font-black text-xl text-rose-600 dark:text-rose-400">MWK {loan.balance.toLocaleString()}</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 bg-secondary/30 p-2 rounded-xl">
@@ -157,10 +158,7 @@ const Loans = () => {
 
       <AnimatePresence>
         {isModalOpen && (
-          <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
-            onClick={() => setIsModalOpen(false)}
-          >
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={() => setIsModalOpen(false)}>
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -169,25 +167,21 @@ const Loans = () => {
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-black tracking-tight">{t('loans.create_loan')}</h2>
-                <div className="p-2 bg-primary/10 rounded-xl text-primary"><CreditCard className="w-6 h-6" /></div>
+                <h2 className="text-2xl font-black tracking-tight">Issue Organization Loan</h2>
+                <ShieldAlert className="w-8 h-8 text-primary/20" />
               </div>
 
               <form onSubmit={handleSave} className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="loan-member">Member</label>
                   <select 
-                    id="loan-member"
-                    title="Select Member"
-                    required
+                    id="loan-member" title="Select Member" required
                     value={newLoan.memberId}
                     onChange={e => setNewLoan({...newLoan, memberId: e.target.value})}
-                    className="w-full px-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none"
+                    className="w-full px-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
                   >
                     <option value="">Choose Member</option>
-                    {members.map((m) => (
-                      <option key={String(m.id)} value={String(m.id)}>{String(m.fullname)} ({String(m.memberNumber)})</option>
-                    ))}
+                    {members.map(m => <option key={String(m.id)} value={String(m.id)}>{String(m.fullname)}</option>)}
                   </select>
                 </div>
 
@@ -196,14 +190,10 @@ const Loans = () => {
                   <div className="relative">
                     <Banknote className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground opacity-40" />
                     <input 
-                      id="loan-amount"
-                      type="number" 
-                      required
-                      min="0"
+                      id="loan-amount" type="number" required min="0"
                       value={newLoan.principal}
                       onChange={e => setNewLoan({...newLoan, principal: e.target.value})}
                       className="w-full pl-12 pr-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-black"
-                      placeholder="Amount in MWK"
                     />
                   </div>
                 </div>
@@ -211,34 +201,16 @@ const Loans = () => {
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="loan-due">Due Date</label>
                   <input 
-                    id="loan-due"
-                    type="date" 
-                    required
+                    id="loan-due" type="date" required
                     value={newLoan.dueDate}
                     onChange={e => setNewLoan({...newLoan, dueDate: e.target.value})}
                     className="w-full px-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
                   />
                 </div>
 
-                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-center justify-between">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Interest Rate</span>
-                  <span className="font-black text-primary">{settings.interestPercentage || 10}% Fixed</span>
-                </div>
-
                 <div className="flex gap-4 pt-4">
-                  <button 
-                    type="button" 
-                    onClick={() => setIsModalOpen(false)}
-                    className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black uppercase tracking-widest hover:bg-secondary/80 transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black uppercase tracking-widest hover:shadow-xl hover:shadow-primary/20 transition-all"
-                  >
-                    Issue Loan
-                  </button>
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black uppercase tracking-widest">Cancel</button>
+                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black uppercase tracking-widest shadow-xl shadow-primary/20">Issue & Record</button>
                 </div>
               </form>
             </motion.div>

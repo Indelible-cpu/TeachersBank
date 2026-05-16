@@ -49,7 +49,7 @@ model Member {
   fullname        String
   alternativeNames String?  
   phone           String?
-  phone2          String?  // Second phone number support
+  phone2          String?  
   gender          String?  
   address         String?
   photo           String?
@@ -71,10 +71,10 @@ model AuditLog {
   user            User     @relation(fields: [userId], references: [id])
   userRole        String
   action          String
-  details         String?  // JSON or string description
+  details         String?  
   startTime       DateTime @default(now())
   endTime         DateTime?
-  status          String   @default("SUCCESS") // SUCCESS, FAILED
+  status          String   @default("SUCCESS") 
   ipAddress       String?
   
   createdAt       DateTime @default(now())
@@ -96,6 +96,12 @@ model ContributionCycle {
   updatedAt DateTime @updatedAt
 }
 
+enum ConfirmationStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
 model ShareContribution {
   id              String   @id @default(uuid())
   memberId        String
@@ -108,6 +114,12 @@ model ShareContribution {
   year            Int      
   isAdvance       Boolean  @default(false)
   recordedBy      String   
+  
+  // Treasurer Confirmation
+  status          ConfirmationStatus @default(PENDING)
+  confirmedBy     String?  // Treasurer ID
+  confirmedAt     DateTime?
+  
   receiptId       String?  @unique
   receipt         Receipt? @relation(fields: [receiptId], references: [id])
   
@@ -127,6 +139,12 @@ model EmergencyContribution {
   year            Int
   isAdvance       Boolean  @default(false)
   recordedBy      String
+
+  // Treasurer Confirmation
+  status          ConfirmationStatus @default(PENDING)
+  confirmedBy     String?  // Treasurer ID
+  confirmedAt     DateTime?
+
   receiptId       String?  @unique
   receipt         Receipt? @relation(fields: [receiptId], references: [id])
   
@@ -168,6 +186,12 @@ model Repayment {
   member     Member   @relation(fields: [memberId], references: [id])
   amount     Float
   recordedBy String
+
+  // Treasurer Confirmation
+  status          ConfirmationStatus @default(PENDING)
+  confirmedBy     String?  // Treasurer ID
+  confirmedAt     DateTime?
+
   receiptId  String?  @unique
   receipt    Receipt? @relation(fields: [receiptId], references: [id])
   
