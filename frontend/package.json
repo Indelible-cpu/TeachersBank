@@ -24,11 +24,12 @@
     "react-dom": "^19.2.6",
     "react-hook-form": "^7.76.0",
     "react-i18next": "^17.0.8",
-    "react-router-dom": "^7.15.1"
+    "react-router-dom": "^7.15.1",
+    "teachers-bank-root": "file:.."
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^24.12.3",
+    "@types/node": "^24.12.4",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",

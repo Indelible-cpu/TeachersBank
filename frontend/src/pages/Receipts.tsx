@@ -5,7 +5,7 @@ import { Receipt as ReceiptIcon, Printer, Share2, X, Download } from 'lucide-rea
 import html2pdf from 'html2pdf.js';
 import { useRef } from 'react';
 import { useSettings } from '../context/useSettings';
-import { getSetting, setSetting } from '../services/db';
+import { getSetting } from '../services/db';
 
 interface ReceiptData {
   id: string;
@@ -52,12 +52,19 @@ const Receipts = () => {
     html2pdf().set(generatePDFOptions(selectedReceipt.receiptNumber)).from(receiptRef.current).save();
   };
 
-  const handleWhatsAppShare = async (receipt: ReceiptData) => {
+  const handleShare = async (receipt: ReceiptData, format: 'pdf' | 'image' = 'pdf') => {
     if (!receiptRef.current) return;
     
     try {
-      const pdfBlob = await html2pdf().set(generatePDFOptions(receipt.receiptNumber)).from(receiptRef.current).output('blob');
-      const file = new File([pdfBlob], `Receipt_${receipt.receiptNumber}.pdf`, { type: 'application/pdf' });
+      let file: File;
+      if (format === 'pdf') {
+        const pdfBlob = await html2pdf().set(generatePDFOptions(receipt.receiptNumber)).from(receiptRef.current).output('blob');
+        file = new File([pdfBlob], `Receipt_${receipt.receiptNumber}.pdf`, { type: 'application/pdf' });
+      } else {
+        const canvas = await (await import('html2canvas')).default(receiptRef.current);
+        const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), 'image/png'));
+        file = new File([blob], `Receipt_${receipt.receiptNumber}.png`, { type: 'image/png' });
+      }
       
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
@@ -66,12 +73,11 @@ const Receipts = () => {
           text: `Receipt for ${receipt.memberName} - MWK ${receipt.amount.toLocaleString()}`
         });
       } else {
-        // Fallback
         handleDownloadPDF();
-        alert('File sharing not supported. Downloading PDF instead. You can manually attach it in WhatsApp.');
+        alert('File sharing not supported. Document downloaded instead.');
       }
     } catch (error) {
-      console.error('Error sharing PDF', error);
+      console.error('Error sharing receipt', error);
       alert('Could not share the receipt.');
     }
   };
@@ -108,8 +114,8 @@ const Receipts = () => {
             <h4 className="font-black text-lg leading-tight truncate mb-1">{r.memberName}</h4>
             <div className="flex items-center justify-between mt-4">
               <p className="text-xl font-black">MWK {r.amount.toLocaleString()}</p>
-              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">
-                {r.type}
+              <span className="text-[9px] font-semibold capitalize tracking-widest text-muted-foreground opacity-60">
+                {r.type.toLowerCase()}
               </span>
             </div>
           </motion.div>
@@ -143,9 +149,9 @@ const Receipts = () => {
                 <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
                   <img src="/icon-192x192.png" alt="Logo" className="w-14 h-14 object-contain" />
                 </div>
-                <h2 className="text-3xl font-black text-primary uppercase tracking-tighter">{settings.organizationName}</h2>
+                <h2 className="text-3xl font-bold text-primary tracking-tight">{settings.organizationName || 'Teachers Bank'}</h2>
                 <div className="mt-4 px-4 py-1 bg-primary/10 rounded-full inline-block">
-                  <p className="text-[10px] font-black text-primary">OFFICIAL RECEIPT: {selectedReceipt.receiptNumber}</p>
+                  <p className="text-[10px] font-semibold text-primary">Official receipt: {selectedReceipt.receiptNumber}</p>
                 </div>
               </div>
 
@@ -162,13 +168,13 @@ const Receipts = () => {
                 </div>
 
                 <div className="p-6 rounded-[2rem] bg-gray-50 border-2 border-gray-100 border-dashed">
-                  <span className="text-gray-400 font-black uppercase text-[10px] tracking-widest">Issued To</span>
-                  <p className="text-2xl font-black text-black mt-1">{selectedReceipt.memberName}</p>
+                  <span className="text-gray-400 font-semibold capitalize text-[10px] tracking-widest">Issued to</span>
+                  <p className="text-2xl font-bold text-black mt-1">{selectedReceipt.memberName}</p>
                   <p className="text-xs font-bold text-gray-500 mt-1">{selectedReceipt.memberPhone || 'No contact provided'}</p>
                 </div>
                 
                 <div className="flex justify-between items-center px-2">
-                  <span className="text-gray-500 font-black uppercase text-xs tracking-widest">Total Amount</span>
+                  <span className="text-gray-500 font-semibold capitalize text-xs tracking-widest">Total amount</span>
                   <span className="font-black text-4xl text-black">
                     <span className="text-lg font-bold mr-1 text-gray-400">MWK</span>
                     {selectedReceipt.amount.toLocaleString()}
@@ -187,25 +193,26 @@ const Receipts = () => {
               <div className="mt-10 grid grid-cols-3 gap-4 print:hidden">
                 <button 
                   onClick={handlePrint}
-                  className="flex flex-col items-center gap-2 py-4 bg-gray-100 hover:bg-gray-200 text-gray-900 font-black rounded-3xl transition-all"
+                  className="flex flex-col items-center gap-2 py-4 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold rounded-3xl transition-all"
                 >
                   <Printer className="w-5 h-5" />
-                  <span className="text-[10px] uppercase">Print</span>
+                  <span className="text-[10px] capitalize">Print</span>
                 </button>
                 <button 
-                  title="Download"
-                  onClick={handleDownloadPDF}
-                  className="flex flex-col items-center gap-2 py-4 bg-gray-100 hover:bg-gray-200 text-gray-900 font-black rounded-3xl transition-all"
+                  title="Share PDF"
+                  onClick={() => handleShare(selectedReceipt, 'pdf')}
+                  className="flex flex-col items-center gap-2 py-4 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold rounded-3xl transition-all"
                 >
                   <Download className="w-5 h-5" />
-                  <span className="text-[10px] uppercase">PDF</span>
+                  <span className="text-[10px] capitalize">Share PDF</span>
                 </button>
                 <button 
-                  onClick={() => handleWhatsAppShare(selectedReceipt)}
-                  className="flex flex-col items-center gap-2 py-4 bg-green-500 hover:bg-green-600 text-white font-black rounded-3xl transition-all shadow-xl shadow-green-500/20"
+                  title="Share Image"
+                  onClick={() => handleShare(selectedReceipt, 'image')}
+                  className="flex flex-col items-center gap-2 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-3xl transition-all shadow-xl shadow-green-500/20"
                 >
                   <Share2 className="w-5 h-5" />
-                  <span className="text-[10px] uppercase">WhatsApp</span>
+                  <span className="text-[10px] capitalize">Share Image</span>
                 </button>
               </div>
             </motion.div>

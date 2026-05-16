@@ -106,7 +106,7 @@ const Loans = () => {
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-black tracking-tight">{t('loans.title')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('loans.title')}</h1>
           <p className="text-muted-foreground font-medium">Official organization loan issuance and tracking.</p>
         </div>
         
@@ -120,12 +120,7 @@ const Loans = () => {
           </button>
         )}
 
-        {isReadOnly && (
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-muted-foreground font-black uppercase text-[10px] rounded-xl border border-dashed tracking-widest">
-            <Lock className="w-4 h-4 text-rose-500" />
-            Admin Read-Only Access
-          </div>
-        )}
+
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -137,8 +132,8 @@ const Loans = () => {
             className="glass rounded-[2rem] p-6 flex flex-col gap-4 hover:border-primary/30 transition-all relative overflow-hidden shadow-sm"
           >
             {loan.status === 'FULLY_PAID' && (
-              <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-black px-4 py-1.5 rounded-bl-2xl uppercase tracking-widest">
-                PAID
+              <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-semibold px-4 py-1.5 rounded-bl-2xl capitalize tracking-widest">
+                Fully paid
               </div>
             )}
             
@@ -148,28 +143,28 @@ const Loans = () => {
               </div>
               <div className="overflow-hidden">
                 <h3 className="font-bold text-lg leading-tight truncate">{loan.memberName}</h3>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${loan.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-secondary text-secondary-foreground'}`}>
-                  {loan.status}
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize tracking-widest ${loan.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-secondary text-secondary-foreground'}`}>
+                  {loan.status.toLowerCase()}
                 </span>
               </div>
             </div>
             
             <div className="space-y-3 pt-4 border-t border-border/50 text-sm">
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider">{t('loans.principal')}</span>
-                <span className="font-black text-foreground">MWK {loan.principal.toLocaleString()}</span>
+                <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">{t('loans.principal')}</span>
+                <span className="font-semibold text-foreground">MWK {loan.principal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider">Interest Pool ({loan.interestRate}%)</span>
-                <span className="font-black text-emerald-600 dark:text-emerald-400">MWK {(loan.expectedReturn - loan.principal).toLocaleString()}</span>
+                <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">Interest Pool ({loan.interestRate}%)</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">MWK {(loan.expectedReturn - loan.principal).toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-border/50">
-                <span className="font-black text-xs text-muted-foreground uppercase tracking-widest">{t('loans.balance')}</span>
-                <span className="font-black text-xl text-rose-600 dark:text-rose-400">MWK {loan.balance.toLocaleString()}</span>
+                <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Return Balance</p>
+                <span className="font-semibold text-xl text-rose-600 dark:text-rose-400">MWK {loan.balance.toLocaleString()}</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 bg-secondary/30 p-2 rounded-xl">
                 <Calendar className="w-4 h-4 text-primary" />
-                <span className="font-bold uppercase tracking-tight">Due: {new Date(loan.dueDate).toLocaleDateString()}</span>
+                <span className="font-semibold capitalize tracking-tight">Due: {new Date(loan.dueDate).toLocaleDateString()}</span>
               </div>
             </div>
           </motion.div>

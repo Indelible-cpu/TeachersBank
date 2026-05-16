@@ -193,12 +193,7 @@ const Contributions = () => {
           </button>
         )}
 
-        {isReadOnly && (
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-muted-foreground font-black uppercase text-[10px] rounded-xl border border-dashed tracking-widest">
-            <Lock className="w-4 h-4 text-rose-500" />
-            Admin Read-Only Access
-          </div>
-        )}
+
       </div>
 
       <div className="flex p-1.5 glass rounded-2xl w-fit">
@@ -284,25 +279,25 @@ const Contributions = () => {
 
         <div className="space-y-6">
           <div className="glass p-6 rounded-[2.5rem] bg-primary/5 border border-primary/10">
-            <h3 className="font-black text-lg mb-6 flex items-center gap-2">
+            <h3 className="font-semibold text-lg mb-6 flex items-center gap-2">
               <HandCoins className="text-primary" /> Verified Pool
             </h3>
             <div className="space-y-4">
               <div className="p-5 rounded-[2rem] bg-background border border-border">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Confirmed Shares</p>
-                <h4 className="text-2xl font-black text-emerald-600">
+                <p className="text-[10px] font-semibold tracking-widest mb-1 text-muted-foreground">Confirmed Shares</p>
+                <h4 className="text-2xl font-semibold text-emerald-600">
                   MWK {contributions.filter(c => c.type === 'SHARE' && c.status === 'CONFIRMED').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}
                 </h4>
               </div>
               <div className="p-5 rounded-[2rem] bg-background border border-border">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Confirmed Emergency</p>
-                <h4 className="text-2xl font-black text-rose-600">
+                <p className="text-[10px] font-semibold tracking-widest mb-1 text-muted-foreground">Confirmed Emergency</p>
+                <h4 className="text-2xl font-semibold text-rose-600">
                   MWK {contributions.filter(c => c.type === 'EMERGENCY' && c.status === 'CONFIRMED').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}
                 </h4>
               </div>
               <div className="pt-4 mt-4 border-t border-dashed">
                 <div className="flex justify-between items-center text-amber-600">
-                  <span className="text-[10px] font-black uppercase">Pending Verification</span>
+                  <span className="text-[10px] font-semibold tracking-widest">Pending Verification</span>
                   <span className="font-bold">MWK {contributions.filter(c => c.status === 'PENDING').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}</span>
                 </div>
               </div>
@@ -310,7 +305,7 @@ const Contributions = () => {
           </div>
           
           <div className="glass p-6 rounded-[2.5rem] border border-blue-500/10 bg-blue-500/5">
-            <h3 className="font-bold text-blue-600 text-sm mb-2 flex items-center gap-2"><Clock className="w-4 h-4" /> Treasurer Note</h3>
+            <h3 className="font-semibold text-blue-600 text-sm mb-2 flex items-center gap-2"><Clock className="w-4 h-4" /> Treasurer Note</h3>
             <p className="text-xs text-muted-foreground leading-relaxed italic">
               Verification ensures accountability. As Treasurer, your confirmation marks the official receipt of funds into the physical bank/pool.
             </p>
@@ -328,11 +323,11 @@ const Contributions = () => {
               className="w-full max-w-xl bg-background rounded-[2.5rem] p-8 border border-white/10"
               onClick={e => e.stopPropagation()}
             >
-              <h2 className="text-2xl font-black mb-8">Record Member Payment</h2>
+              <h2 className="text-2xl font-semibold mb-8">Record Member Payment</h2>
               <form onSubmit={handleSave} className="space-y-6">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Member</label>
+                    <label className="block text-[10px] font-semibold tracking-widest mb-2 text-muted-foreground ml-1">Member</label>
                     <select 
                       required title="Select Member"
                       value={newContrib.memberId}

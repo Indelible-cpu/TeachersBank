@@ -169,37 +169,37 @@ const Reports = () => {
 
         <div className="flex flex-col items-center justify-center text-center border-b-4 border-primary/20 pb-10 mb-10">
           <img src="/icon-192x192.png" alt="Logo" className="h-20 mb-6 object-contain" />
-          <h1 className="text-4xl font-black uppercase text-primary tracking-tighter mb-2">{settings.organizationName}</h1>
+          <h1 className="text-4xl font-bold text-primary tracking-tight mb-2">{settings.organizationName || 'Teachers Bank'}</h1>
           
-          <div className="flex flex-wrap justify-center gap-4 text-[10px] font-black uppercase tracking-widest text-gray-400">
+          <div className="flex flex-wrap justify-center gap-4 text-[10px] font-semibold capitalize tracking-widest text-gray-400">
             <span>Period: {selectedMonth}</span>
             <span className="w-1.5 h-1.5 bg-gray-200 rounded-full my-auto"></span>
             <span>Generated: {new Date().toLocaleDateString()}</span>
             <span className="w-1.5 h-1.5 bg-gray-200 rounded-full my-auto"></span>
-            <span>Status: {showOnlyConfirmed ? 'VERIFIED' : 'PROVISIONAL'}</span>
+            <span>Status: {showOnlyConfirmed ? 'Verified' : 'Provisional'}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Total Shares</p>
-            <h4 className="text-2xl font-black text-primary">MWK {totalShares.toLocaleString()}</h4>
+            <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Total shares</p>
+            <h4 className="text-2xl font-bold text-primary">MWK {totalShares.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Emergency Fund</p>
-            <h4 className="text-2xl font-black text-primary">MWK {totalEmergency.toLocaleString()}</h4>
+            <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Emergency fund</p>
+            <h4 className="text-2xl font-bold text-primary">MWK {totalEmergency.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Loan Recovery</p>
-            <h4 className="text-2xl font-black text-primary">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
+            <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Loan recovery</p>
+            <h4 className="text-2xl font-bold text-primary">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Accumulated Interest</p>
-            <h4 className="text-2xl font-black text-purple-600">MWK {accumulatedInterest.toLocaleString()}</h4>
+            <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Accumulated interest</p>
+            <h4 className="text-2xl font-bold text-purple-600">MWK {accumulatedInterest.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Outstanding Loans</p>
-            <h4 className="text-2xl font-black text-rose-600">MWK {activeLoansTotal.toLocaleString()}</h4>
+            <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Outstanding loans</p>
+            <h4 className="text-2xl font-bold text-rose-600">MWK {activeLoansTotal.toLocaleString()}</h4>
           </div>
         </div>
 

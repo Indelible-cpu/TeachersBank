@@ -128,7 +128,7 @@ const Settings = () => {
             {profilePhoto ? (
               <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-3xl font-black text-primary">{user?.name?.charAt(0)}</span>
+              <span className="text-3xl font-bold text-primary">{user?.name?.charAt(0)}</span>
             )}
           </div>
           <label className="absolute bottom-0 right-0 p-2 bg-primary text-primary-foreground rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform">
@@ -138,7 +138,7 @@ const Settings = () => {
         </div>
         <div className="text-center">
           <h2 className="text-xl font-bold">{user?.name}</h2>
-          <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest">{user?.role}</p>
+          <p className="text-xs font-semibold capitalize tracking-widest text-muted-foreground">{user?.role?.toLowerCase()}</p>
           <p className="text-sm text-muted-foreground">{user?.email}</p>
         </div>
       </motion.div>

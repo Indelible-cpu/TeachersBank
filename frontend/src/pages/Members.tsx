@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Phone, Calendar, UserRound, Lock, User as UserIcon, MapPin } from 'lucide-react';
+import { Search, Plus, Phone, Calendar, UserRound, Lock, User as UserIcon, MapPin, ShieldCheck } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting, addToSyncQueue } from '../services/db';
@@ -137,12 +137,13 @@ const Members = () => {
               <div className="overflow-hidden">
                 <h3 className="font-bold text-lg leading-tight truncate">{member.fullname}</h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-primary text-primary-foreground uppercase tracking-wider">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-primary text-primary-foreground capitalize tracking-widest">
                     {member.memberNumber}
                   </span>
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${member.gender === 'FEMALE' ? 'bg-pink-500/10 text-pink-600' : 'bg-blue-500/10 text-blue-600'}`}>
-                    {member.gender}
-                  </span>
+                  <span className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest block mb-1">Status</span>
+                  <div className="flex items-center gap-1.5 text-emerald-500 font-bold text-xs capitalize">
+                    <ShieldCheck className="w-4 h-4" /> Active
+                  </div>
                 </div>
               </div>
             </div>
@@ -277,7 +278,7 @@ const Members = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="phone-2">Secondary Phone</label>
+                    <label className="text-xs font-semibold capitalize tracking-widest text-muted-foreground ml-1" htmlFor="phone-2">Secondary phone</label>
                     <input 
                       id="phone-2"
                       type="tel" 

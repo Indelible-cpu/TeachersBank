@@ -113,7 +113,7 @@ const Repayments = () => {
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-black tracking-tight">{t('repayments.title')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('repayments.title')}</h1>
           <p className="text-muted-foreground font-medium italic">Loan recovery and verification ledger.</p>
         </div>
         
@@ -127,12 +127,7 @@ const Repayments = () => {
           </button>
         )}
 
-        {isReadOnly && (
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-muted-foreground font-black uppercase text-[10px] rounded-xl border border-dashed tracking-widest">
-            <Lock className="w-4 h-4 text-rose-500" />
-            Admin Read-Only Access
-          </div>
-        )}
+
       </div>
 
       <div className="flex p-1.5 glass rounded-2xl w-fit">
@@ -159,7 +154,7 @@ const Repayments = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-xl font-black uppercase tracking-tight flex items-center gap-2 mb-4">
+          <h2 className="text-xl font-bold tracking-tight flex items-center gap-2 mb-4">
             {activeView === 'verify' ? <ShieldAlert className="text-rose-500" /> : <Receipt className="text-primary" />}
             {activeView === 'verify' ? 'Verify Collections' : 'Repayment Log'}
           </h2>
@@ -179,11 +174,11 @@ const Repayments = () => {
                   <div>
                     <h4 className="font-bold flex items-center gap-2">
                       {r.memberName}
-                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${r.status === 'CONFIRMED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'}`}>
-                        {r.status}
+                      <span className={`text-[9px] font-semibold capitalize px-2 py-0.5 rounded-full border ${r.status === 'CONFIRMED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'}`}>
+                        {r.status.toLowerCase()}
                       </span>
                     </h4>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter opacity-60">Loan Ref: {r.loanId}</p>
+                    <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-tighter opacity-60">Loan ref: {r.loanId}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
@@ -211,7 +206,7 @@ const Repayments = () => {
             <h3 className="font-black text-emerald-600 text-sm mb-4 flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Treasurer Dashboard</h3>
             <div className="space-y-4">
               <div className="p-5 rounded-3xl bg-background border border-border">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Total Confirmed Recovery</p>
+                <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Total confirmed recovery</p>
                 <h4 className="text-2xl font-black text-emerald-700 dark:text-emerald-300">
                   MWK {repayments.filter(r => r.status === 'CONFIRMED').reduce((acc, r) => acc + r.amount, 0).toLocaleString()}
                 </h4>

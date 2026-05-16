@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Wallet, CreditCard, Users, ShieldAlert, CheckCircle2, TrendingUp, HandCoins } from 'lucide-react';
+import { Wallet, CreditCard, ShieldAlert, CheckCircle2, TrendingUp, HandCoins } from 'lucide-react';
 import { getSetting } from '../services/db';
 
 interface DashboardStats {
@@ -36,7 +36,7 @@ const Dashboard = () => {
   useEffect(() => {
     (async () => {
       const contribs = (await getSetting('contributions') || []) as DBRecord[];
-      const loansList = (await getSetting('loans') || []) as any[];
+      const loansList = (await getSetting('loans') || []) as Array<{ principal: number; expectedReturn: number; balance: number }>;
       const membersList = await getSetting('members') || [];
       const repaymentsList = (await getSetting('repayments') || []) as DBRecord[];
 
@@ -68,7 +68,7 @@ const Dashboard = () => {
     <div className="max-w-6xl mx-auto space-y-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div className="space-y-1">
-          <h1 className="text-4xl font-black tracking-tighter uppercase">{t('dashboard.title')}</h1>
+          <h1 className="text-4xl font-bold tracking-tight">{t('dashboard.title')}</h1>
           <p className="text-muted-foreground font-medium italic">Welcome back, {user?.name}. Your financial command center is ready.</p>
         </div>
         
@@ -80,8 +80,8 @@ const Dashboard = () => {
           >
             <ShieldAlert className="w-6 h-6 animate-pulse" />
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1">Attention Treasurer</p>
-              <p className="text-sm font-bold">{data.pendingVerification} Items Awaiting Verification</p>
+              <p className="text-[10px] font-semibold tracking-widest leading-none mb-1 text-amber-100">Attention Treasurer</p>
+              <p className="text-sm font-bold">{data.pendingVerification} items awaiting verification</p>
             </div>
           </motion.div>
         )}
@@ -99,9 +99,9 @@ const Dashboard = () => {
             <div className={`p-4 rounded-2xl w-fit ${stat.bg} group-hover:scale-110 transition-transform`}>
               <stat.icon className={`w-8 h-8 ${stat.color}`} />
             </div>
-            <div>
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2">{stat.title}</p>
-              <h3 className="text-2xl font-black tracking-tight">{stat.value}</h3>
+            <div className="space-y-1">
+              <p className="text-xs font-semibold text-muted-foreground capitalize tracking-widest">{stat.title}</p>
+              <h3 className={`text-2xl font-bold ${stat.color} tracking-tight`}>{stat.value}</h3>
             </div>
           </motion.div>
         ))}
@@ -142,8 +142,8 @@ const Dashboard = () => {
         </div>
 
         <div className="glass p-10 rounded-[3rem] space-y-8">
-          <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-            <CheckCircle2 className="text-emerald-500" /> Recent Verification
+          <h3 className="text-xl font-bold tracking-tight flex items-center gap-3">
+            <CheckCircle2 className="text-emerald-500" /> Recent verification
           </h3>
           <div className="space-y-4">
              <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-transparent hover:border-emerald-500/20 transition-all">
@@ -157,7 +157,7 @@ const Dashboard = () => {
                <span className="text-xs font-black text-emerald-600">+ MWK 450,000</span>
              </div>
              <div className="flex items-center justify-center h-24 border-2 border-dashed border-border/50 rounded-3xl">
-               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest opacity-40">System Log Active</p>
+               <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40">System log active</p>
              </div>
           </div>
         </div>

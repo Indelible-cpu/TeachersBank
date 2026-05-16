@@ -67,7 +67,6 @@ const DashboardLayout = () => {
             />
             <div className="overflow-hidden break-words">
               <h1 className="text-xl font-bold text-primary tracking-tight leading-tight">{settings.systemName}</h1>
-              <p className="text-[10px] uppercase font-black text-muted-foreground leading-tight">{settings.organizationName}</p>
             </div>
           </Link>
         </div>
@@ -79,8 +78,8 @@ const DashboardLayout = () => {
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-bold truncate">{user?.name}</p>
-              <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary text-primary-foreground inline-block">
-                {user?.role}
+              <span className="text-[10px] font-semibold capitalize tracking-wider px-1.5 py-0.5 rounded bg-primary text-primary-foreground inline-block">
+                {user?.role?.toLowerCase()}
               </span>
             </div>
           </div>
@@ -137,7 +136,7 @@ const DashboardLayout = () => {
             )}
 
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 text-sm font-medium">
-              {isOnline ? <><Wifi className="w-4 h-4 text-green-500"/> <span className="text-[10px] uppercase font-bold tracking-tight">Connected</span></> : <><WifiOff className="w-4 h-4 text-red-500"/> <span className="text-[10px] uppercase font-bold tracking-tight">Offline Mode</span></>}
+              {isOnline ? <><Wifi className="w-4 h-4 text-green-500"/> <span className="text-[10px] font-semibold tracking-tight">Connected</span></> : <><WifiOff className="w-4 h-4 text-red-500"/> <span className="text-[10px] font-semibold tracking-tight">Offline mode</span></>}
             </div>
           </div>
           
@@ -154,7 +153,7 @@ const DashboardLayout = () => {
               className="group flex items-center gap-2 text-xs font-bold text-destructive hover:bg-destructive/10 px-4 py-2 rounded-full transition-all"
             >
               <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              <span className="hidden sm:inline uppercase tracking-wider">{t('dashboard.logout')}</span>
+              <span className="hidden sm:inline tracking-wider capitalize">{t('dashboard.logout').toLowerCase()}</span>
             </button>
           </div>
         </header>
