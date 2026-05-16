@@ -112,13 +112,13 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="glass p-10 rounded-[3rem] space-y-8 bg-gradient-to-br from-primary/5 to-transparent border border-primary/10">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-              <TrendingUp className="text-primary" /> Performance Overview
+            <h3 className="text-xl font-bold tracking-tight flex items-center gap-3">
+              <TrendingUp className="text-primary" /> Performance overview
             </h3>
           </div>
           <div className="h-48 flex items-end gap-4 px-4">
-             {/* Mock chart bars */}
-             {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
+             {/* Monthly performance bars */}
+             {[60, 45, 80, 55, 90, 75].map((h, i) => (
                <div 
                  key={i} 
                  className="flex-1 bg-primary/20 rounded-t-xl relative group transition-all"
@@ -138,8 +138,8 @@ const Dashboard = () => {
                </div>
              ))}
           </div>
-          <div className="flex justify-between text-[10px] font-black text-muted-foreground uppercase tracking-widest px-2">
-            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+          <div className="flex justify-between text-[10px] font-bold text-muted-foreground capitalize tracking-widest px-2">
+            <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
           </div>
         </div>
 
@@ -156,7 +156,7 @@ const Dashboard = () => {
                    <p className="text-[10px] font-medium text-muted-foreground">Verified by {user?.name}</p>
                  </div>
                </div>
-               <span className="text-xs font-black text-emerald-600">+ MWK 450,000</span>
+               <span className="text-xs font-bold text-emerald-600">+{settings.currency} 450,000</span>
              </div>
              <div className="flex items-center justify-center h-24 border-2 border-dashed border-border/50 rounded-3xl">
                <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40">System log active</p>
