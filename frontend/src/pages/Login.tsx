@@ -73,7 +73,7 @@ const Login = () => {
 
           {error && (
             <div className="mb-6 p-4 rounded-xl bg-destructive/10 text-destructive text-sm font-medium text-center">
-              {error}
+              {String(error)}
             </div>
           )}
 
