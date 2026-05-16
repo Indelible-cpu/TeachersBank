@@ -35,7 +35,8 @@ model User {
 
 enum Role {
   ADMIN
-  ACCOUNTANT
+  TREASURER
+  SECRETARY
   MEMBER
 }
 
@@ -45,6 +46,7 @@ model Member {
   user            User     @relation(fields: [userId], references: [id])
   memberNumber    String   @unique
   fullname        String
+  alternativeNames String?  // Multiple names for contributions
   phone           String?
   gender          String?
   address         String?

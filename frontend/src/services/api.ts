@@ -21,6 +21,7 @@ api.interceptors.request.use((config) => {
 export const authApi = {
   login: (credentials: any) => api.post('/auth/login', credentials),
   register: (data: any) => api.post('/auth/register', data),
+  changePassword: (data: any) => api.post('/auth/change-password', data),
 };
 
 export const syncApi = {

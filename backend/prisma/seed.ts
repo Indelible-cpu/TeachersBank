@@ -34,19 +34,48 @@ async function main() {
   });
   console.log('Cycle seeded:', cycle.name);
 
-  // 3. Create Admin User
-  const adminPassword = await bcrypt.hash('admin123', 10);
-  const admin = await prisma.user.upsert({
+  // 3. Create Users with different roles
+  const hashedPassword = await bcrypt.hash('admin123', 10);
+  const treasurerPassword = await bcrypt.hash('treasurer123', 10);
+  const secretaryPassword = await bcrypt.hash('secretary123', 10);
+
+  // Admin
+  await prisma.user.upsert({
     where: { email: 'admin@example.com' },
     update: {},
     create: {
       email: 'admin@example.com',
-      password: adminPassword,
+      password: hashedPassword,
       name: 'System Admin',
       role: 'ADMIN'
     }
   });
-  console.log('Admin user seeded:', admin.email);
+
+  // Treasurer (Read Only)
+  await prisma.user.upsert({
+    where: { email: 'treasurer@example.com' },
+    update: {},
+    create: {
+      email: 'treasurer@example.com',
+      password: treasurerPassword,
+      name: 'John Treasurer',
+      role: 'TREASURER'
+    }
+  });
+
+  // Secretary (Write Access)
+  await prisma.user.upsert({
+    where: { email: 'secretary@example.com' },
+    update: {},
+    create: {
+      email: 'secretary@example.com',
+      password: secretaryPassword,
+      name: 'Mary Secretary',
+      role: 'SECRETARY'
+    }
+  });
+
+  console.log('Users seeded successfully');
 }
 
 main()

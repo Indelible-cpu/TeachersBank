@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Search, Plus, Phone, Calendar } from 'lucide-react';
+import { Search, Plus, Phone, Calendar, UserRound, Lock } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
+import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting, addToSyncQueue } from '../services/db';
 
 interface Member {
   id: string;
   fullname: string;
+  alternativeNames?: string;
   memberNumber: string;
   phone: string;
   joinDate: string;
@@ -16,10 +18,16 @@ interface Member {
 const Members = () => {
   const { t } = useTranslation();
   const { isOnline } = useSettings();
+  const { isReadOnly } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newMember, setNewMember] = useState({ fullname: '', memberNumber: '', phone: '' });
+  const [newMember, setNewMember] = useState({ 
+    fullname: '', 
+    memberNumber: '', 
+    phone: '',
+    alternativeNames: ''
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -29,8 +37,8 @@ const Members = () => {
         setMembers(cached);
       } else if (isMounted) {
         const initial = [
-          { id: '1', fullname: 'John Banda', memberNumber: 'M001', phone: '+265 99 123 4567', joinDate: '2025-01-10' },
-          { id: '2', fullname: 'Mary Phiri', memberNumber: 'M002', phone: '+265 88 765 4321', joinDate: '2025-02-15' }
+          { id: '1', fullname: 'John Banda', memberNumber: 'M001', phone: '+265 99 123 4567', joinDate: '2025-01-10', alternativeNames: 'JB, Banda J' },
+          { id: '2', fullname: 'Mary Phiri', memberNumber: 'M002', phone: '+265 88 765 4321', joinDate: '2025-02-15', alternativeNames: 'Mary P' }
         ];
         setMembers(initial);
         await setSetting('members', initial);
@@ -41,11 +49,14 @@ const Members = () => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isReadOnly) return;
+
     const member: Member = {
       id: Date.now().toString(),
       fullname: newMember.fullname,
       memberNumber: newMember.memberNumber,
       phone: newMember.phone,
+      alternativeNames: newMember.alternativeNames,
       joinDate: new Date().toISOString().split('T')[0]
     };
     
@@ -60,12 +71,13 @@ const Members = () => {
     }
     
     setIsModalOpen(false);
-    setNewMember({ fullname: '', memberNumber: '', phone: '' });
+    setNewMember({ fullname: '', memberNumber: '', phone: '', alternativeNames: '' });
   };
 
   const filteredMembers = members.filter(m => 
     m.fullname.toLowerCase().includes(search.toLowerCase()) || 
-    m.memberNumber.toLowerCase().includes(search.toLowerCase())
+    m.memberNumber.toLowerCase().includes(search.toLowerCase()) ||
+    (m.alternativeNames && m.alternativeNames.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -76,13 +88,20 @@ const Members = () => {
           <p className="text-muted-foreground">Manage your organization's members.</p>
         </div>
         
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium rounded-xl hover:opacity-90 transition-all"
-        >
-          <Plus className="w-5 h-5" />
-          {t('members.add_member')}
-        </button>
+        {!isReadOnly ? (
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20"
+          >
+            <Plus className="w-5 h-5" />
+            {t('members.add_member')}
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-muted-foreground font-medium rounded-xl border border-dashed">
+            <Lock className="w-4 h-4" />
+            Read Only Access
+          </div>
+        )}
       </div>
 
       <div className="relative">
@@ -110,12 +129,19 @@ const Members = () => {
                 {member.fullname.charAt(0)}
               </div>
               <div>
-                <h3 className="font-semibold text-lg">{member.fullname}</h3>
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                <h3 className="font-semibold text-lg leading-tight">{member.fullname}</h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/20 text-primary uppercase">
                   {member.memberNumber}
                 </span>
               </div>
             </div>
+
+            {member.alternativeNames && (
+              <div className="flex items-start gap-2 text-xs bg-secondary/30 p-2 rounded-lg">
+                <UserRound className="w-3 h-3 mt-0.5 shrink-0 text-muted-foreground" />
+                <span className="text-muted-foreground italic truncate">Also: {member.alternativeNames}</span>
+              </div>
+            )}
             
             <div className="space-y-2 pt-4 border-t border-border/50 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
@@ -141,39 +167,48 @@ const Members = () => {
             <h2 className="text-xl font-bold mb-6">{t('members.add_member')}</h2>
             <form onSubmit={handleSave} className="space-y-4">
               <div>
-                <label htmlFor="fullname" className="block text-sm font-medium mb-1">{t('members.fullname')}</label>
+                <label className="block text-sm font-medium mb-1">{t('members.fullname')}</label>
                 <input 
-                  id="fullname"
-                  aria-label={t('members.fullname')}
                   type="text" 
                   required
                   value={newMember.fullname}
                   onChange={e => setNewMember({...newMember, fullname: e.target.value})}
                   className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Official Name"
                 />
               </div>
               <div>
-                <label htmlFor="memberNumber" className="block text-sm font-medium mb-1">{t('members.member_number')}</label>
+                <label className="block text-sm font-medium mb-1">Alternative Names (comma separated)</label>
                 <input 
-                  id="memberNumber"
-                  aria-label={t('members.member_number')}
                   type="text" 
-                  required
-                  value={newMember.memberNumber}
-                  onChange={e => setNewMember({...newMember, memberNumber: e.target.value})}
+                  value={newMember.alternativeNames}
+                  onChange={e => setNewMember({...newMember, alternativeNames: e.target.value})}
                   className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="e.g. Nickname, Business Name"
                 />
               </div>
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium mb-1">{t('members.phone')}</label>
-                <input 
-                  id="phone"
-                  aria-label={t('members.phone')}
-                  type="tel" 
-                  value={newMember.phone}
-                  onChange={e => setNewMember({...newMember, phone: e.target.value})}
-                  className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">{t('members.member_number')}</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={newMember.memberNumber}
+                    onChange={e => setNewMember({...newMember, memberNumber: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="M001"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">{t('members.phone')}</label>
+                  <input 
+                    type="tel" 
+                    value={newMember.phone}
+                    onChange={e => setNewMember({...newMember, phone: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="+265..."
+                  />
+                </div>
               </div>
               <div className="flex gap-3 pt-4">
                 <button 

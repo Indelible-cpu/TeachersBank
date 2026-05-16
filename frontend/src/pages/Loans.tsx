@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Plus, CreditCard, Banknote, Calendar } from 'lucide-react';
+import { Plus, CreditCard, Banknote, Calendar, Lock } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
+import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting, addToSyncQueue } from '../services/db';
 
 interface Loan {
@@ -21,8 +22,9 @@ interface Loan {
 const Loans = () => {
   const { t } = useTranslation();
   const { isOnline, settings } = useSettings();
+  const { isReadOnly } = useAuth();
   const [loans, setLoans] = useState<Loan[]>([]);
-  const [members, setMembers] = useState<Record<string, unknown>[]>([]);
+  const [members, setMembers] = useState<Record<string, any>[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const [newLoan, setNewLoan] = useState({
@@ -53,6 +55,8 @@ const Loans = () => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isReadOnly) return;
+
     const selectedMember = members.find(m => m.id === newLoan.memberId);
     
     const principal = parseFloat(newLoan.principal);
@@ -94,13 +98,20 @@ const Loans = () => {
           <p className="text-muted-foreground">Manage member loans and track balances.</p>
         </div>
         
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium rounded-xl hover:opacity-90 transition-all"
-        >
-          <Plus className="w-5 h-5" />
-          {t('loans.create_loan')}
-        </button>
+        {!isReadOnly ? (
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20"
+          >
+            <Plus className="w-5 h-5" />
+            {t('loans.create_loan')}
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-muted-foreground font-medium rounded-xl border border-dashed">
+            <Lock className="w-4 h-4" />
+            Read Only Access
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -162,10 +173,8 @@ const Loans = () => {
             <h2 className="text-xl font-bold mb-6">{t('loans.create_loan')}</h2>
             <form onSubmit={handleSave} className="space-y-4">
               <div>
-                <label htmlFor="memberId" className="block text-sm font-medium mb-1">{t('loans.member')}</label>
+                <label className="block text-sm font-medium mb-1">{t('loans.member')}</label>
                 <select 
-                  id="memberId"
-                  aria-label={t('loans.member')}
                   required
                   value={newLoan.memberId}
                   onChange={e => setNewLoan({...newLoan, memberId: e.target.value})}
@@ -179,12 +188,10 @@ const Loans = () => {
               </div>
 
               <div>
-                <label htmlFor="principalAmount" className="block text-sm font-medium mb-1">{t('loans.principal')}</label>
+                <label className="block text-sm font-medium mb-1">{t('loans.principal')}</label>
                 <div className="relative">
                   <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input 
-                    id="principalAmount"
-                    aria-label={t('loans.principal')}
                     type="number" 
                     required
                     min="0"
@@ -197,10 +204,8 @@ const Loans = () => {
               </div>
 
               <div>
-                <label htmlFor="dueDate" className="block text-sm font-medium mb-1">{t('loans.due_date')}</label>
+                <label className="block text-sm font-medium mb-1">{t('loans.due_date')}</label>
                 <input 
-                  id="dueDate"
-                  aria-label={t('loans.due_date')}
                   type="date" 
                   required
                   value={newLoan.dueDate}

@@ -6,7 +6,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'ACCOUNTANT' | 'MEMBER';
+  role: 'ADMIN' | 'TREASURER' | 'SECRETARY' | 'MEMBER';
 }
 
 interface AuthContextType {
@@ -15,6 +15,7 @@ interface AuthContextType {
   login: (token: string, user: User) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
+  isReadOnly: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,14 +57,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     await setSetting('auth_token', null);
     await setSetting('auth_user', null);
+    localStorage.removeItem('auth_token');
   };
+
+  // Treasurer is read-only as per user requirement
+  const isReadOnly = user?.role === 'TREASURER';
 
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token, isReadOnly }}>
       {children}
     </AuthContext.Provider>
   );

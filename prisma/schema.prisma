@@ -35,7 +35,8 @@ model User {
 
 enum Role {
   ADMIN
-  ACCOUNTANT
+  TREASURER
+  SECRETARY
   MEMBER
 }
 
@@ -45,6 +46,7 @@ model Member {
   user            User     @relation(fields: [userId], references: [id])
   memberNumber    String   @unique
   fullname        String
+  alternativeNames String?  // Multiple names for contributions
   phone           String?
   gender          String?
   address         String?
@@ -78,34 +80,36 @@ model ContributionCycle {
 }
 
 model ShareContribution {
-  id         String   @id @default(uuid())
-  memberId   String
-  member     Member   @relation(fields: [memberId], references: [id])
-  cycleId    String
-  cycle      ContributionCycle @relation(fields: [cycleId], references: [id])
-  amount     Float
-  month      Int      // 1-12
-  year       Int      // e.g., 2026
-  recordedBy String   // UserId of admin/accountant
-  receiptId  String?  @unique
-  receipt    Receipt? @relation(fields: [receiptId], references: [id])
+  id              String   @id @default(uuid())
+  memberId        String
+  member          Member   @relation(fields: [memberId], references: [id])
+  contributorName String?  // The specific name used for this contribution
+  cycleId         String
+  cycle           ContributionCycle @relation(fields: [cycleId], references: [id])
+  amount          Float
+  month           Int      // 1-12
+  year            Int      // e.g., 2026
+  recordedBy      String   // UserId of admin/accountant
+  receiptId       String?  @unique
+  receipt         Receipt? @relation(fields: [receiptId], references: [id])
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model EmergencyContribution {
-  id         String   @id @default(uuid())
-  memberId   String
-  member     Member   @relation(fields: [memberId], references: [id])
-  cycleId    String
-  cycle      ContributionCycle @relation(fields: [cycleId], references: [id])
-  amount     Float
-  month      Int
-  year       Int
-  recordedBy String
-  receiptId  String?  @unique
-  receipt    Receipt? @relation(fields: [receiptId], references: [id])
+  id              String   @id @default(uuid())
+  memberId        String
+  member          Member   @relation(fields: [memberId], references: [id])
+  contributorName String?  // The specific name used for this contribution
+  cycleId         String
+  cycle           ContributionCycle @relation(fields: [cycleId], references: [id])
+  amount          Float
+  month           Int
+  year            Int
+  recordedBy      String
+  receiptId       String?  @unique
+  receipt         Receipt? @relation(fields: [receiptId], references: [id])
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -1,14 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Plus, Wallet, HeartPulse, History } from 'lucide-react';
+import { Plus, Wallet, HeartPulse, History, UserRound, Lock } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
+import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting, addToSyncQueue } from '../services/db';
+
+interface Member {
+  id: string;
+  fullname: string;
+  memberNumber: string;
+  alternativeNames?: string;
+}
 
 interface Contribution {
   id: string;
   memberId: string;
   memberName: string;
+  contributorName?: string;
   type: 'SHARE' | 'EMERGENCY';
   amount: number;
   month: string;
@@ -19,8 +28,9 @@ interface Contribution {
 const Contributions = () => {
   const { t } = useTranslation();
   const { isOnline } = useSettings();
+  const { isReadOnly } = useAuth();
   const [contributions, setContributions] = useState<Contribution[]>([]);
-  const [members, setMembers] = useState<Record<string, unknown>[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const currentMonth = new Date().toLocaleString('default', { month: 'long' });
@@ -28,7 +38,7 @@ const Contributions = () => {
   
   const [newContrib, setNewContrib] = useState({
     memberId: '',
-    memberName: '',
+    contributorName: '',
     type: 'SHARE' as 'SHARE' | 'EMERGENCY',
     amount: '',
     month: currentMonth,
@@ -46,8 +56,8 @@ const Contributions = () => {
         setContributions(cachedContribs);
       } else if (isMounted) {
         const initial: Contribution[] = [
-          { id: 'c1', memberId: '1', memberName: 'John Banda', type: 'SHARE', amount: 50000, month: currentMonth, year: currentYear, timestamp: new Date().toISOString() },
-          { id: 'c2', memberId: '2', memberName: 'Mary Phiri', type: 'EMERGENCY', amount: 5000, month: currentMonth, year: currentYear, timestamp: new Date().toISOString() }
+          { id: 'c1', memberId: '1', memberName: 'John Banda', contributorName: 'John Banda', type: 'SHARE', amount: 50000, month: currentMonth, year: currentYear, timestamp: new Date().toISOString() },
+          { id: 'c2', memberId: '2', memberName: 'Mary Phiri', contributorName: 'Mary P', type: 'EMERGENCY', amount: 5000, month: currentMonth, year: currentYear, timestamp: new Date().toISOString() }
         ];
         setContributions(initial);
         await setSetting('contributions', initial);
@@ -56,14 +66,26 @@ const Contributions = () => {
     return () => { isMounted = false; };
   }, [currentMonth, currentYear]);
 
+  const handleMemberChange = (id: string) => {
+    const member = members.find(m => m.id === id);
+    setNewContrib({
+      ...newContrib,
+      memberId: id,
+      contributorName: member?.fullname || ''
+    });
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isReadOnly) return;
+
     const selectedMember = members.find(m => m.id === newContrib.memberId);
     
     const contribution: Contribution = {
       id: Date.now().toString(),
       memberId: newContrib.memberId,
-      memberName: (selectedMember?.fullname as string) || 'Unknown',
+      memberName: selectedMember?.fullname || 'Unknown',
+      contributorName: newContrib.contributorName,
       type: newContrib.type,
       amount: parseFloat(newContrib.amount),
       month: newContrib.month,
@@ -82,8 +104,11 @@ const Contributions = () => {
     }
     
     setIsModalOpen(false);
-    setNewContrib({ ...newContrib, amount: '' });
+    setNewContrib({ ...newContrib, amount: '', contributorName: '', memberId: '' });
   };
+
+  const selectedMemberData = members.find(m => m.id === newContrib.memberId);
+  const alternativeNamesList = selectedMemberData?.alternativeNames?.split(',').map(n => n.trim()).filter(Boolean) || [];
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -93,13 +118,20 @@ const Contributions = () => {
           <p className="text-muted-foreground">Manage and track member contributions.</p>
         </div>
         
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium rounded-xl hover:opacity-90 transition-all"
-        >
-          <Plus className="w-5 h-5" />
-          {t('contributions.record_new')}
-        </button>
+        {!isReadOnly ? (
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20"
+          >
+            <Plus className="w-5 h-5" />
+            {t('contributions.record_new')}
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-muted-foreground font-medium rounded-xl border border-dashed">
+            <Lock className="w-4 h-4" />
+            Read Only Access
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -123,7 +155,14 @@ const Contributions = () => {
                     {c.type === 'SHARE' ? <Wallet className="w-5 h-5" /> : <HeartPulse className="w-5 h-5" />}
                   </div>
                   <div>
-                    <h4 className="font-semibold">{c.memberName}</h4>
+                    <h4 className="font-semibold flex items-center gap-2">
+                      {c.contributorName || c.memberName}
+                      {c.contributorName && c.contributorName !== c.memberName && (
+                        <span className="text-[10px] font-normal px-1.5 py-0.5 rounded bg-secondary text-muted-foreground">
+                          via {c.memberName}
+                        </span>
+                      )}
+                    </h4>
                     <p className="text-xs text-muted-foreground">{c.type === 'SHARE' ? t('contributions.share') : t('contributions.emergency')} • {c.month} {c.year}</p>
                   </div>
                 </div>
@@ -138,15 +177,15 @@ const Contributions = () => {
 
         <div className="space-y-4">
           <div className="glass p-6 rounded-2xl">
-            <h3 className="font-semibold mb-4 text-lg">Summary</h3>
+            <h3 className="font-semibold mb-4 text-lg">Cycle Summary</h3>
             <div className="space-y-4">
               <div className="p-4 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
-                <p className="text-sm font-medium mb-1">Total Shares (This Month)</p>
-                <h4 className="text-2xl font-bold">MWK 50,000</h4>
+                <p className="text-sm font-medium mb-1">Total Shares</p>
+                <h4 className="text-2xl font-bold">MWK {contributions.filter(c => c.type === 'SHARE').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}</h4>
               </div>
               <div className="p-4 rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-400">
-                <p className="text-sm font-medium mb-1">Total Emergency (This Month)</p>
-                <h4 className="text-2xl font-bold">MWK 5,000</h4>
+                <p className="text-sm font-medium mb-1">Total Emergency</p>
+                <h4 className="text-2xl font-bold">MWK {contributions.filter(c => c.type === 'EMERGENCY').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}</h4>
               </div>
             </div>
           </div>
@@ -164,21 +203,51 @@ const Contributions = () => {
             <form onSubmit={handleSave} className="space-y-4">
               
               <div>
-                <label htmlFor="memberId" className="block text-sm font-medium mb-1">{t('contributions.member')}</label>
+                <label className="block text-sm font-medium mb-1">{t('contributions.member')}</label>
                 <select 
-                  id="memberId"
-                  aria-label={t('contributions.member')}
                   required
                   value={newContrib.memberId}
-                  onChange={e => setNewContrib({...newContrib, memberId: e.target.value})}
+                  onChange={e => handleMemberChange(e.target.value)}
                   className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary appearance-none"
                 >
                   <option value="">-- Select Member --</option>
                   {members.map((m) => (
-                    <option key={String(m.id)} value={String(m.id)}>{String(m.fullname)} ({String(m.memberNumber)})</option>
+                    <option key={m.id} value={m.id}>{m.fullname} ({m.memberNumber})</option>
                   ))}
                 </select>
               </div>
+
+              {newContrib.memberId && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                  <label className="block text-sm font-medium mb-1">Contribution Name (Identity)</label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setNewContrib({...newContrib, contributorName: selectedMemberData?.fullname || ''})}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${newContrib.contributorName === selectedMemberData?.fullname ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-secondary/80'}`}
+                    >
+                      {selectedMemberData?.fullname} (Official)
+                    </button>
+                    {alternativeNamesList.map(name => (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => setNewContrib({...newContrib, contributorName: name})}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${newContrib.contributorName === name ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-secondary/80'}`}
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                  <input 
+                    type="text" 
+                    value={newContrib.contributorName}
+                    onChange={e => setNewContrib({...newContrib, contributorName: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Or type a custom name..."
+                  />
+                </motion.div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium mb-1">{t('contributions.type')}</label>
@@ -201,10 +270,8 @@ const Contributions = () => {
               </div>
 
               <div>
-                <label htmlFor="contribAmount" className="block text-sm font-medium mb-1">{t('contributions.amount')}</label>
+                <label className="block text-sm font-medium mb-1">{t('contributions.amount')}</label>
                 <input 
-                  id="contribAmount"
-                  aria-label={t('contributions.amount')}
                   type="number" 
                   required
                   min="0"
@@ -217,10 +284,8 @@ const Contributions = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="contribMonth" className="block text-sm font-medium mb-1">{t('contributions.month')}</label>
+                  <label className="block text-sm font-medium mb-1">{t('contributions.month')}</label>
                   <input 
-                    id="contribMonth"
-                    aria-label={t('contributions.month')}
                     type="text" 
                     value={newContrib.month}
                     onChange={e => setNewContrib({...newContrib, month: e.target.value})}
@@ -228,10 +293,8 @@ const Contributions = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="contribYear" className="block text-sm font-medium mb-1">{t('contributions.year')}</label>
+                  <label className="block text-sm font-medium mb-1">{t('contributions.year')}</label>
                   <input 
-                    id="contribYear"
-                    aria-label={t('contributions.year')}
                     type="text" 
                     value={newContrib.year}
                     onChange={e => setNewContrib({...newContrib, year: e.target.value})}

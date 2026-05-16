@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Save, AlertCircle } from 'lucide-react';
+import { Save, AlertCircle, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { authApi } from '../services/api';
 
 const Settings = () => {
   const { settings, updateSettings, isOnline } = useSettings();
@@ -12,6 +13,21 @@ const Settings = () => {
 
   const [formData, setFormData] = useState(settings);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Password change state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -24,11 +40,45 @@ const Settings = () => {
     setTimeout(() => setIsSaving(false), 500);
   };
 
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters long');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      await authApi.changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+      setPasswordSuccess('Password changed successfully!');
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err: any) {
+      setPasswordError(err.response?.data?.error || 'Failed to change password');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  const togglePasswordVisibility = (field: 'current' | 'new' | 'confirm') => {
+    setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
+  };
+
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-8 pb-12">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
-        <p className="text-muted-foreground">Configure global system parameters.</p>
+        <p className="text-muted-foreground">Configure global system parameters and security.</p>
       </div>
 
       {!isOnline && (
@@ -38,18 +88,23 @@ const Settings = () => {
         </div>
       )}
 
+      {/* System Settings Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="glass rounded-2xl p-6 md:p-8 shadow-sm"
       >
+        <div className="flex items-center gap-3 mb-6">
+          <Save className="w-6 h-6 text-primary" />
+          <h2 className="text-xl font-semibold">General Settings</h2>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label htmlFor="systemName" className="text-sm font-medium">{t('settings.system_name')}</label>
               <input
                 id="systemName"
-                aria-label={t('settings.system_name')}
                 type="text"
                 name="systemName"
                 value={formData.systemName}
@@ -62,7 +117,6 @@ const Settings = () => {
               <label htmlFor="organizationName" className="text-sm font-medium">{t('settings.organization_name')}</label>
               <input
                 id="organizationName"
-                aria-label={t('settings.organization_name')}
                 type="text"
                 name="organizationName"
                 value={formData.organizationName}
@@ -75,7 +129,6 @@ const Settings = () => {
               <label htmlFor="receiptFooter" className="text-sm font-medium">{t('settings.receipt_footer')}</label>
               <input
                 id="receiptFooter"
-                aria-label={t('settings.receipt_footer')}
                 type="text"
                 name="receiptFooter"
                 value={formData.receiptFooter}
@@ -88,7 +141,6 @@ const Settings = () => {
               <label htmlFor="themeSelect" className="text-sm font-medium">Theme</label>
               <select
                 id="themeSelect"
-                aria-label="Theme"
                 value={theme}
                 onChange={(e) => setTheme(e.target.value)}
                 className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all appearance-none"
@@ -100,27 +152,9 @@ const Settings = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="fontSizeSelect" className="text-sm font-medium">Accessibility (Font Size)</label>
-              <select
-                id="fontSizeSelect"
-                aria-label="Font Size"
-                name="fontSize"
-                value={formData.fontSize}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all appearance-none"
-              >
-                <option value="small">Small</option>
-                <option value="medium">Medium (Default)</option>
-                <option value="large">Large</option>
-                <option value="xlarge">Extra Large</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
               <label htmlFor="interestPercentage" className="text-sm font-medium">Loan Interest Rate (%)</label>
               <input
                 id="interestPercentage"
-                aria-label="Interest Rate"
                 type="number"
                 name="interestPercentage"
                 value={formData.interestPercentage}
@@ -133,7 +167,6 @@ const Settings = () => {
               <label htmlFor="maturityMonths" className="text-sm font-medium">Cycle Maturity (Months)</label>
               <input
                 id="maturityMonths"
-                aria-label="Maturity Months"
                 type="number"
                 name="maturityMonths"
                 value={formData.maturityMonths}
@@ -151,6 +184,110 @@ const Settings = () => {
             >
               <Save className="w-5 h-5" />
               {isSaving ? 'Saving...' : t('settings.save')}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+
+      {/* Security Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass rounded-2xl p-6 md:p-8 shadow-sm"
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <Lock className="w-6 h-6 text-primary" />
+          <h2 className="text-xl font-semibold">Security & Password</h2>
+        </div>
+
+        {passwordError && (
+          <div className="mb-6 p-4 rounded-xl bg-destructive/10 text-destructive text-sm font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            {passwordError}
+          </div>
+        )}
+
+        {passwordSuccess && (
+          <div className="mb-6 p-4 rounded-xl bg-green-500/10 text-green-600 dark:text-green-400 text-sm font-medium flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4" />
+            {passwordSuccess}
+          </div>
+        )}
+
+        <form onSubmit={handlePasswordChange} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Current Password</label>
+              <div className="relative">
+                <input
+                  type={showPasswords.current ? 'text' : 'password'}
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  className="w-full px-4 py-3 pr-12 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => togglePasswordVisibility('current')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                >
+                  {showPasswords.current ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">New Password</label>
+              <div className="relative">
+                <input
+                  type={showPasswords.new ? 'text' : 'password'}
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  className="w-full px-4 py-3 pr-12 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => togglePasswordVisibility('new')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                >
+                  {showPasswords.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Confirm New Password</label>
+              <div className="relative">
+                <input
+                  type={showPasswords.confirm ? 'text' : 'password'}
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  className="w-full px-4 py-3 pr-12 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => togglePasswordVisibility('confirm')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                >
+                  {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-6 border-t flex justify-end">
+            <button
+              type="submit"
+              disabled={isChangingPassword || !isOnline}
+              className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-medium rounded-xl hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              <Lock className="w-5 h-5" />
+              {isChangingPassword ? 'Updating...' : 'Update Password'}
             </button>
           </div>
         </form>

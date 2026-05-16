@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
-import { LogOut, Home, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wallet, CreditCard, Receipt } from 'lucide-react';
+import { LogOut, Home, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wallet, CreditCard, Receipt, FileText, Shield, User as UserIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const DashboardLayout = () => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { settings, isOnline } = useSettings();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -21,6 +23,17 @@ const DashboardLayout = () => {
     i18n.changeLanguage(i18n.language === 'en' ? 'ny' : 'en');
   };
 
+  const navItems = [
+    { to: '/', icon: Home, label: t('dashboard.title') },
+    { to: '/members', icon: Users, label: t('members.title') },
+    { to: '/contributions', icon: Wallet, label: t('contributions.title') },
+    { to: '/loans', icon: CreditCard, label: t('loans.title') },
+    { to: '/repayments', icon: Receipt, label: t('repayments.title') },
+    { to: '/receipts', icon: Receipt, label: t('receipts.title') },
+    { to: '/reports', icon: FileText, label: t('reports.title') },
+    { to: '/settings', icon: SettingsIcon, label: t('settings.title') },
+  ];
+
   return (
     <div className="min-h-screen bg-background flex text-foreground">
       {/* Sidebar - Desktop */}
@@ -31,45 +44,41 @@ const DashboardLayout = () => {
             alt="Logo" 
             className="w-10 h-10 rounded-full object-cover shadow-sm"
           />
-          <div>
-            <h1 className="text-xl font-bold text-primary tracking-tight">{settings.systemName}</h1>
-            <p className="text-[10px] uppercase font-bold text-muted-foreground truncate w-32">{settings.organizationName}</p>
+          <div className="overflow-hidden">
+            <h1 className="text-xl font-bold text-primary tracking-tight truncate">{settings.systemName}</h1>
+            <p className="text-[10px] uppercase font-black text-muted-foreground truncate">{settings.organizationName}</p>
           </div>
         </div>
         
-        <nav className="mt-6 flex flex-col gap-2 px-4">
-          <Link to="/" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 transition-colors font-medium">
-            <Home className="w-5 h-5 text-primary" />
-            {t('dashboard.title')}
-          </Link>
-          <Link to="/members" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 transition-colors font-medium">
-            <Users className="w-5 h-5 text-primary" />
-            {t('members.title')}
-          </Link>
-          <Link to="/contributions" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 transition-colors font-medium">
-            <Wallet className="w-5 h-5 text-primary" />
-            {t('contributions.title')}
-          </Link>
-          <Link to="/loans" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 transition-colors font-medium">
-            <CreditCard className="w-5 h-5 text-primary" />
-            {t('loans.title')}
-          </Link>
-          <Link to="/repayments" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 transition-colors font-medium">
-            <Receipt className="w-5 h-5 text-primary" />
-            {t('repayments.title')}
-          </Link>
-          <Link to="/receipts" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 transition-colors font-medium">
-            <Receipt className="w-5 h-5 text-primary" />
-            {t('receipts.title')}
-          </Link>
-          <Link to="/reports" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 transition-colors font-medium">
-            <Receipt className="w-5 h-5 text-primary" />
-            {t('reports.title')}
-          </Link>
-          <Link to="/settings" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 transition-colors font-medium">
-            <SettingsIcon className="w-5 h-5 text-primary" />
-            {t('settings.title')}
-          </Link>
+        <div className="px-4 py-4 mb-2">
+          <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-2xl border border-primary/10">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+              <UserIcon className="w-6 h-6" />
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-sm font-bold truncate">{user?.name}</p>
+              <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary text-primary-foreground inline-block">
+                {user?.role}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <nav className="flex flex-col gap-1 px-4">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.to;
+            return (
+              <Link 
+                key={item.to}
+                to={item.to} 
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${isActive ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]' : 'hover:bg-primary/10'}`}
+                onClick={() => setIsSidebarOpen(false)}
+              >
+                <item.icon className={`w-5 h-5 ${isActive ? 'text-primary-foreground' : 'text-primary'}`} />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
       </aside>
 
@@ -82,24 +91,24 @@ const DashboardLayout = () => {
               <Menu className="w-6 h-6" />
             </button>
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 text-sm font-medium">
-              {isOnline ? <><Wifi className="w-4 h-4 text-green-500"/> Online</> : <><WifiOff className="w-4 h-4 text-red-500"/> Offline</>}
+              {isOnline ? <><Wifi className="w-4 h-4 text-green-500"/> <span className="text-[10px] uppercase font-bold tracking-tight">Connected</span></> : <><WifiOff className="w-4 h-4 text-red-500"/> <span className="text-[10px] uppercase font-bold tracking-tight">Offline Mode</span></>}
             </div>
           </div>
           
           <div className="flex items-center gap-4">
             <button 
               onClick={toggleLanguage}
-              className="px-3 py-1.5 text-sm font-medium border rounded-full hover:bg-muted transition-colors"
+              className="px-3 py-1.5 text-xs font-black uppercase tracking-widest border border-primary/20 rounded-full hover:bg-primary/10 transition-colors"
             >
               {i18n.language.toUpperCase()}
             </button>
             
             <button 
               onClick={handleLogout}
-              className="flex items-center gap-2 text-sm font-medium text-destructive hover:bg-destructive/10 px-4 py-2 rounded-full transition-colors"
+              className="group flex items-center gap-2 text-xs font-bold text-destructive hover:bg-destructive/10 px-4 py-2 rounded-full transition-all"
             >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('dashboard.logout')}</span>
+              <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              <span className="hidden sm:inline uppercase tracking-wider">{t('dashboard.logout')}</span>
             </button>
           </div>
         </header>
@@ -111,12 +120,17 @@ const DashboardLayout = () => {
       </main>
 
       {/* Mobile overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
