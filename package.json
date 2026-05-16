@@ -23,7 +23,7 @@
     "typescript": "^6.0.3"
   },
   "scripts": {
-    "build": "echo 'Root build completed'",
+    "build": "npm install --prefix frontend && npm run build --prefix frontend && mkdir -p public && cp -r frontend/dist/* public/",
     "postinstall": "prisma generate"
   }
 }
