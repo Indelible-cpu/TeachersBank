@@ -31,8 +31,13 @@ const DashboardLayout = () => {
     { to: '/repayments', icon: Receipt, label: t('repayments.title') },
     { to: '/receipts', icon: Receipt, label: t('receipts.title') },
     { to: '/reports', icon: FileText, label: t('reports.title') },
-    { to: '/settings', icon: SettingsIcon, label: t('settings.title') },
   ];
+
+  if (user?.role === 'ADMIN') {
+    navItems.push({ to: '/users', icon: Shield, label: 'Administration' });
+  }
+
+  navItems.push({ to: '/settings', icon: SettingsIcon, label: t('settings.title') });
 
   return (
     <div className="min-h-screen bg-background flex text-foreground">
@@ -64,7 +69,7 @@ const DashboardLayout = () => {
           </div>
         </div>
 
-        <nav className="flex flex-col gap-1 px-4">
+        <nav className="flex flex-col gap-1 px-4 overflow-y-auto max-h-[calc(100vh-250px)]">
           {navItems.map((item) => {
             const isActive = location.pathname === item.to;
             return (

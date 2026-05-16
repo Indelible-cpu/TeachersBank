@@ -10,6 +10,7 @@ import Loans from './pages/Loans';
 import Repayments from './pages/Repayments';
 import Receipts from './pages/Receipts';
 import Reports from './pages/Reports';
+import Users from './pages/Users';
 import DashboardLayout from './layouts/DashboardLayout';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -36,6 +37,7 @@ function App() {
           <Route path="repayments" element={<Repayments />} />
           <Route path="receipts" element={<Receipts />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="users" element={<Users />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import syncRoutes from './routes/sync.routes';
+import userRoutes from './routes/user.routes';
 import prisma from './prisma';
 
 dotenv.config();
@@ -15,11 +16,15 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Support both /api prefix and direct routes (for Vercel routing compatibility)
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/sync', syncRoutes);
+app.use('/api/users', userRoutes);
+
+// Compatibility fallback
 app.use('/auth', authRoutes);
 app.use('/sync', syncRoutes);
+app.use('/users', userRoutes);
 
 // Health check with DB verify
 app.get('/health', async (req, res) => {

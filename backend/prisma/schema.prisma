@@ -31,6 +31,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   member    Member?
+  auditLogs AuditLog[]
 }
 
 enum Role {
@@ -46,9 +47,10 @@ model Member {
   user            User     @relation(fields: [userId], references: [id])
   memberNumber    String   @unique
   fullname        String
-  alternativeNames String?  // Multiple names for contributions
+  alternativeNames String?  
   phone           String?
-  gender          String?
+  phone2          String?  // Second phone number support
+  gender          String?  
   address         String?
   photo           String?
   joinDate        DateTime @default(now())
@@ -63,9 +65,24 @@ model Member {
   updatedAt DateTime @updatedAt
 }
 
+model AuditLog {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  userRole        String
+  action          String
+  details         String?  // JSON or string description
+  startTime       DateTime @default(now())
+  endTime         DateTime?
+  status          String   @default("SUCCESS") // SUCCESS, FAILED
+  ipAddress       String?
+  
+  createdAt       DateTime @default(now())
+}
+
 model ContributionCycle {
   id             String   @id @default(uuid())
-  name           String   // e.g., "2026 Annual Cycle"
+  name           String   
   startDate      DateTime
   endDate        DateTime
   maturityMonths Int
@@ -80,34 +97,38 @@ model ContributionCycle {
 }
 
 model ShareContribution {
-  id         String   @id @default(uuid())
-  memberId   String
-  member     Member   @relation(fields: [memberId], references: [id])
-  cycleId    String
-  cycle      ContributionCycle @relation(fields: [cycleId], references: [id])
-  amount     Float
-  month      Int      // 1-12
-  year       Int      // e.g., 2026
-  recordedBy String   // UserId of admin/accountant
-  receiptId  String?  @unique
-  receipt    Receipt? @relation(fields: [receiptId], references: [id])
+  id              String   @id @default(uuid())
+  memberId        String
+  member          Member   @relation(fields: [memberId], references: [id])
+  contributorName String?  
+  cycleId         String
+  cycle           ContributionCycle @relation(fields: [cycleId], references: [id])
+  amount          Float
+  month           Int      
+  year            Int      
+  isAdvance       Boolean  @default(false)
+  recordedBy      String   
+  receiptId       String?  @unique
+  receipt         Receipt? @relation(fields: [receiptId], references: [id])
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model EmergencyContribution {
-  id         String   @id @default(uuid())
-  memberId   String
-  member     Member   @relation(fields: [memberId], references: [id])
-  cycleId    String
-  cycle      ContributionCycle @relation(fields: [cycleId], references: [id])
-  amount     Float
-  month      Int
-  year       Int
-  recordedBy String
-  receiptId  String?  @unique
-  receipt    Receipt? @relation(fields: [receiptId], references: [id])
+  id              String   @id @default(uuid())
+  memberId        String
+  member          Member   @relation(fields: [memberId], references: [id])
+  contributorName String?  
+  cycleId         String
+  cycle           ContributionCycle @relation(fields: [cycleId], references: [id])
+  amount          Float
+  month           Int
+  year            Int
+  isAdvance       Boolean  @default(false)
+  recordedBy      String
+  receiptId       String?  @unique
+  receipt         Receipt? @relation(fields: [receiptId], references: [id])
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -182,10 +203,10 @@ model Receipt {
   receiptNumber   String   @unique
   memberId        String?
   amount          Float
-  transactionType String   // "SHARE", "EMERGENCY", "LOAN", "REPAYMENT", "DISBURSEMENT"
+  transactionType String   
   transactionDate DateTime @default(now())
-  details         String?  // JSON string
-  receiptUrl      String?  // URL to Supabase Storage file
+  details         String?  
+  receiptUrl      String?  
   
   shareContribution      ShareContribution?
   emergencyContribution  EmergencyContribution?
