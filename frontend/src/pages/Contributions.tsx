@@ -250,7 +250,7 @@ const Contributions = () => {
                     <h4 className="font-bold flex items-center gap-2">
                       {c.contributorName || c.memberName}
                       <span className={`text-[9px] font-semibold capitalize px-2 py-0.5 rounded-full border ${c.status === 'CONFIRMED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20 animate-pulse'}`}>
-                        {c.status.toLowerCase()}
+                        {c.status?.toLowerCase() || ''}
                       </span>
                     </h4>
                     <p className="text-xs font-medium text-muted-foreground">{c.type === 'SHARE' ? 'Share' : 'Emergency'} • {c.monthName} {c.year}</p>

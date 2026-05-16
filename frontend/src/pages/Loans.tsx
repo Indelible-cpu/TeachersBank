@@ -144,7 +144,7 @@ const Loans = () => {
               <div className="overflow-hidden">
                 <h3 className="font-bold text-lg leading-tight truncate">{loan.memberName}</h3>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize tracking-widest ${loan.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-secondary text-secondary-foreground'}`}>
-                  {loan.status.toLowerCase()}
+                  {loan.status?.toLowerCase() || ''}
                 </span>
               </div>
             </div>

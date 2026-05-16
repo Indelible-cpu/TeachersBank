@@ -175,7 +175,7 @@ const Repayments = () => {
                     <h4 className="font-bold flex items-center gap-2">
                       {r.memberName}
                       <span className={`text-[9px] font-semibold capitalize px-2 py-0.5 rounded-full border ${r.status === 'CONFIRMED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'}`}>
-                        {r.status.toLowerCase()}
+                        {r.status?.toLowerCase() || ''}
                       </span>
                     </h4>
                     <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-tighter opacity-60">Loan ref: {r.loanId}</p>
