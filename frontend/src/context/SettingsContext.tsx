@@ -15,7 +15,10 @@ const defaultSettings: Settings = {
   maturityMonths: 12,
   loanDurationThresholdAmount: 50000,
   loanDurationMonthsPerThreshold: 1,
-  showProfileInHeader: true
+  showProfileInHeader: true,
+  currency: 'MWK',
+  baseShareAmount: 50000,
+  baseEmergencyAmount: 5000
 };
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {

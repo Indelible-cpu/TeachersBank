@@ -244,7 +244,7 @@ const Settings = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="loanDurationMonthsPerThreshold" className="text-sm font-medium">Months per Base Amount</label>
+              <label htmlFor="loanDurationMonthsPerThreshold" className="text-sm font-medium">Months per base amount</label>
               <input
                 id="loanDurationMonthsPerThreshold"
                 type="number"
@@ -252,6 +252,19 @@ const Settings = () => {
                 value={formData.loanDurationMonthsPerThreshold}
                 onChange={(e) => setFormData({ ...formData, loanDurationMonthsPerThreshold: parseInt(e.target.value) })}
                 className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="currency" className="text-sm font-medium">Currency symbol</label>
+              <input
+                id="currency"
+                type="text"
+                name="currency"
+                value={formData.currency}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                placeholder="e.g. MWK"
               />
             </div>
 
@@ -262,6 +275,7 @@ const Settings = () => {
               </div>
               <button
                 type="button"
+                title="Toggle Header Profile"
                 onClick={() => setFormData({ ...formData, showProfileInHeader: !formData.showProfileInHeader })}
                 className={`w-12 h-6 rounded-full p-1 transition-colors ${formData.showProfileInHeader ? 'bg-primary' : 'bg-muted'}`}
               >

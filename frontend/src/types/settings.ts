@@ -10,4 +10,7 @@ export interface Settings {
   loanDurationThresholdAmount: number;
   loanDurationMonthsPerThreshold: number;
   showProfileInHeader: boolean;
+  currency: string;
+  baseShareAmount: number;
+  baseEmergencyAmount: number;
 }

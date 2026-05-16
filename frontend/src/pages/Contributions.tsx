@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Wallet, HeartPulse, History, UserRound, Lock, Info, CheckCircle2, AlertCircle, ShieldCheck, ShieldAlert, Clock, HandCoins } from 'lucide-react';
+import { Plus, Wallet, HeartPulse, History, CheckCircle2, ShieldCheck, ShieldAlert, Clock, HandCoins } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting, addToSyncQueue } from '../services/db';
@@ -37,7 +37,7 @@ const MONTHS = [
 
 const Contributions = () => {
   const { t } = useTranslation();
-  const { isOnline } = useSettings();
+  const { isOnline, settings } = useSettings();
   const { isReadOnly, canConfirm, canWriteFinance, user } = useAuth();
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -50,15 +50,15 @@ const Contributions = () => {
   const [newContrib, setNewContrib] = useState({
     memberId: '',
     contributorName: '',
-    shareAmount: '50000',
-    emergencyAmount: '5000',
+    shareAmount: settings.baseShareAmount.toString(),
+    emergencyAmount: settings.baseEmergencyAmount.toString(),
     month: currentMonthIdx + 1,
     year: currentYear,
     isAdvance: false,
     recordBoth: true
   });
 
-  const [error, setError] = useState('');
+
 
   useEffect(() => {
     let isMounted = true;
@@ -86,7 +86,6 @@ const Contributions = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isReadOnly || !canWriteFinance) return;
-    setError('');
 
     const checkDuplicate = (type: 'SHARE' | 'EMERGENCY') => {
       return contributions.find(c => 
@@ -99,7 +98,7 @@ const Contributions = () => {
     };
 
     if (newContrib.recordBoth && (checkDuplicate('SHARE') || checkDuplicate('EMERGENCY'))) {
-      setError('A contribution for this month already exists.');
+      alert('A contribution for this month already exists.');
       return;
     }
 
@@ -201,14 +200,14 @@ const Contributions = () => {
           onClick={() => setActiveView('history')}
           className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold text-xs transition-all ${activeView === 'history' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
         >
-          <History className="w-4 h-4" /> All History
+          <History className="w-4 h-4" /> All history
         </button>
         {canConfirm && (
           <button 
             onClick={() => setActiveView('verify')}
             className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold text-xs transition-all relative ${activeView === 'verify' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
           >
-            <ShieldCheck className="w-4 h-4" /> Verification Queue
+            <ShieldCheck className="w-4 h-4" /> Verification queue
             {pendingCount > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white rounded-full flex items-center justify-center text-[10px] font-black border-2 border-background">
                 {pendingCount}
@@ -221,22 +220,22 @@ const Contributions = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+            <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
               {activeView === 'verify' ? <ShieldAlert className="text-rose-500" /> : <Wallet className="text-primary" />}
-              {activeView === 'verify' ? 'Action Required' : 'Contribution Ledger'}
+              {activeView === 'verify' ? 'Action required' : 'Contribution ledger'}
             </h2>
             {activeView === 'verify' && pendingCount > 0 && (
               <button 
                 onClick={handleVerifyAll}
-                className="text-[10px] font-black uppercase tracking-widest px-4 py-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
+                className="text-[10px] font-bold capitalize tracking-widest px-4 py-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
               >
-                Confirm Total Pool (MWK {contributions.filter(c => c.status === 'PENDING').reduce((acc, c) => acc + c.amount, 0).toLocaleString()})
+                Confirm total pool ({settings.currency} {contributions.filter(c => c.status === 'PENDING').reduce((acc, c) => acc + c.amount, 0).toLocaleString()})
               </button>
             )}
           </div>
           
           <div className="space-y-3">
-            {filteredContribs.map((c, i) => (
+            {filteredContribs.map((c) => (
               <motion.div 
                 key={c.id}
                 initial={{ opacity: 0, y: 10 }}
@@ -250,8 +249,8 @@ const Contributions = () => {
                   <div>
                     <h4 className="font-bold flex items-center gap-2">
                       {c.contributorName || c.memberName}
-                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${c.status === 'CONFIRMED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20 animate-pulse'}`}>
-                        {c.status}
+                      <span className={`text-[9px] font-semibold capitalize px-2 py-0.5 rounded-full border ${c.status === 'CONFIRMED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20 animate-pulse'}`}>
+                        {c.status.toLowerCase()}
                       </span>
                     </h4>
                     <p className="text-xs font-medium text-muted-foreground">{c.type === 'SHARE' ? 'Share' : 'Emergency'} • {c.monthName} {c.year}</p>
@@ -259,8 +258,8 @@ const Contributions = () => {
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <span className="font-black text-foreground text-xl">MWK {c.amount.toLocaleString()}</span>
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase">{new Date(c.timestamp).toLocaleDateString()}</p>
+                    <span className="font-bold text-foreground text-xl">{settings.currency} {c.amount.toLocaleString()}</span>
+                    <p className="text-[9px] font-semibold text-muted-foreground capitalize">{new Date(c.timestamp).toLocaleDateString()}</p>
                   </div>
                   {canConfirm && c.status === 'PENDING' && (
                     <button 
@@ -284,28 +283,28 @@ const Contributions = () => {
             </h3>
             <div className="space-y-4">
               <div className="p-5 rounded-[2rem] bg-background border border-border">
-                <p className="text-[10px] font-semibold tracking-widest mb-1 text-muted-foreground">Confirmed Shares</p>
+                <p className="text-[10px] font-semibold tracking-widest mb-1 text-muted-foreground">Confirmed shares</p>
                 <h4 className="text-2xl font-semibold text-emerald-600">
-                  MWK {contributions.filter(c => c.type === 'SHARE' && c.status === 'CONFIRMED').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}
+                  {settings.currency} {contributions.filter(c => c.type === 'SHARE' && c.status === 'CONFIRMED').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}
                 </h4>
               </div>
               <div className="p-5 rounded-[2rem] bg-background border border-border">
-                <p className="text-[10px] font-semibold tracking-widest mb-1 text-muted-foreground">Confirmed Emergency</p>
+                <p className="text-[10px] font-semibold tracking-widest mb-1 text-muted-foreground">Confirmed emergency</p>
                 <h4 className="text-2xl font-semibold text-rose-600">
-                  MWK {contributions.filter(c => c.type === 'EMERGENCY' && c.status === 'CONFIRMED').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}
+                  {settings.currency} {contributions.filter(c => c.type === 'EMERGENCY' && c.status === 'CONFIRMED').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}
                 </h4>
               </div>
               <div className="pt-4 mt-4 border-t border-dashed">
                 <div className="flex justify-between items-center text-amber-600">
-                  <span className="text-[10px] font-semibold tracking-widest">Pending Verification</span>
-                  <span className="font-bold">MWK {contributions.filter(c => c.status === 'PENDING').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}</span>
+                  <span className="text-[10px] font-semibold tracking-widest">Pending verification</span>
+                  <span className="font-bold">{settings.currency} {contributions.filter(c => c.status === 'PENDING').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}</span>
                 </div>
               </div>
             </div>
           </div>
           
           <div className="glass p-6 rounded-[2.5rem] border border-blue-500/10 bg-blue-500/5">
-            <h3 className="font-semibold text-blue-600 text-sm mb-2 flex items-center gap-2"><Clock className="w-4 h-4" /> Treasurer Note</h3>
+            <h3 className="font-semibold text-blue-600 text-sm mb-2 flex items-center gap-2"><Clock className="w-4 h-4" /> Treasurer note</h3>
             <p className="text-xs text-muted-foreground leading-relaxed italic">
               Verification ensures accountability. As Treasurer, your confirmation marks the official receipt of funds into the physical bank/pool.
             </p>
@@ -323,7 +322,7 @@ const Contributions = () => {
               className="w-full max-w-xl bg-background rounded-[2.5rem] p-8 border border-white/10"
               onClick={e => e.stopPropagation()}
             >
-              <h2 className="text-2xl font-semibold mb-8">Record Member Payment</h2>
+              <h2 className="text-2xl font-semibold mb-8">Record member payment</h2>
               <form onSubmit={handleSave} className="space-y-6">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -339,7 +338,7 @@ const Contributions = () => {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Month</label>
+                    <label className="text-[10px] font-semibold capitalize text-muted-foreground ml-1">Month</label>
                     <select 
                       required title="Select Month"
                       value={newContrib.month}
@@ -353,28 +352,28 @@ const Contributions = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-5 rounded-3xl bg-emerald-500/5 border border-emerald-500/10">
-                    <label className="text-[10px] font-black text-emerald-600 uppercase mb-2 block">Share Amount</label>
+                    <label className="text-[10px] font-semibold text-emerald-600 capitalize mb-2 block">Share amount</label>
                     <input 
                       type="number" title="Share Amount"
                       value={newContrib.shareAmount}
                       onChange={e => setNewContrib({...newContrib, shareAmount: e.target.value})}
-                      className="w-full bg-transparent text-xl font-black outline-none"
+                      className="w-full bg-transparent text-xl font-bold outline-none"
                     />
                   </div>
                   <div className="p-5 rounded-3xl bg-rose-500/5 border border-rose-500/10">
-                    <label className="text-[10px] font-black text-rose-600 uppercase mb-2 block">Emergency Amount</label>
+                    <label className="text-[10px] font-semibold text-rose-600 capitalize mb-2 block">Emergency amount</label>
                     <input 
                       type="number" title="Emergency Amount"
                       value={newContrib.emergencyAmount}
                       onChange={e => setNewContrib({...newContrib, emergencyAmount: e.target.value})}
-                      className="w-full bg-transparent text-xl font-black outline-none"
+                      className="w-full bg-transparent text-xl font-bold outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-2xl font-black uppercase tracking-widest">Cancel</button>
-                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary/20">Submit for Verification</button>
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-2xl font-bold capitalize tracking-widest">Cancel</button>
+                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-2xl font-bold capitalize tracking-widest shadow-xl shadow-primary/20">Submit for verification</button>
                 </div>
               </form>
             </motion.div>

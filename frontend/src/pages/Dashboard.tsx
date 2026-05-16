@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Wallet, CreditCard, ShieldAlert, CheckCircle2, TrendingUp, HandCoins } from 'lucide-react';
 import { getSetting } from '../services/db';
+import { useSettings } from '../context/useSettings';
 
 interface DashboardStats {
   contributions: number;
@@ -23,6 +24,7 @@ interface DBRecord {
 const Dashboard = () => {
   const { t } = useTranslation();
   const { user, canConfirm } = useAuth();
+  const { settings } = useSettings();
   
   const [data, setData] = useState<DashboardStats>({
     contributions: 0,
@@ -58,10 +60,10 @@ const Dashboard = () => {
   }, []);
 
   const stats = [
-    { title: 'Verified Capital', value: `MWK ${data.contributions.toLocaleString()}`, icon: Wallet, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-    { title: 'Active Loan Book', value: `MWK ${data.loans.toLocaleString()}`, icon: CreditCard, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { title: 'Accumulated Interest', value: `MWK ${data.accumulatedInterest.toLocaleString()}`, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-    { title: 'In Transit', value: `MWK ${data.pendingAmount.toLocaleString()}`, icon: HandCoins, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { title: 'Verified capital', value: `${settings.currency} ${data.contributions.toLocaleString()}`, icon: Wallet, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { title: 'Active loan book', value: `${settings.currency} ${data.loans.toLocaleString()}`, icon: CreditCard, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { title: 'Accumulated interest', value: `${settings.currency} ${data.accumulatedInterest.toLocaleString()}`, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { title: 'In transit', value: `${settings.currency} ${data.pendingAmount.toLocaleString()}`, icon: HandCoins, color: 'text-amber-500', bg: 'bg-amber-500/10' },
   ];
 
   return (

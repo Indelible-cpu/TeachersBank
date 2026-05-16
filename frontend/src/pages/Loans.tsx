@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, CreditCard, Banknote, Calendar, Lock, ShieldAlert } from 'lucide-react';
+import { Plus, CreditCard, Banknote, Calendar, ShieldAlert } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting, addToSyncQueue } from '../services/db';
@@ -152,15 +152,15 @@ const Loans = () => {
             <div className="space-y-3 pt-4 border-t border-border/50 text-sm">
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">{t('loans.principal')}</span>
-                <span className="font-semibold text-foreground">MWK {loan.principal.toLocaleString()}</span>
+                <span className="font-semibold text-foreground">{settings.currency} {loan.principal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">Interest Pool ({loan.interestRate}%)</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">MWK {(loan.expectedReturn - loan.principal).toLocaleString()}</span>
+                <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">Interest pool ({loan.interestRate}%)</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{settings.currency} {(loan.expectedReturn - loan.principal).toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-border/50">
-                <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Return Balance</p>
-                <span className="font-semibold text-xl text-rose-600 dark:text-rose-400">MWK {loan.balance.toLocaleString()}</span>
+                <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Return balance</p>
+                <span className="font-semibold text-xl text-rose-600 dark:text-rose-400">{settings.currency} {loan.balance.toLocaleString()}</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 bg-secondary/30 p-2 rounded-xl">
                 <Calendar className="w-4 h-4 text-primary" />
@@ -182,13 +182,13 @@ const Loans = () => {
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-black tracking-tight">Issue Organization Loan</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Issue organization loan</h2>
                 <ShieldAlert className="w-8 h-8 text-primary/20" />
               </div>
 
               <form onSubmit={handleSave} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="loan-member">Member</label>
+                  <label className="text-xs font-semibold capitalize tracking-widest text-muted-foreground ml-1" htmlFor="loan-member">Member</label>
                   <select 
                     id="loan-member" title="Select Member" required
                     value={newLoan.memberId}

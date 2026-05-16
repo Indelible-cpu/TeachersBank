@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Receipt, HandCoins, AlertCircle, Lock, ShieldCheck, CheckCircle2, History, ShieldAlert } from 'lucide-react';
+import { Plus, Receipt, HandCoins, AlertCircle, ShieldCheck, CheckCircle2, History, ShieldAlert } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting, addToSyncQueue } from '../services/db';
@@ -19,10 +19,10 @@ interface Repayment {
 
 const Repayments = () => {
   const { t } = useTranslation();
-  const { isOnline } = useSettings();
+  const { isOnline, settings } = useSettings();
   const { isReadOnly, canConfirm, canWriteFinance, user } = useAuth();
   const [repayments, setRepayments] = useState<Repayment[]>([]);
-  const [activeLoans, setActiveLoans] = useState<Record<string, any>[]>([]);
+  const [activeLoans, setActiveLoans] = useState<Array<{ id: string; memberName: string; balance: number; status: string }>>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeView, setActiveView] = useState<'history' | 'verify'>('history');
   
@@ -36,7 +36,7 @@ const Repayments = () => {
     (async () => {
       const cachedLoans = await getSetting('loans');
       if (cachedLoans && isMounted) {
-        setActiveLoans(cachedLoans.filter((l: any) => (l.balance as number) > 0));
+        setActiveLoans(cachedLoans.filter((l: { balance: number }) => l.balance > 0));
       }
       
       const cachedRepayments = await getSetting('repayments');
@@ -91,9 +91,9 @@ const Repayments = () => {
 
     // Officially deduct from loan balance ONLY AFTER confirmation
     const allLoans = await getSetting('loans') || [];
-    const updatedLoans = allLoans.map((l: any) => {
+    const updatedLoans = allLoans.map((l: { id: string; balance: number; status: string }) => {
       if (l.id === repayment.loanId) {
-        const newBalance = (l.balance as number) - repayment.amount;
+        const newBalance = l.balance - repayment.amount;
         return { 
           ...l, 
           balance: newBalance < 0 ? 0 : newBalance,
@@ -103,7 +103,7 @@ const Repayments = () => {
       return l;
     });
     await setSetting('loans', updatedLoans);
-    setActiveLoans(updatedLoans.filter((l: any) => (l.balance as number) > 0));
+    setActiveLoans(updatedLoans.filter((l: { balance: number }) => l.balance > 0));
   };
 
   const pendingCount = repayments.filter(r => r.status === 'PENDING').length;
@@ -156,11 +156,11 @@ const Repayments = () => {
         <div className="lg:col-span-2 space-y-4">
           <h2 className="text-xl font-bold tracking-tight flex items-center gap-2 mb-4">
             {activeView === 'verify' ? <ShieldAlert className="text-rose-500" /> : <Receipt className="text-primary" />}
-            {activeView === 'verify' ? 'Verify Collections' : 'Repayment Log'}
+            {activeView === 'verify' ? 'Verify collections' : 'Repayment log'}
           </h2>
           
           <div className="space-y-3">
-            {filteredRepayments.map((r, i) => (
+            {filteredRepayments.map((r) => (
               <motion.div 
                 key={r.id}
                 initial={{ opacity: 0, y: 10 }}
@@ -183,8 +183,8 @@ const Repayments = () => {
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <span className="font-black text-emerald-600 dark:text-emerald-400 text-xl">+ MWK {r.amount.toLocaleString()}</span>
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase">{new Date(r.timestamp).toLocaleDateString()}</p>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xl">+ {settings.currency} {r.amount.toLocaleString()}</span>
+                    <p className="text-[9px] font-semibold text-muted-foreground capitalize">{new Date(r.timestamp).toLocaleDateString()}</p>
                   </div>
                   {canConfirm && r.status === 'PENDING' && (
                     <button 
@@ -203,18 +203,18 @@ const Repayments = () => {
 
         <div className="space-y-6">
           <div className="glass p-6 rounded-[2.5rem] border border-emerald-500/10 bg-emerald-500/5">
-            <h3 className="font-black text-emerald-600 text-sm mb-4 flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Treasurer Dashboard</h3>
+            <h3 className="font-bold text-emerald-600 text-sm mb-4 flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Treasurer dashboard</h3>
             <div className="space-y-4">
               <div className="p-5 rounded-3xl bg-background border border-border">
                 <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Total confirmed recovery</p>
-                <h4 className="text-2xl font-black text-emerald-700 dark:text-emerald-300">
-                  MWK {repayments.filter(r => r.status === 'CONFIRMED').reduce((acc, r) => acc + r.amount, 0).toLocaleString()}
+                <h4 className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                  {settings.currency} {repayments.filter(r => r.status === 'CONFIRMED').reduce((acc, r) => acc + r.amount, 0).toLocaleString()}
                 </h4>
               </div>
               <div className="p-5 rounded-3xl bg-background border border-border">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Pending Verification</p>
-                <h4 className="text-2xl font-black text-amber-600">
-                  MWK {repayments.filter(r => r.status === 'PENDING').reduce((acc, r) => acc + r.amount, 0).toLocaleString()}
+                <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Pending verification</p>
+                <h4 className="text-2xl font-bold text-amber-600">
+                  {settings.currency} {repayments.filter(r => r.status === 'PENDING').reduce((acc, r) => acc + r.amount, 0).toLocaleString()}
                 </h4>
               </div>
             </div>
@@ -232,18 +232,18 @@ const Repayments = () => {
               className="w-full max-w-md bg-background rounded-[2.5rem] p-8 border border-white/5"
               onClick={e => e.stopPropagation()}
             >
-              <h2 className="text-2xl font-black mb-8">{t('repayments.record')}</h2>
+              <h2 className="text-2xl font-bold mb-8">{t('repayments.record')}</h2>
               
               {activeLoans.length === 0 ? (
                 <div className="text-center p-6 space-y-4">
                   <AlertCircle className="w-12 h-12 text-rose-500 mx-auto opacity-20" />
                   <p className="text-muted-foreground font-bold">No active loans awaiting repayment.</p>
-                  <button onClick={() => setIsModalOpen(false)} className="w-full py-4 bg-secondary rounded-2xl font-black uppercase tracking-widest">Close</button>
+                  <button onClick={() => setIsModalOpen(false)} className="w-full py-4 bg-secondary rounded-2xl font-bold capitalize tracking-widest">Close</button>
                 </div>
               ) : (
                 <form onSubmit={handleSave} className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-1" htmlFor="loanId">Select Loan</label>
+                    <label className="text-[10px] font-semibold capitalize text-muted-foreground ml-1" htmlFor="loanId">Select loan</label>
                     <select 
                       id="loanId" title="Select Loan" required
                       value={newRepayment.loanId}
@@ -258,22 +258,22 @@ const Repayments = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-1" htmlFor="amount">Repayment Amount</label>
+                    <label className="text-[10px] font-semibold capitalize text-muted-foreground ml-1" htmlFor="amount">Repayment amount</label>
                     <div className="relative">
                       <HandCoins className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground opacity-40" />
                       <input 
                         id="amount" type="number" required min="1"
                         value={newRepayment.amount}
                         onChange={e => setNewRepayment({...newRepayment, amount: e.target.value})}
-                        className="w-full pl-12 pr-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/20 font-black"
+                        className="w-full pl-12 pr-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/20 font-bold"
                         placeholder="Amount in MWK"
                       />
                     </div>
                   </div>
 
                   <div className="flex gap-4 pt-4">
-                    <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-2xl font-black uppercase tracking-widest">Cancel</button>
-                    <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary/20">Submit for Verification</button>
+                    <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-2xl font-bold capitalize tracking-widest">Cancel</button>
+                    <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-2xl font-bold capitalize tracking-widest shadow-xl shadow-primary/20">Submit for verification</button>
                   </div>
                 </form>
               )}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, ShieldAlert, ShieldCheck, User as UserIcon, Activity, Clock, Terminal, CheckCircle, XCircle } from 'lucide-react';
 import api from '../services/api';
@@ -29,16 +29,10 @@ const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [activeTab, setActiveTab] = useState<'users' | 'logs'>('users');
-  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'MEMBER' });
 
-  useEffect(() => {
-    fetchData();
-  }, [activeTab]);
-
-  const fetchData = async () => {
-    setIsLoading(true);
+  const fetchData = useCallback(async () => {
     try {
       if (activeTab === 'users') {
         const res = await api.get('/users');
@@ -49,16 +43,19 @@ const Users = () => {
       }
     } catch (error) {
       console.error('Failed to fetch data', error);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [activeTab]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
       await api.patch(`/users/${userId}`, { role: newRole });
       setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
     } catch (error) {
+      console.error('Failed to update role', error);
       alert('Failed to update role');
     }
   };
@@ -68,6 +65,7 @@ const Users = () => {
       await api.patch(`/users/${u.id}`, { isActive: !u.isActive });
       setUsers(users.map(user => user.id === u.id ? { ...user, isActive: !u.isActive } : user));
     } catch (error) {
+      console.error('Failed to update status', error);
       alert('Failed to update status');
     }
   };
@@ -79,8 +77,9 @@ const Users = () => {
       setIsModalOpen(false);
       setNewUser({ name: '', email: '', password: '', role: 'MEMBER' });
       fetchData(); // Refresh list
-    } catch (error: any) {
-      alert(error.response?.data?.error || 'Failed to add user');
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } };
+      alert(err.response?.data?.error || 'Failed to add user');
     }
   };
 
@@ -93,8 +92,9 @@ const Users = () => {
       try {
         await api.delete(`/users/${u.id}`);
         setUsers(users.filter(user => user.id !== u.id));
-      } catch (error: any) {
-        alert(error.response?.data?.error || 'Failed to delete user');
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { error?: string } } };
+        alert(err.response?.data?.error || 'Failed to delete user');
       }
     }
   };
@@ -106,9 +106,9 @@ const Users = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <Shield className="w-8 h-8 text-primary" />
-          System Administration
+          System administration
         </h1>
         <p className="text-muted-foreground font-medium italic">Manage user privileges and track every system activity.</p>
       </div>
@@ -117,23 +117,23 @@ const Users = () => {
         <div className="flex p-1.5 glass rounded-2xl w-fit">
           <button 
             onClick={() => setActiveTab('users')}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-sm transition-all ${activeTab === 'users' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'hover:bg-primary/10'}`}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'users' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'hover:bg-primary/10'}`}
           >
-            <UserIcon className="w-4 h-4" /> User Management
+            <UserIcon className="w-4 h-4" /> User management
           </button>
           <button 
             onClick={() => setActiveTab('logs')}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-sm transition-all ${activeTab === 'logs' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'hover:bg-primary/10'}`}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'logs' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'hover:bg-primary/10'}`}
           >
-            <Activity className="w-4 h-4" /> Audit Trails
+            <Activity className="w-4 h-4" /> Audit trails
           </button>
         </div>
         {activeTab === 'users' && (
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="px-6 py-2.5 bg-primary text-primary-foreground font-black text-sm rounded-xl hover:scale-105 transition-all shadow-xl shadow-primary/20"
+            className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-xl shadow-primary/20"
           >
-            + Add System User
+            + Add system user
           </button>
         )}
       </div>
@@ -156,14 +156,14 @@ const Users = () => {
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => toggleStatus(u)}
-                      className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border transition-all ${u.isActive ? 'bg-emerald-500/5 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/5 text-rose-500 border-rose-500/20'}`}
+                      className={`text-[10px] font-semibold px-3 py-1 rounded-full capitalize tracking-widest border transition-all ${u.isActive ? 'bg-emerald-500/5 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/5 text-rose-500 border-rose-500/20'}`}
                     >
                       {u.isActive ? 'Active' : 'Suspended'}
                     </button>
                     {u.id !== currentUser?.id && (
                       <button 
                         onClick={() => handleDeleteUser(u)}
-                        className="text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border transition-all bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground"
+                        className="text-[10px] font-semibold px-3 py-1 rounded-full capitalize tracking-widest border transition-all bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground"
                       >
                         Delete
                       </button>
@@ -177,7 +177,7 @@ const Users = () => {
                 </div>
 
                 <div className="space-y-3 pt-4 border-t border-border/50">
-                  <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Assign Role</label>
+                  <label className="text-[10px] font-semibold capitalize text-muted-foreground tracking-widest ml-1">Assign role</label>
                   <select 
                     title="Change User Role"
                     value={u.role}
@@ -205,10 +205,10 @@ const Users = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-border/50 bg-secondary/30">
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">User / Role</th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Action Performed</th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Status</th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Time Execution</th>
+                    <th className="px-6 py-4 text-[10px] font-semibold capitalize tracking-widest text-muted-foreground">User / role</th>
+                    <th className="px-6 py-4 text-[10px] font-semibold capitalize tracking-widest text-muted-foreground">Action performed</th>
+                    <th className="px-6 py-4 text-[10px] font-semibold capitalize tracking-widest text-muted-foreground">Status</th>
+                    <th className="px-6 py-4 text-[10px] font-semibold capitalize tracking-widest text-muted-foreground">Time execution</th>
                   </tr>
                 </thead>
                 <tbody>
