@@ -1,17 +1,29 @@
 import { useState, useEffect } from 'react';
-import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Wallet, CreditCard, Receipt, Users, ShieldAlert, CheckCircle2, TrendingUp, HandCoins } from 'lucide-react';
+import { Wallet, CreditCard, Users, ShieldAlert, CheckCircle2, TrendingUp, HandCoins } from 'lucide-react';
 import { getSetting } from '../services/db';
 
+interface DashboardStats {
+  contributions: number;
+  loans: number;
+  members: number;
+  pendingVerification: number;
+  pendingAmount: number;
+}
+
+interface DBRecord {
+  amount?: number;
+  balance?: number;
+  status?: string;
+}
+
 const Dashboard = () => {
-  const { settings } = useSettings();
   const { t } = useTranslation();
   const { user, canConfirm } = useAuth();
   
-  const [data, setData] = useState({
+  const [data, setData] = useState<DashboardStats>({
     contributions: 0,
     loans: 0,
     members: 0,
@@ -21,21 +33,21 @@ const Dashboard = () => {
 
   useEffect(() => {
     (async () => {
-      const contribs = await getSetting('contributions') || [];
-      const loansList = await getSetting('loans') || [];
+      const contribs = (await getSetting('contributions') || []) as DBRecord[];
+      const loansList = (await getSetting('loans') || []) as DBRecord[];
       const membersList = await getSetting('members') || [];
-      const repaymentsList = await getSetting('repayments') || [];
+      const repaymentsList = (await getSetting('repayments') || []) as DBRecord[];
 
-      const confirmedContribs = contribs.filter((c: any) => c.status === 'CONFIRMED');
-      const pendingContribs = contribs.filter((c: any) => c.status === 'PENDING');
-      const pendingRepayments = repaymentsList.filter((r: any) => r.status === 'PENDING');
+      const confirmedContribs = contribs.filter((c) => c.status === 'CONFIRMED');
+      const pendingContribs = contribs.filter((c) => c.status === 'PENDING');
+      const pendingRepayments = repaymentsList.filter((r) => r.status === 'PENDING');
 
       setData({
-        contributions: confirmedContribs.reduce((acc: number, c: any) => acc + c.amount, 0),
-        loans: loansList.reduce((acc: number, l: any) => acc + (l.balance || 0), 0),
+        contributions: confirmedContribs.reduce((acc, c) => acc + (c.amount || 0), 0),
+        loans: loansList.reduce((acc, l) => acc + (l.balance || 0), 0),
         members: membersList.length,
         pendingVerification: pendingContribs.length + pendingRepayments.length,
-        pendingAmount: pendingContribs.reduce((acc: number, c: any) => acc + c.amount, 0) + pendingRepayments.reduce((acc: number, r: any) => acc + r.amount, 0)
+        pendingAmount: pendingContribs.reduce((acc, c) => acc + (c.amount || 0), 0) + pendingRepayments.reduce((acc, r) => acc + (r.amount || 0), 0)
       });
     })();
   }, []);
@@ -100,8 +112,13 @@ const Dashboard = () => {
           <div className="h-48 flex items-end gap-4 px-4">
              {/* Mock chart bars */}
              {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
-               <div key={i} className="flex-1 bg-primary/20 rounded-t-xl relative group" style={{ height: `${h}%` }}>
-                 <div className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-100 transition-opacity rounded-t-xl" />
+               <div 
+                 key={i} 
+                 className="flex-1 bg-primary/20 rounded-t-xl relative group transition-all" 
+                 style={{ '--bar-height': `${h}%` } as React.CSSProperties}
+               >
+                 <div className="absolute bottom-0 left-0 right-0 bg-primary/40 rounded-t-xl" style={{ height: 'var(--bar-height)' }}></div>
+                 <div className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-100 transition-opacity rounded-t-xl" style={{ height: 'var(--bar-height)' }} />
                </div>
              ))}
           </div>
