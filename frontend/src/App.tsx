@@ -12,6 +12,7 @@ import Receipts from './pages/Receipts';
 import Reports from './pages/Reports';
 import Users from './pages/Users';
 import DashboardLayout from './layouts/DashboardLayout';
+import InstallPrompt from './components/InstallPrompt';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
@@ -22,6 +23,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <Router>
+      <InstallPrompt />
       <Routes>
         <Route path="/login" element={<Login />} />
         

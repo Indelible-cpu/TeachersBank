@@ -7,6 +7,7 @@ import { initDB } from './services/db';
 import { ThemeProvider } from 'next-themes';
 import { SettingsProvider } from './context/SettingsContext';
 import { AuthProvider } from './context/AuthContext';
+import { PWAProvider } from './context/PWAContext';
 
 // Initialize IndexedDB
 initDB();
@@ -16,7 +17,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <SettingsProvider>
         <AuthProvider>
-          <App />
+          <PWAProvider>
+            <App />
+          </PWAProvider>
         </AuthProvider>
       </SettingsProvider>
     </ThemeProvider>
