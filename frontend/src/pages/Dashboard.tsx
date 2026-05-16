@@ -114,11 +114,20 @@ const Dashboard = () => {
              {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
                <div 
                  key={i} 
-                 className="flex-1 bg-primary/20 rounded-t-xl relative group transition-all" 
-                 style={{ '--bar-height': `${h}%` } as React.CSSProperties}
+                 className="flex-1 bg-primary/20 rounded-t-xl relative group transition-all"
                >
-                 <div className="absolute bottom-0 left-0 right-0 bg-primary/40 rounded-t-xl" style={{ height: 'var(--bar-height)' }}></div>
-                 <div className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-100 transition-opacity rounded-t-xl" style={{ height: 'var(--bar-height)' }} />
+                 <motion.div 
+                    initial={{ height: 0 }}
+                    animate={{ height: `${h}%` }}
+                    transition={{ duration: 1, delay: i * 0.1, ease: "easeOut" }}
+                    className="absolute bottom-0 left-0 right-0 bg-primary/40 rounded-t-xl" 
+                 />
+                 <motion.div 
+                    initial={{ opacity: 0 }}
+                    whileHover={{ opacity: 1 }}
+                    animate={{ height: `${h}%` }}
+                    className="absolute bottom-0 left-0 right-0 bg-primary rounded-t-xl"
+                 />
                </div>
              ))}
           </div>

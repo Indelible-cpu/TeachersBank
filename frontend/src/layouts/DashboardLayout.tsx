@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/useSettings';
@@ -13,11 +13,6 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  // Auto-close sidebar on mobile when route changes
-  useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [location.pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -44,20 +39,24 @@ const DashboardLayout = () => {
 
   navItems.push({ to: '/settings', icon: SettingsIcon, label: t('settings.title') });
 
+  const closeSidebar = () => setIsSidebarOpen(false);
+
   return (
     <div className="min-h-screen bg-background flex text-foreground">
-      {/* Sidebar - Desktop */}
+      {/* Sidebar - Desktop/Mobile */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass border-r transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
         <div className="p-6 flex items-center gap-3 border-b border-border/50">
-          <img 
-            src="/icon-192x192.png" 
-            alt="Logo" 
-            className="w-10 h-10 rounded-full object-cover shadow-sm"
-          />
-          <div className="overflow-hidden">
-            <h1 className="text-xl font-bold text-primary tracking-tight truncate">{settings.systemName}</h1>
-            <p className="text-[10px] uppercase font-black text-muted-foreground truncate">{settings.organizationName}</p>
-          </div>
+          <Link to="/" className="flex items-center gap-3" onClick={closeSidebar}>
+            <img 
+              src="/icon-192x192.png" 
+              alt="Logo" 
+              className="w-10 h-10 rounded-full object-cover shadow-sm"
+            />
+            <div className="overflow-hidden">
+              <h1 className="text-xl font-bold text-primary tracking-tight truncate">{settings.systemName}</h1>
+              <p className="text-[10px] uppercase font-black text-muted-foreground truncate">{settings.organizationName}</p>
+            </div>
+          </Link>
         </div>
         
         <div className="px-4 py-4 mb-2">
@@ -82,6 +81,7 @@ const DashboardLayout = () => {
                 key={item.to}
                 to={item.to} 
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${isActive ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]' : 'hover:bg-primary/10'}`}
+                onClick={closeSidebar}
               >
                 <item.icon className={`w-5 h-5 ${isActive ? 'text-primary-foreground' : 'text-primary'}`} />
                 {item.label}
@@ -136,7 +136,7 @@ const DashboardLayout = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-            onClick={() => setIsSidebarOpen(false)}
+            onClick={closeSidebar}
           />
         )}
       </AnimatePresence>
