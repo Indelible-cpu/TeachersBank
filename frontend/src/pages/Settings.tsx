@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { Save, AlertCircle, Lock, Eye, EyeOff, ShieldCheck, Camera } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Save, AlertCircle, Lock, Eye, EyeOff, ShieldCheck, Camera, Trash2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { authApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +19,7 @@ const Settings = () => {
   const [formData, setFormData] = useState(settings);
   const [isSaving, setIsSaving] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [showRemoveOption, setShowRemoveOption] = useState(false);
 
   React.useEffect(() => {
     (async () => {
@@ -65,6 +66,14 @@ const Settings = () => {
         }
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    if (user?.id) {
+      await setSetting(`profile_photo_${user.id}`, null);
+      setProfilePhoto(null);
+      setShowRemoveOption(false);
     }
   };
 
@@ -124,7 +133,10 @@ const Settings = () => {
         className="glass rounded-2xl p-6 md:p-8 shadow-sm flex flex-col items-center gap-4"
       >
         <div className="relative group">
-          <div className="w-24 h-24 rounded-full bg-primary/10 border-4 border-background shadow-xl overflow-hidden flex items-center justify-center">
+          <div 
+            onClick={() => profilePhoto && setShowRemoveOption(!showRemoveOption)}
+            className={`w-24 h-24 rounded-full bg-primary/10 border-4 border-background shadow-xl overflow-hidden flex items-center justify-center cursor-pointer transition-all ${profilePhoto ? 'hover:opacity-80' : ''}`}
+          >
             {profilePhoto ? (
               <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
             ) : (
@@ -135,6 +147,21 @@ const Settings = () => {
             <Camera className="w-4 h-4" />
             <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} title="Upload Profile Photo" aria-label="Upload Profile Photo" />
           </label>
+          
+          <AnimatePresence>
+            {showRemoveOption && profilePhoto && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                onClick={handleRemovePhoto}
+                className="absolute -top-2 -right-2 p-2 bg-rose-500 text-white rounded-full shadow-lg hover:bg-rose-600 transition-colors z-10"
+                title="Remove photo"
+              >
+                <Trash2 className="w-4 h-4" />
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
         <div className="text-center">
           <h2 className="text-xl font-bold">{user?.name}</h2>
