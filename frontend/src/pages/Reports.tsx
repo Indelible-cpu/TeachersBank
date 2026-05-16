@@ -67,18 +67,48 @@ const Reports = () => {
   const activeLoansTotal = filteredLoans.filter(l => l.status !== 'FULLY_PAID').reduce((sum, l) => sum + (Number(l.balance) || 0), 0);
   const totalRepaymentsAmount = filteredRepayments.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
 
-  const handlePrint = () => { window.print(); };
-
-  const handleShare = async () => {
-    const reportText = `*${settings.systemName} - Financial Report*\nStatus: ${showOnlyConfirmed ? 'VERIFIED ONLY' : 'ALL ENTRIES'}\nSummary: MWK ${(totalShares + totalEmergency).toLocaleString()}`;
-    if (navigator.share) {
-      await navigator.share({ title: 'Financial Report', text: reportText });
-    } else {
-      window.open(`https://wa.me/?text=${encodeURIComponent(reportText)}`, '_blank');
-    }
-  };
+import html2pdf from 'html2pdf.js';
 
   const currentMember = members.find(m => m.id === selectedMember);
+
+  const generatePDFOptions = () => ({
+    margin: 10,
+    filename: `Report_${selectedMonth}_${new Date().getTime()}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  });
+
+  const handlePrint = () => { window.print(); };
+
+  const handleDownloadPDF = () => {
+    if (!reportRef.current) return;
+    html2pdf().set(generatePDFOptions()).from(reportRef.current).save();
+  };
+
+  const handleShare = async () => {
+    if (!reportRef.current) return;
+    
+    try {
+      const pdfBlob = await html2pdf().set(generatePDFOptions()).from(reportRef.current).output('blob');
+      const file = new File([pdfBlob], `Report_${selectedMonth}.pdf`, { type: 'application/pdf' });
+      
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Financial Report',
+          text: `Financial Report for ${selectedMonth}`
+        });
+      } else {
+        // Fallback to download if Web Share API doesn't support files
+        handleDownloadPDF();
+        alert('File sharing not supported on this browser. Downloading PDF instead.');
+      }
+    } catch (error) {
+      console.error('Error sharing PDF', error);
+      alert('Could not share the document.');
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -137,10 +167,9 @@ const Reports = () => {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black p-10 md:p-16 rounded-[3rem] shadow-2xl print:shadow-none print:p-0 print:m-0" ref={reportRef} id="printable-report">
         <style>{`@media print { body * { visibility: hidden; } #printable-report, #printable-report * { visibility: visible; } #printable-report { position: absolute; left: 0; top: 0; width: 100%; } .print\\:hidden { display: none !important; } }`}</style>
 
-        <div className="flex flex-col items-center justify-center text-center border-b-4 border-gray-100 pb-10 mb-10">
-          <img src="/icon-192x192.png" alt="Logo" className="h-20 mb-6 grayscale" />
-          <h1 className="text-4xl font-black uppercase text-gray-900 tracking-tighter mb-2">{settings.organizationName}</h1>
-          <div className="px-6 py-1.5 bg-gray-900 text-white rounded-full text-xs font-black uppercase tracking-[0.2em] mb-6">{reportType === 'FULL' ? 'General Financial Statement' : 'Member Activity Statement'}</div>
+        <div className="flex flex-col items-center justify-center text-center border-b-4 border-primary/20 pb-10 mb-10">
+          <img src="/icon-192x192.png" alt="Logo" className="h-20 mb-6 object-contain" />
+          <h1 className="text-4xl font-black uppercase text-primary tracking-tighter mb-2">{settings.organizationName}</h1>
           
           <div className="flex flex-wrap justify-center gap-4 text-[10px] font-black uppercase tracking-widest text-gray-400">
             <span>Period: {selectedMonth}</span>
@@ -152,32 +181,32 @@ const Reports = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
-          <div className="border-l-4 border-gray-900 pl-6">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Shares</p>
-            <h4 className="text-2xl font-black text-gray-900">MWK {totalShares.toLocaleString()}</h4>
+          <div className="border-l-4 border-primary pl-6">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Total Shares</p>
+            <h4 className="text-2xl font-black text-primary">MWK {totalShares.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-gray-900 pl-6">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Emergency Fund</p>
-            <h4 className="text-2xl font-black text-gray-900">MWK {totalEmergency.toLocaleString()}</h4>
+          <div className="border-l-4 border-primary pl-6">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Emergency Fund</p>
+            <h4 className="text-2xl font-black text-primary">MWK {totalEmergency.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-gray-900 pl-6">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Loan Recovery</p>
-            <h4 className="text-2xl font-black text-gray-900">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
+          <div className="border-l-4 border-primary pl-6">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Loan Recovery</p>
+            <h4 className="text-2xl font-black text-primary">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-gray-900 pl-6">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Outstanding Loans</p>
+          <div className="border-l-4 border-primary pl-6">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Outstanding Loans</p>
             <h4 className="text-2xl font-black text-rose-600">MWK {activeLoansTotal.toLocaleString()}</h4>
           </div>
         </div>
 
         {filteredContributions.length > 0 && (
           <div className="mb-16">
-            <h3 className="text-sm font-black uppercase tracking-widest text-gray-900 mb-6 flex items-center gap-3">
-              <span className="w-8 h-1 bg-gray-900"></span> Contribution Detail
+            <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-6 flex items-center gap-3">
+              <span className="w-8 h-1 bg-primary"></span> Contribution Detail
             </h3>
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b-2 border-gray-900 text-[10px] font-black uppercase text-gray-400">
+                <tr className="border-b-2 border-primary/20 text-[10px] font-black uppercase text-muted-foreground">
                   <th className="py-4 pr-4">Date</th>
                   {reportType === 'FULL' && <th className="py-4">Member</th>}
                   <th className="py-4">Type</th>
@@ -200,22 +229,22 @@ const Reports = () => {
           </div>
         )}
 
-        <div className="mt-20 pt-16 border-t-2 border-gray-100 flex justify-between items-end">
+        <div className="mt-20 pt-16 border-t-2 border-primary/20 flex justify-between items-end">
           <div className="space-y-8">
             <div className="space-y-1">
-              <div className="w-48 h-0.5 bg-gray-900"></div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Secretary Signature</p>
+              <div className="w-48 h-0.5 bg-primary/50"></div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Secretary Signature</p>
             </div>
             <div className="space-y-1">
-              <div className="w-48 h-0.5 bg-gray-900"></div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Treasurer Signature</p>
+              <div className="w-48 h-0.5 bg-primary/50"></div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Treasurer Signature</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[10px] font-black uppercase text-gray-300 mb-2">System Authenticated</p>
-            <div className="flex items-center gap-2 justify-end text-gray-900">
+            <p className="text-[10px] font-black uppercase text-muted-foreground/60 mb-2">System Authenticated</p>
+            <div className="flex items-center gap-2 justify-end text-primary">
               <ShieldCheck className="w-5 h-5" />
-              <span className="font-black text-lg tracking-tighter">{settings.systemName} SECURE</span>
+              <span className="font-black text-lg tracking-tighter">TeachersBank SECURE</span>
             </div>
           </div>
         </div>

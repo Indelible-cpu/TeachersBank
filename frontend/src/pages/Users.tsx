@@ -30,6 +30,8 @@ const Users = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [activeTab, setActiveTab] = useState<'users' | 'logs'>('users');
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'MEMBER' });
 
   useEffect(() => {
     fetchData();
@@ -70,6 +72,18 @@ const Users = () => {
     }
   };
 
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.post('/auth/register', newUser);
+      setIsModalOpen(false);
+      setNewUser({ name: '', email: '', password: '', role: 'MEMBER' });
+      fetchData(); // Refresh list
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to add user');
+    }
+  };
+
   if (currentUser?.role !== 'ADMIN') {
     return <div className="p-8 text-center font-bold">Access Denied</div>;
   }
@@ -84,19 +98,29 @@ const Users = () => {
         <p className="text-muted-foreground font-medium italic">Manage user privileges and track every system activity.</p>
       </div>
 
-      <div className="flex p-1.5 glass rounded-2xl w-fit mb-4">
-        <button 
-          onClick={() => setActiveTab('users')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-sm transition-all ${activeTab === 'users' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'hover:bg-primary/10'}`}
-        >
-          <UserIcon className="w-4 h-4" /> User Management
-        </button>
-        <button 
-          onClick={() => setActiveTab('logs')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-sm transition-all ${activeTab === 'logs' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'hover:bg-primary/10'}`}
-        >
-          <Activity className="w-4 h-4" /> Audit Trails
-        </button>
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center mb-4">
+        <div className="flex p-1.5 glass rounded-2xl w-fit">
+          <button 
+            onClick={() => setActiveTab('users')}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-sm transition-all ${activeTab === 'users' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'hover:bg-primary/10'}`}
+          >
+            <UserIcon className="w-4 h-4" /> User Management
+          </button>
+          <button 
+            onClick={() => setActiveTab('logs')}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-sm transition-all ${activeTab === 'logs' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'hover:bg-primary/10'}`}
+          >
+            <Activity className="w-4 h-4" /> Audit Trails
+          </button>
+        </div>
+        {activeTab === 'users' && (
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="px-6 py-2.5 bg-primary text-primary-foreground font-black text-sm rounded-xl hover:scale-105 transition-all shadow-xl shadow-primary/20"
+          >
+            + Add System User
+          </button>
+        )}
       </div>
 
       <AnimatePresence mode="wait">
@@ -204,6 +228,56 @@ const Users = () => {
               </div>
             )}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isModalOpen && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+            onClick={() => setIsModalOpen(false)}
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg bg-background rounded-[2.5rem] p-8 shadow-2xl border border-white/5"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-black tracking-tight">Add System User</h2>
+                <UserIcon className="w-8 h-8 text-primary/20" />
+              </div>
+
+              <form onSubmit={handleAddUser} className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Full Name</label>
+                  <input type="text" required value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Email</label>
+                  <input type="email" required value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Password</label>
+                  <input type="password" required value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Role</label>
+                  <select value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none">
+                    <option value="ADMIN">Administrator</option>
+                    <option value="TREASURER">Treasurer</option>
+                    <option value="SECRETARY">Secretary</option>
+                    <option value="MEMBER">Regular Member</option>
+                  </select>
+                </div>
+                <div className="flex gap-4 pt-6">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black uppercase tracking-widest">Cancel</button>
+                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black uppercase tracking-widest">Add User</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

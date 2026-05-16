@@ -32,16 +32,50 @@ const Receipts = () => {
     return () => { isMounted = false; };
   }, []);
 
+import html2pdf from 'html2pdf.js';
+import { useRef } from 'react';
+
+  const receiptRef = useRef<HTMLDivElement>(null);
+
+  const generatePDFOptions = (receiptNumber: string) => ({
+    margin: 5,
+    filename: `Receipt_${receiptNumber}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a5', orientation: 'landscape' }
+  });
+
   const handlePrint = () => {
     window.print();
   };
 
-  const handleWhatsAppShare = (receipt: ReceiptData) => {
-    const phone = receipt.memberPhone ? receipt.memberPhone.replace(/[^0-9]/g, '') : '';
-    const message = `*${settings.organizationName}*\n\nHello ${receipt.memberName},\n\nYour receipt has been generated successfully.\n\n*Receipt No:* ${receipt.receiptNumber}\n*Amount:* MWK ${receipt.amount.toLocaleString()}\n*Type:* ${receipt.type}\n*Date:* ${new Date(receipt.timestamp).toLocaleDateString()}\n\n${settings.receiptFooter}`;
+  const handleDownloadPDF = () => {
+    if (!receiptRef.current || !selectedReceipt) return;
+    html2pdf().set(generatePDFOptions(selectedReceipt.receiptNumber)).from(receiptRef.current).save();
+  };
+
+  const handleWhatsAppShare = async (receipt: ReceiptData) => {
+    if (!receiptRef.current) return;
     
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
+    try {
+      const pdfBlob = await html2pdf().set(generatePDFOptions(receipt.receiptNumber)).from(receiptRef.current).output('blob');
+      const file = new File([pdfBlob], `Receipt_${receipt.receiptNumber}.pdf`, { type: 'application/pdf' });
+      
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Official Receipt',
+          text: `Receipt for ${receipt.memberName} - MWK ${receipt.amount.toLocaleString()}`
+        });
+      } else {
+        // Fallback
+        handleDownloadPDF();
+        alert('File sharing not supported. Downloading PDF instead. You can manually attach it in WhatsApp.');
+      }
+    } catch (error) {
+      console.error('Error sharing PDF', error);
+      alert('Could not share the receipt.');
+    }
   };
 
   return (
@@ -92,6 +126,7 @@ const Receipts = () => {
             onClick={() => setSelectedReceipt(null)}
           >
             <motion.div 
+              ref={receiptRef}
               initial={{ opacity: 0, scale: 0.9, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 30 }}
@@ -106,14 +141,13 @@ const Receipts = () => {
                 <X className="w-5 h-5 text-gray-500" />
               </button>
 
-              <div className="text-center pb-8 border-b-4 border-gray-100 border-double">
+              <div className="text-center pb-8 border-b-4 border-primary/20 border-double">
                 <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                  <img src="/icon-192x192.png" alt="Logo" className="w-14 h-14 object-contain grayscale" />
+                  <img src="/icon-192x192.png" alt="Logo" className="w-14 h-14 object-contain" />
                 </div>
-                <h2 className="text-3xl font-black text-black uppercase tracking-tighter">{settings.systemName}</h2>
-                <p className="text-sm font-black text-gray-400 mt-1 uppercase tracking-widest">{settings.organizationName}</p>
-                <div className="mt-4 px-4 py-1 bg-gray-100 rounded-full inline-block">
-                  <p className="text-[10px] font-black text-gray-600">OFFICIAL RECEIPT: {selectedReceipt.receiptNumber}</p>
+                <h2 className="text-3xl font-black text-primary uppercase tracking-tighter">{settings.organizationName}</h2>
+                <div className="mt-4 px-4 py-1 bg-primary/10 rounded-full inline-block">
+                  <p className="text-[10px] font-black text-primary">OFFICIAL RECEIPT: {selectedReceipt.receiptNumber}</p>
                 </div>
               </div>
 
@@ -162,6 +196,7 @@ const Receipts = () => {
                 </button>
                 <button 
                   title="Download"
+                  onClick={handleDownloadPDF}
                   className="flex flex-col items-center gap-2 py-4 bg-gray-100 hover:bg-gray-200 text-gray-900 font-black rounded-3xl transition-all"
                 >
                   <Download className="w-5 h-5" />

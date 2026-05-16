@@ -21,7 +21,7 @@ interface Member {
 const Members = () => {
   const { t } = useTranslation();
   const { isOnline } = useSettings();
-  const { isReadOnly } = useAuth();
+  const { user } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,6 +34,8 @@ const Members = () => {
     address: '',
     alternativeNames: ''
   });
+
+  const canAddMember = user?.role === 'ADMIN' || user?.role === 'SECRETARY';
 
   useEffect(() => {
     let isMounted = true;
@@ -48,7 +50,7 @@ const Members = () => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isReadOnly) return;
+    if (!canAddMember) return;
 
     const member: Member = {
       id: Date.now().toString(),
@@ -91,7 +93,7 @@ const Members = () => {
           <p className="text-muted-foreground">Comprehensive member directory with dual phone support.</p>
         </div>
         
-        {!isReadOnly ? (
+        {canAddMember ? (
           <button 
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-bold rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-primary/20"
@@ -102,7 +104,7 @@ const Members = () => {
         ) : (
           <div className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-muted-foreground font-medium rounded-xl border border-dashed">
             <Lock className="w-4 h-4" />
-            Read Only Access
+            View Only Access
           </div>
         )}
       </div>
