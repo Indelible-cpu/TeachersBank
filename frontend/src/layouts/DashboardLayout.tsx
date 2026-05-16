@@ -127,14 +127,6 @@ const DashboardLayout = () => {
               <Menu className="w-6 h-6" />
             </button>
             
-            {profilePhoto ? (
-              <img src={profilePhoto} alt="Profile" className="w-10 h-10 rounded-full object-cover border-2 border-primary/20 shadow-sm" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border-2 border-primary/20 shadow-sm">
-                {user?.name?.charAt(0)}
-              </div>
-            )}
-
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 text-sm font-medium">
               {isOnline ? <><Wifi className="w-4 h-4 text-green-500"/> <span className="text-[10px] font-semibold tracking-tight">Connected</span></> : <><WifiOff className="w-4 h-4 text-red-500"/> <span className="text-[10px] font-semibold tracking-tight">Offline mode</span></>}
             </div>
@@ -155,6 +147,22 @@ const DashboardLayout = () => {
               <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               <span className="hidden sm:inline tracking-wider capitalize">{t('dashboard.logout').toLowerCase()}</span>
             </button>
+
+            {settings.showProfileInHeader && (
+              <div className="flex items-center gap-2 border-l border-border/50 pl-4 ml-2">
+                <div className="hidden md:block text-right">
+                  <p className="text-[10px] font-bold leading-tight">{user?.name}</p>
+                  <p className="text-[8px] text-muted-foreground capitalize tracking-widest">{user?.role?.toLowerCase()}</p>
+                </div>
+                {profilePhoto ? (
+                  <img src={profilePhoto} alt="Profile" className="w-10 h-10 rounded-full object-cover border-2 border-primary/20 shadow-sm" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border-2 border-primary/20 shadow-sm">
+                    {user?.name?.charAt(0)}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </header>
 

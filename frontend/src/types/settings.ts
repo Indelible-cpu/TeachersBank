@@ -9,4 +9,5 @@ export interface Settings {
   maturityMonths: number;
   loanDurationThresholdAmount: number;
   loanDurationMonthsPerThreshold: number;
+  showProfileInHeader: boolean;
 }

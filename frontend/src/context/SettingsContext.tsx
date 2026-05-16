@@ -14,7 +14,8 @@ const defaultSettings: Settings = {
   interestPercentage: 10,
   maturityMonths: 12,
   loanDurationThresholdAmount: 50000,
-  loanDurationMonthsPerThreshold: 1
+  loanDurationMonthsPerThreshold: 1,
+  showProfileInHeader: true
 };
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {

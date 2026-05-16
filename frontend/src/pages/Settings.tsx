@@ -254,6 +254,20 @@ const Settings = () => {
                 className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
               />
             </div>
+
+            <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-xl border border-border/50 col-span-1 md:col-span-2">
+              <div>
+                <p className="text-sm font-bold">Header Profile</p>
+                <p className="text-[10px] text-muted-foreground">Show your name and photo in the top bar.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, showProfileInHeader: !formData.showProfileInHeader })}
+                className={`w-12 h-6 rounded-full p-1 transition-colors ${formData.showProfileInHeader ? 'bg-primary' : 'bg-muted'}`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${formData.showProfileInHeader ? 'translate-x-6' : 'translate-x-0'}`} />
+              </button>
+            </div>
           </div>
 
           <div className="pt-6 border-t flex justify-end">
