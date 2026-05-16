@@ -16,8 +16,12 @@
       "destination": "/api/index.ts"
     },
     {
-      "source": "/(.*)",
+      "source": "/(assets/.*|favicon.ico|icon-.*|manifest.webmanifest)",
       "destination": "/frontend/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/index.html"
     }
   ]
 }
