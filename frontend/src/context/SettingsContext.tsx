@@ -12,7 +12,9 @@ const defaultSettings: Settings = {
   logo: null,
   fontSize: 'medium',
   interestPercentage: 10,
-  maturityMonths: 12
+  maturityMonths: 12,
+  loanDurationThresholdAmount: 50000,
+  loanDurationMonthsPerThreshold: 1
 };
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {

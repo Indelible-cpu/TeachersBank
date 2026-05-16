@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { FileText, Printer, Share2, Filter, User, Calendar, ShieldCheck, ShieldAlert } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 import { getSetting } from '../services/db';
 import { useSettings } from '../context/useSettings';
 
@@ -66,17 +67,16 @@ const Reports = () => {
   const totalEmergency = filteredContributions.filter(c => c.type === 'EMERGENCY').reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
   const activeLoansTotal = filteredLoans.filter(l => l.status !== 'FULLY_PAID').reduce((sum, l) => sum + (Number(l.balance) || 0), 0);
   const totalRepaymentsAmount = filteredRepayments.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
-
-import html2pdf from 'html2pdf.js';
+  const accumulatedInterest = filteredLoans.reduce((sum, l) => sum + ((Number(l.expectedReturn) || 0) - (Number(l.principal) || 0)), 0);
 
   const currentMember = members.find(m => m.id === selectedMember);
 
   const generatePDFOptions = () => ({
     margin: 10,
     filename: `Report_${selectedMonth}_${new Date().getTime()}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
+    image: { type: 'jpeg' as const, quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
   });
 
   const handlePrint = () => { window.print(); };
@@ -180,7 +180,7 @@ import html2pdf from 'html2pdf.js';
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
           <div className="border-l-4 border-primary pl-6">
             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Total Shares</p>
             <h4 className="text-2xl font-black text-primary">MWK {totalShares.toLocaleString()}</h4>
@@ -192,6 +192,10 @@ import html2pdf from 'html2pdf.js';
           <div className="border-l-4 border-primary pl-6">
             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Loan Recovery</p>
             <h4 className="text-2xl font-black text-primary">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
+          </div>
+          <div className="border-l-4 border-primary pl-6">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Accumulated Interest</p>
+            <h4 className="text-2xl font-black text-purple-600">MWK {accumulatedInterest.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Outstanding Loans</p>

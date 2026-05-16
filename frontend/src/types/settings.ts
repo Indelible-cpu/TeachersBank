@@ -7,4 +7,6 @@ export interface Settings {
   fontSize: 'small' | 'medium' | 'large' | 'xlarge';
   interestPercentage: number;
   maturityMonths: number;
+  loanDurationThresholdAmount: number;
+  loanDurationMonthsPerThreshold: number;
 }

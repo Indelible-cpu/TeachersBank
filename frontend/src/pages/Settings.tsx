@@ -91,8 +91,9 @@ const Settings = () => {
       });
       setPasswordSuccess('Password changed successfully!');
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (err: any) {
-      setPasswordError(err.response?.data?.error || 'Failed to change password');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setPasswordError(error.response?.data?.error || 'Failed to change password');
     } finally {
       setIsChangingPassword(false);
     }
@@ -132,7 +133,7 @@ const Settings = () => {
           </div>
           <label className="absolute bottom-0 right-0 p-2 bg-primary text-primary-foreground rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform">
             <Camera className="w-4 h-4" />
-            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} title="Upload Profile Photo" aria-label="Upload Profile Photo" />
           </label>
         </div>
         <div className="text-center">
@@ -226,6 +227,30 @@ const Settings = () => {
                 name="maturityMonths"
                 value={formData.maturityMonths}
                 onChange={(e) => setFormData({ ...formData, maturityMonths: parseInt(e.target.value) })}
+                className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="loanDurationThresholdAmount" className="text-sm font-medium">Loan Duration Base Amount (MWK)</label>
+              <input
+                id="loanDurationThresholdAmount"
+                type="number"
+                name="loanDurationThresholdAmount"
+                value={formData.loanDurationThresholdAmount}
+                onChange={(e) => setFormData({ ...formData, loanDurationThresholdAmount: parseInt(e.target.value) })}
+                className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="loanDurationMonthsPerThreshold" className="text-sm font-medium">Months per Base Amount</label>
+              <input
+                id="loanDurationMonthsPerThreshold"
+                type="number"
+                name="loanDurationMonthsPerThreshold"
+                value={formData.loanDurationMonthsPerThreshold}
+                onChange={(e) => setFormData({ ...formData, loanDurationMonthsPerThreshold: parseInt(e.target.value) })}
                 className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
               />
             </div>

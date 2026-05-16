@@ -24,7 +24,7 @@ const Loans = () => {
   const { isOnline, settings } = useSettings();
   const { isReadOnly, canWriteFinance } = useAuth();
   const [loans, setLoans] = useState<Loan[]>([]);
-  const [members, setMembers] = useState<Record<string, any>[]>([]);
+  const [members, setMembers] = useState<Record<string, unknown>[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const [newLoan, setNewLoan] = useState({
@@ -32,6 +32,26 @@ const Loans = () => {
     principal: '',
     dueDate: ''
   });
+
+  const handlePrincipalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const amount = parseFloat(value) || 0;
+    
+    const thresholdAmount = settings.loanDurationThresholdAmount || 50000;
+    const monthsPerThreshold = settings.loanDurationMonthsPerThreshold || 1;
+    
+    // Calculate months (minimum 1 base threshold worth of months)
+    const calculatedMonths = Math.max(1, Math.ceil(amount / thresholdAmount)) * monthsPerThreshold;
+    
+    const date = new Date();
+    date.setMonth(date.getMonth() + calculatedMonths);
+    
+    setNewLoan({
+      ...newLoan,
+      principal: value,
+      dueDate: amount > 0 ? date.toISOString().split('T')[0] : ''
+    });
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -109,7 +129,7 @@ const Loans = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {loans.map((loan, i) => (
+        {loans.map((loan) => (
           <motion.div 
             key={loan.id}
             initial={{ opacity: 0, y: 20 }}
@@ -192,7 +212,7 @@ const Loans = () => {
                     <input 
                       id="loan-amount" type="number" required min="0"
                       value={newLoan.principal}
-                      onChange={e => setNewLoan({...newLoan, principal: e.target.value})}
+                      onChange={handlePrincipalChange}
                       className="w-full pl-12 pr-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-black"
                     />
                   </div>

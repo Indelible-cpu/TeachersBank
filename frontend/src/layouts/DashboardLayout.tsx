@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/useSettings';
@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { LogOut, Home, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wallet, CreditCard, Receipt, FileText, Shield, User as UserIcon, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getSetting } from '../services/db';
 
 const DashboardLayout = () => {
   const { logout, user } = useAuth();
@@ -15,6 +16,16 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      if (user?.id) {
+        const photo = await getSetting(`profile_photo_${user.id}`);
+        if (photo) setProfilePhoto(photo as string);
+      }
+    })();
+  }, [user?.id]);
 
   const handleLogout = async () => {
     await logout();
@@ -54,9 +65,9 @@ const DashboardLayout = () => {
               alt="Logo" 
               className="w-10 h-10 rounded-full object-cover shadow-sm"
             />
-            <div className="overflow-hidden">
-              <h1 className="text-xl font-bold text-primary tracking-tight truncate">{settings.systemName}</h1>
-              <p className="text-[10px] uppercase font-black text-muted-foreground truncate">{settings.organizationName}</p>
+            <div className="overflow-hidden break-words">
+              <h1 className="text-xl font-bold text-primary tracking-tight leading-tight">{settings.systemName}</h1>
+              <p className="text-[10px] uppercase font-black text-muted-foreground leading-tight">{settings.organizationName}</p>
             </div>
           </Link>
         </div>
@@ -116,6 +127,15 @@ const DashboardLayout = () => {
             <button className="lg:hidden p-2 rounded-md hover:bg-muted" aria-label="Toggle menu" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
               <Menu className="w-6 h-6" />
             </button>
+            
+            {profilePhoto ? (
+              <img src={profilePhoto} alt="Profile" className="w-10 h-10 rounded-full object-cover border-2 border-primary/20 shadow-sm" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border-2 border-primary/20 shadow-sm">
+                {user?.name?.charAt(0)}
+              </div>
+            )}
+
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 text-sm font-medium">
               {isOnline ? <><Wifi className="w-4 h-4 text-green-500"/> <span className="text-[10px] uppercase font-bold tracking-tight">Connected</span></> : <><WifiOff className="w-4 h-4 text-red-500"/> <span className="text-[10px] uppercase font-bold tracking-tight">Offline Mode</span></>}
             </div>

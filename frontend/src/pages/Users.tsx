@@ -276,20 +276,20 @@ const Users = () => {
 
               <form onSubmit={handleAddUser} className="space-y-5">
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Full Name</label>
-                  <input type="text" required value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
+                  <label htmlFor="newUserName" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Full Name</label>
+                  <input id="newUserName" type="text" title="Full Name" placeholder="Full Name" required value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Email</label>
-                  <input type="email" required value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
+                  <label htmlFor="newUserEmail" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Email</label>
+                  <input id="newUserEmail" type="email" title="Email" placeholder="Email Address" required value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Password</label>
-                  <input type="password" required value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
+                  <label htmlFor="newUserPassword" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Password</label>
+                  <input id="newUserPassword" type="password" title="Password" placeholder="••••••••" required value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Role</label>
-                  <select value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none">
+                  <label htmlFor="newUserRole" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Role</label>
+                  <select id="newUserRole" title="Role" value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none">
                     <option value="ADMIN">Administrator</option>
                     <option value="TREASURER">Treasurer</option>
                     <option value="SECRETARY">Secretary</option>

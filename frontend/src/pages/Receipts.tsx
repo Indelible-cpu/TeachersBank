@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Receipt as ReceiptIcon, Printer, Share2, X, Download } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
+import { useRef } from 'react';
 import { useSettings } from '../context/useSettings';
 import { getSetting, setSetting } from '../services/db';
 
@@ -20,6 +22,15 @@ const Receipts = () => {
   const { settings } = useSettings();
   const [receipts, setReceipts] = useState<ReceiptData[]>([]);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
+  const receiptRef = useRef<HTMLDivElement>(null);
+
+  const generatePDFOptions = (receiptNumber: string) => ({
+    margin: 5,
+    filename: `Receipt_${receiptNumber}.pdf`,
+    image: { type: 'jpeg' as const, quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm' as const, format: 'a5' as const, orientation: 'landscape' as const }
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -31,19 +42,6 @@ const Receipts = () => {
     })();
     return () => { isMounted = false; };
   }, []);
-
-import html2pdf from 'html2pdf.js';
-import { useRef } from 'react';
-
-  const receiptRef = useRef<HTMLDivElement>(null);
-
-  const generatePDFOptions = (receiptNumber: string) => ({
-    margin: 5,
-    filename: `Receipt_${receiptNumber}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a5', orientation: 'landscape' }
-  });
 
   const handlePrint = () => {
     window.print();

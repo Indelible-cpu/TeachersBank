@@ -11,6 +11,7 @@ interface DashboardStats {
   members: number;
   pendingVerification: number;
   pendingAmount: number;
+  accumulatedInterest: number;
 }
 
 interface DBRecord {
@@ -28,13 +29,14 @@ const Dashboard = () => {
     loans: 0,
     members: 0,
     pendingVerification: 0,
-    pendingAmount: 0
+    pendingAmount: 0,
+    accumulatedInterest: 0
   });
 
   useEffect(() => {
     (async () => {
       const contribs = (await getSetting('contributions') || []) as DBRecord[];
-      const loansList = (await getSetting('loans') || []) as DBRecord[];
+      const loansList = (await getSetting('loans') || []) as any[];
       const membersList = await getSetting('members') || [];
       const repaymentsList = (await getSetting('repayments') || []) as DBRecord[];
 
@@ -42,12 +44,15 @@ const Dashboard = () => {
       const pendingContribs = contribs.filter((c) => c.status === 'PENDING');
       const pendingRepayments = repaymentsList.filter((r) => r.status === 'PENDING');
 
+      const accumulatedInterest = loansList.reduce((acc, l) => acc + ((l.expectedReturn || 0) - (l.principal || 0)), 0);
+
       setData({
         contributions: confirmedContribs.reduce((acc, c) => acc + (c.amount || 0), 0),
         loans: loansList.reduce((acc, l) => acc + (l.balance || 0), 0),
         members: membersList.length,
         pendingVerification: pendingContribs.length + pendingRepayments.length,
-        pendingAmount: pendingContribs.reduce((acc, c) => acc + (c.amount || 0), 0) + pendingRepayments.reduce((acc, r) => acc + (r.amount || 0), 0)
+        pendingAmount: pendingContribs.reduce((acc, c) => acc + (c.amount || 0), 0) + pendingRepayments.reduce((acc, r) => acc + (r.amount || 0), 0),
+        accumulatedInterest
       });
     })();
   }, []);
@@ -55,7 +60,7 @@ const Dashboard = () => {
   const stats = [
     { title: 'Verified Capital', value: `MWK ${data.contributions.toLocaleString()}`, icon: Wallet, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
     { title: 'Active Loan Book', value: `MWK ${data.loans.toLocaleString()}`, icon: CreditCard, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { title: 'Total Members', value: data.members.toString(), icon: Users, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+    { title: 'Accumulated Interest', value: `MWK ${data.accumulatedInterest.toLocaleString()}`, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
     { title: 'In Transit', value: `MWK ${data.pendingAmount.toLocaleString()}`, icon: HandCoins, color: 'text-amber-500', bg: 'bg-amber-500/10' },
   ];
 
