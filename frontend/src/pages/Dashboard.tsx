@@ -1,4 +1,4 @@
-import { useSettings } from '../context/SettingsContext';
+import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Wallet, CreditCard, Receipt, Users } from 'lucide-react';
