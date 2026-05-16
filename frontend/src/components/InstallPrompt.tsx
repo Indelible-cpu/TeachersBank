@@ -20,6 +20,8 @@ const InstallPrompt = () => {
             
             <button 
               onClick={dismissPrompt}
+              title="Dismiss"
+              aria-label="Dismiss installation prompt"
               className="absolute top-6 right-6 p-2 bg-secondary rounded-full hover:bg-secondary/80 transition-colors"
             >
               <X className="w-4 h-4" />
