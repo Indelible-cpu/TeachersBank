@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import syncRoutes from './routes/sync.routes';
+import prisma from './prisma';
 
 dotenv.config();
 
@@ -20,12 +21,22 @@ app.use('/api/sync', syncRoutes);
 app.use('/auth', authRoutes);
 app.use('/sync', syncRoutes);
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health check with DB verify
+app.get('/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', database: 'connected', timestamp: new Date().toISOString() });
+  } catch (err: any) {
+    res.status(500).json({ status: 'error', database: 'disconnected', error: err.message });
+  }
 });
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', database: 'connected', timestamp: new Date().toISOString() });
+  } catch (err: any) {
+    res.status(500).json({ status: 'error', database: 'disconnected', error: err.message });
+  }
 });
 
 const PORT = process.env.PORT || 5000;
