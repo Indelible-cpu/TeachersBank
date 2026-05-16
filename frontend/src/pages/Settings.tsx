@@ -2,17 +2,30 @@ import React, { useState } from 'react';
 import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Save, AlertCircle, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Save, AlertCircle, Lock, Eye, EyeOff, ShieldCheck, Camera } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { authApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { getSetting, setSetting } from '../services/db';
 
 const Settings = () => {
   const { settings, updateSettings, isOnline } = useSettings();
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
 
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+
   const [formData, setFormData] = useState(settings);
   const [isSaving, setIsSaving] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    (async () => {
+      const photo = await getSetting(`profile_photo_${user?.id}`);
+      if (photo) setProfilePhoto(photo);
+    })();
+  }, [user?.id]);
   
   // Password change state
   const [passwordData, setPasswordData] = useState({
@@ -38,6 +51,21 @@ const Settings = () => {
     setIsSaving(true);
     await updateSettings(formData);
     setTimeout(() => setIsSaving(false), 500);
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        setProfilePhoto(base64);
+        if (user?.id) {
+          await setSetting(`profile_photo_${user.id}`, base64);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -88,7 +116,34 @@ const Settings = () => {
         </div>
       )}
 
-      {/* System Settings Section */}
+      {/* Profile Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass rounded-2xl p-6 md:p-8 shadow-sm flex flex-col items-center gap-4"
+      >
+        <div className="relative group">
+          <div className="w-24 h-24 rounded-full bg-primary/10 border-4 border-background shadow-xl overflow-hidden flex items-center justify-center">
+            {profilePhoto ? (
+              <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-3xl font-black text-primary">{user?.name?.charAt(0)}</span>
+            )}
+          </div>
+          <label className="absolute bottom-0 right-0 p-2 bg-primary text-primary-foreground rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform">
+            <Camera className="w-4 h-4" />
+            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+          </label>
+        </div>
+        <div className="text-center">
+          <h2 className="text-xl font-bold">{user?.name}</h2>
+          <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest">{user?.role}</p>
+          <p className="text-sm text-muted-foreground">{user?.email}</p>
+        </div>
+      </motion.div>
+
+      {/* System Settings Section (Admin Only) */}
+      {isAdmin && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -188,6 +243,7 @@ const Settings = () => {
           </div>
         </form>
       </motion.div>
+      )}
 
       {/* Security Section */}
       <motion.div

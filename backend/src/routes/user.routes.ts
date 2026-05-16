@@ -38,6 +38,26 @@ router.patch('/:id', authenticate, authorize(['ADMIN']), trackActivity('UPDATE_U
   }
 });
 
+// Delete user (Admin only)
+router.delete('/:id', authenticate, authorize(['ADMIN']), trackActivity('DELETE_USER'), async (req: any, res: any) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if user is deleting themselves
+    if (req.user.id === id) {
+      return res.status(400).json({ error: 'Cannot delete your own account' });
+    }
+
+    await prisma.user.delete({
+      where: { id }
+    });
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(400).json({ error: 'Failed to delete user' });
+  }
+});
+
 // Audit Logs (Admin only)
 router.get('/audit-logs', authenticate, authorize(['ADMIN']), async (req, res) => {
   try {

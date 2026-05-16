@@ -3,13 +3,15 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
-import { LogOut, Home, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wallet, CreditCard, Receipt, FileText, Shield, User as UserIcon } from 'lucide-react';
+import { LogOut, Home, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wallet, CreditCard, Receipt, FileText, Shield, User as UserIcon, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DashboardLayout = () => {
   const { logout, user } = useAuth();
   const { settings, isOnline } = useSettings();
   const { t, i18n } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -89,6 +91,21 @@ const DashboardLayout = () => {
             );
           })}
         </nav>
+
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border/50 bg-background/80 backdrop-blur-md">
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-primary/10 transition-colors text-sm font-bold"
+          >
+            <span className="flex items-center gap-3">
+              {theme === 'dark' ? <Moon className="w-5 h-5 text-primary" /> : <Sun className="w-5 h-5 text-primary" />}
+              {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
+            </span>
+            <div className={`w-10 h-6 rounded-full p-1 transition-colors ${theme === 'dark' ? 'bg-primary' : 'bg-secondary'}`}>
+              <div className={`w-4 h-4 rounded-full bg-white transition-transform ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`} />
+            </div>
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}

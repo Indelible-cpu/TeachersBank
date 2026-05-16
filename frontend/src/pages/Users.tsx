@@ -84,6 +84,21 @@ const Users = () => {
     }
   };
 
+  const handleDeleteUser = async (u: User) => {
+    if (u.id === currentUser?.id) {
+      alert('You cannot delete your own account');
+      return;
+    }
+    if (window.confirm(`Are you sure you want to permanently delete ${u.name}?`)) {
+      try {
+        await api.delete(`/users/${u.id}`);
+        setUsers(users.filter(user => user.id !== u.id));
+      } catch (error: any) {
+        alert(error.response?.data?.error || 'Failed to delete user');
+      }
+    }
+  };
+
   if (currentUser?.role !== 'ADMIN') {
     return <div className="p-8 text-center font-bold">Access Denied</div>;
   }
@@ -138,12 +153,22 @@ const Users = () => {
                   <div className={`p-3 rounded-2xl ${u.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
                     {u.role === 'ADMIN' ? <ShieldAlert /> : u.role === 'TREASURER' ? <ShieldCheck /> : <Shield />}
                   </div>
-                  <button 
-                    onClick={() => toggleStatus(u)}
-                    className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border transition-all ${u.isActive ? 'bg-emerald-500/5 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/5 text-rose-500 border-rose-500/20'}`}
-                  >
-                    {u.isActive ? 'Active' : 'Suspended'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => toggleStatus(u)}
+                      className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border transition-all ${u.isActive ? 'bg-emerald-500/5 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/5 text-rose-500 border-rose-500/20'}`}
+                    >
+                      {u.isActive ? 'Active' : 'Suspended'}
+                    </button>
+                    {u.id !== currentUser?.id && (
+                      <button 
+                        onClick={() => handleDeleteUser(u)}
+                        className="text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border transition-all bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div>
