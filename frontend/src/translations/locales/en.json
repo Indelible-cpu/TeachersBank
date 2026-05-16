@@ -1,0 +1,99 @@
+{
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to continue to",
+    "email": "Email Address",
+    "password": "Password",
+    "submit": "Sign In",
+    "offline_notice": "You are currently offline. You can still login if you logged in recently on this device."
+  },
+  "settings": {
+    "title": "System Settings",
+    "organization_name": "Organization Name",
+    "system_name": "System Name",
+    "receipt_footer": "Receipt Footer Text",
+    "language": "Default Language",
+    "save": "Save Settings",
+    "offline_notice": "Changes saved offline and will sync when online."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "contributions": "Contributions",
+    "loans": "Loans",
+    "receipts": "Receipts",
+    "logout": "Logout"
+  },
+  "members": {
+    "title": "Members Directory",
+    "add_member": "Add Member",
+    "search": "Search members...",
+    "fullname": "Full Name",
+    "member_number": "Member Number",
+    "phone": "Phone Number",
+    "join_date": "Join Date",
+    "save": "Save Member"
+  },
+  "contributions": {
+    "title": "Contributions",
+    "record_new": "Record Contribution",
+    "type": "Contribution Type",
+    "share": "Monthly Share",
+    "emergency": "Emergency Fund",
+    "amount": "Amount",
+    "month": "Month",
+    "year": "Year",
+    "member": "Select Member",
+    "save": "Save Contribution",
+    "history": "Recent Contributions"
+  },
+  "loans": {
+    "title": "Loan Management",
+    "create_loan": "Create Loan",
+    "principal": "Principal Amount",
+    "interest": "Interest Rate (%)",
+    "expected_return": "Expected Return",
+    "due_date": "Due Date",
+    "status": "Status",
+    "member": "Select Member",
+    "save": "Approve Loan",
+    "history": "Active & Past Loans",
+    "balance": "Remaining Balance"
+  },
+  "repayments": {
+    "title": "Repayments",
+    "record": "Record Repayment",
+    "amount": "Repayment Amount",
+    "loan": "Select Loan",
+    "save": "Save Repayment",
+    "history": "Recent Repayments"
+  },
+  "receipts": {
+    "title": "Receipts Manager",
+    "receipt_no": "Receipt No",
+    "date": "Date",
+    "member": "Member",
+    "amount": "Amount",
+    "type": "Transaction Type",
+    "share_whatsapp": "Share via WhatsApp",
+    "print": "Print PDF",
+    "signature": "Authorized Signature"
+  },
+  "reports": {
+    "title": "Financial Reports",
+    "full_report": "Full Financial Report",
+    "individual_report": "Individual Report",
+    "select_month": "Select Month",
+    "select_member": "Select Member",
+    "generate": "Generate Report",
+    "print": "Print",
+    "share": "Share via WhatsApp",
+    "summary": "Summary",
+    "total_shares": "Total Shares",
+    "total_emergency": "Total Emergency Funds",
+    "active_loans": "Active Loans",
+    "total_repayments": "Total Repayments",
+    "report_for": "Report for",
+    "date_generated": "Date Generated",
+    "all_months": "All Months"
+  }
+}

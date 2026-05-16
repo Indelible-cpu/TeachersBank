@@ -1,0 +1,99 @@
+{
+  "login": {
+    "title": "Takulandirani",
+    "subtitle": "Lowani kuti mupitilize pa",
+    "email": "Imelo Yanu",
+    "password": "Mawu achinsinsi",
+    "submit": "Lowani",
+    "offline_notice": "Muli ofulaini panopa. Mutha kulowa ngati munalowa m'mbuyomu pa chipangizo ichi."
+  },
+  "settings": {
+    "title": "Zosintha za Sisitimu",
+    "organization_name": "Dzina la Gulu",
+    "system_name": "Dzina la Sisitimu",
+    "receipt_footer": "Mawu Pansi pa Risiti",
+    "language": "Chilankhulo",
+    "save": "Sungani Zosintha",
+    "offline_notice": "Zosintha zasungidwa ofulaini ndipo zitumizidwa mukakhala pa intaneti."
+  },
+  "dashboard": {
+    "title": "Bolodi",
+    "contributions": "Ndalama Zosonkhanitsa",
+    "loans": "Ngongole",
+    "receipts": "Malisiti",
+    "logout": "Tulukani"
+  },
+  "members": {
+    "title": "Ndandanda wa Mamembala",
+    "add_member": "Onjezani Membala",
+    "search": "Fufuzani membala...",
+    "fullname": "Dzina Lonse",
+    "member_number": "Nambala ya Membala",
+    "phone": "Nambala ya Foni",
+    "join_date": "Tsiku Lolowa",
+    "save": "Sungani Membala"
+  },
+  "contributions": {
+    "title": "Zosonkhanitsa",
+    "record_new": "Lembani Ndalama",
+    "type": "Mtundu wa Ndalama",
+    "share": "Gawo la Mwezi",
+    "emergency": "Ndalama Zadzidzidzi",
+    "amount": "Ndalama (MWK)",
+    "month": "Mwezi",
+    "year": "Chaka",
+    "member": "Sankhani Membala",
+    "save": "Sungani Ndalama",
+    "history": "Zaposachedwapa"
+  },
+  "loans": {
+    "title": "Kusamalira Ngongole",
+    "create_loan": "Pangani Ngongole",
+    "principal": "Ndalama za Ngongole",
+    "interest": "Chiungwe (%)",
+    "expected_return": "Ndalama Zobwezera",
+    "due_date": "Tsiku Lobweza",
+    "status": "Mene Zilili",
+    "member": "Sankhani Membala",
+    "save": "Vomerezani",
+    "history": "Ngongole Zonse",
+    "balance": "Ndalama Zotsala"
+  },
+  "repayments": {
+    "title": "Zobweza",
+    "record": "Lembani Zobweza",
+    "amount": "Ndalama Zobweza",
+    "loan": "Sankhani Ngongole",
+    "save": "Sungani",
+    "history": "Zaposachedwapa"
+  },
+  "receipts": {
+    "title": "Malisiti",
+    "receipt_no": "Nambala ya Risiti",
+    "date": "Tsiku",
+    "member": "Membala",
+    "amount": "Ndalama",
+    "type": "Mtundu Wandalama",
+    "share_whatsapp": "Tumizani pa WhatsApp",
+    "print": "Sindikizani",
+    "signature": "Saini Yovomerezeka"
+  },
+  "reports": {
+    "title": "Malipoti a Zachuma",
+    "full_report": "Lipoti Lonse la Zachuma",
+    "individual_report": "Lipoti la Membala",
+    "select_month": "Sankhani Mwezi",
+    "select_member": "Sankhani Membala",
+    "generate": "Pangani Lipoti",
+    "print": "Sindikizani",
+    "share": "Tumizani pa WhatsApp",
+    "summary": "Mwachidule",
+    "total_shares": "Magawo Onse",
+    "total_emergency": "Zadzidzidzi Zonse",
+    "active_loans": "Ngongole Zomwe Zilipo",
+    "total_repayments": "Zobweza Zonse",
+    "report_for": "Lipoti la",
+    "date_generated": "Tsiku Lopangidwa",
+    "all_months": "Miyezi Yonse"
+  }
+}

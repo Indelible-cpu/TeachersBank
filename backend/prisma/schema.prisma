@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Settings {
+  id                    String   @id @default(uuid())
+  organizationName      String   @default("Teachers Bank Tracking System")
+  systemName            String   @default("TBTS")
+  logo                  String?
+  receiptFooter         String?
+  contactDetails        String?
+  defaultLanguage       String   @default("en")
+  interestPercentage    Float    @default(0)
+  maturityMonths        Int      @default(12)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(MEMBER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  member    Member?
+}
+
+enum Role {
+  ADMIN
+  ACCOUNTANT
+  MEMBER
+}
+
+model Member {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  memberNumber    String   @unique
+  fullname        String
+  phone           String?
+  gender          String?
+  address         String?
+  photo           String?
+  joinDate        DateTime @default(now())
+  
+  shareContributions     ShareContribution[]
+  emergencyContributions EmergencyContribution[]
+  loans                  Loan[]
+  repayments             Repayment[]
+  disbursements          Disbursement[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContributionCycle {
+  id             String   @id @default(uuid())
+  name           String   // e.g., "2026 Annual Cycle"
+  startDate      DateTime
+  endDate        DateTime
+  maturityMonths Int
+  isActive       Boolean  @default(true)
+  
+  shareContributions     ShareContribution[]
+  emergencyContributions EmergencyContribution[]
+  disbursements          Disbursement[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ShareContribution {
+  id         String   @id @default(uuid())
+  memberId   String
+  member     Member   @relation(fields: [memberId], references: [id])
+  cycleId    String
+  cycle      ContributionCycle @relation(fields: [cycleId], references: [id])
+  amount     Float
+  month      Int      // 1-12
+  year       Int      // e.g., 2026
+  recordedBy String   // UserId of admin/accountant
+  receiptId  String?  @unique
+  receipt    Receipt? @relation(fields: [receiptId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EmergencyContribution {
+  id         String   @id @default(uuid())
+  memberId   String
+  member     Member   @relation(fields: [memberId], references: [id])
+  cycleId    String
+  cycle      ContributionCycle @relation(fields: [cycleId], references: [id])
+  amount     Float
+  month      Int
+  year       Int
+  recordedBy String
+  receiptId  String?  @unique
+  receipt    Receipt? @relation(fields: [receiptId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Loan {
+  id             String   @id @default(uuid())
+  memberId       String
+  member         Member   @relation(fields: [memberId], references: [id])
+  principal      Float
+  interestRate   Float
+  expectedReturn Float
+  balance        Float
+  status         LoanStatus @default(PENDING)
+  dueDate        DateTime
+  recordedBy     String
+  
+  repayments     Repayment[]
+  receipts       Receipt[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum LoanStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FULLY_PAID
+}
+
+model Repayment {
+  id         String   @id @default(uuid())
+  loanId     String
+  loan       Loan     @relation(fields: [loanId], references: [id])
+  memberId   String
+  member     Member   @relation(fields: [memberId], references: [id])
+  amount     Float
+  recordedBy String
+  receiptId  String?  @unique
+  receipt    Receipt? @relation(fields: [receiptId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Disbursement {
+  id         String   @id @default(uuid())
+  memberId   String
+  member     Member   @relation(fields: [memberId], references: [id])
+  cycleId    String
+  cycle      ContributionCycle @relation(fields: [cycleId], references: [id])
+  amount     Float
+  interest   Float
+  status     DisbursementStatus @default(PENDING)
+  recordedBy String
+  receiptId  String?  @unique
+  receipt    Receipt? @relation(fields: [receiptId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum DisbursementStatus {
+  PENDING
+  MATURED
+  DISBURSED
+}
+
+model Receipt {
+  id              String   @id @default(uuid())
+  receiptNumber   String   @unique
+  memberId        String?
+  amount          Float
+  transactionType String   // "SHARE", "EMERGENCY", "LOAN", "REPAYMENT", "DISBURSEMENT"
+  transactionDate DateTime @default(now())
+  details         String?  // JSON string
+  receiptUrl      String?  // URL to Supabase Storage file
+  
+  shareContribution      ShareContribution?
+  emergencyContribution  EmergencyContribution?
+  repayment              Repayment?
+  disbursement           Disbursement?
+  loan                   Loan?    @relation(fields: [loanId], references: [id])
+  loanId                 String?
+  
+  createdAt DateTime @default(now())
+}
