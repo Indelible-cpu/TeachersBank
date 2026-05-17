@@ -45,17 +45,17 @@ const Landing = () => {
   return (
     <div className={`min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20 ${!showLearnMore ? 'h-screen overflow-hidden' : ''}`}>
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40 px-6 lg:px-16 min-h-[5rem] py-3 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40 px-6 lg:px-16 min-h-[5rem] py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <img 
             src="/icon-192x192.png" 
             alt="Logo" 
             className="w-10 h-10 rounded-full object-cover shadow-md shrink-0"
           />
-          <span className="text-lg md:text-2xl font-black text-primary tracking-tight text-center md:text-left leading-tight break-words whitespace-normal">{settings.systemName}</span>
+          <span className="text-lg md:text-2xl font-black text-primary tracking-tight text-center md:text-left leading-tight break-words">{settings.systemName}</span>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-6 shrink-0">
           <button 
             onClick={toggleLanguage}
             className="px-4 py-1.5 text-xs font-black tracking-widest border border-primary/20 rounded-full hover:bg-primary/5 transition-colors"
@@ -66,7 +66,7 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-36 pb-16 px-6 lg:px-16 max-w-4xl mx-auto flex flex-col items-center text-center space-y-6 w-full flex-1 justify-center">
+      <section className="pt-32 pb-16 px-6 lg:px-16 max-w-4xl mx-auto flex flex-col items-center text-center space-y-6 w-full flex-1 justify-center">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
