@@ -3,6 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useAuth } from './context/AuthContext';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
+import About from './pages/About';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import FAQ from './pages/FAQ';
 import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import Members from './pages/Members';
@@ -28,9 +32,15 @@ function App() {
     <Router>
       <InstallPrompt />
       <Routes>
+        {/* Public pages */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
-        
+        <Route path="/about" element={<About />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/faq" element={<FAQ />} />
+
+        {/* Protected dashboard */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <DashboardLayout />
@@ -48,8 +58,8 @@ function App() {
           <Route path="audit-trail" element={<AuditTrail />} />
           <Route path="settings" element={<Settings />} />
         </Route>
-        
-        {/* Fallback for legacy / unmatched links */}
+
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
