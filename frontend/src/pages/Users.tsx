@@ -187,11 +187,11 @@ const Users = () => {
               <form onSubmit={handleAddUser} className="space-y-5">
                 <div className="space-y-2">
                   <label htmlFor="newUserName" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Full Name</label>
-                  <input id="newUserName" type="text" title="Full Name" placeholder="Full Name" required value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
+                  <input id="newUserName" type="text" title="Full Name" placeholder="Full Name" required value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" autoComplete="name" />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="newUserEmail" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Email</label>
-                  <input id="newUserEmail" type="email" title="Email" placeholder="Email Address" required value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
+                  <input id="newUserEmail" type="email" title="Email" placeholder="Email Address" required value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" autoComplete="email" />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="newUserPassword" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Password</label>
@@ -205,6 +205,7 @@ const Users = () => {
                       value={newUser.password} 
                       onChange={e => setNewUser({...newUser, password: e.target.value})} 
                       className="w-full pl-5 pr-12 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" 
+                      autoComplete="new-password"
                     />
                     <button
                       type="button"

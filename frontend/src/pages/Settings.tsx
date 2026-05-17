@@ -465,15 +465,17 @@ const Settings = () => {
         <form onSubmit={handlePasswordChange} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Current Password</label>
+              <label htmlFor="settingsCurrentPassword" className="text-sm font-medium">Current Password</label>
               <div className="relative">
                 <input
+                  id="settingsCurrentPassword"
                   type={showPasswords.current ? 'text' : 'password'}
                   value={passwordData.currentPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                   className="w-full px-4 py-3 pr-12 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
                   placeholder="••••••••"
                   required
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
@@ -486,15 +488,17 @@ const Settings = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">New Password</label>
+              <label htmlFor="settingsNewPassword" className="text-sm font-medium">New Password</label>
               <div className="relative">
                 <input
+                  id="settingsNewPassword"
                   type={showPasswords.new ? 'text' : 'password'}
                   value={passwordData.newPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                   className="w-full px-4 py-3 pr-12 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
                   placeholder="••••••••"
                   required
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -507,15 +511,17 @@ const Settings = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Confirm New Password</label>
+              <label htmlFor="settingsConfirmPassword" className="text-sm font-medium">Confirm New Password</label>
               <div className="relative">
                 <input
+                  id="settingsConfirmPassword"
                   type={showPasswords.confirm ? 'text' : 'password'}
                   value={passwordData.confirmPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                   className="w-full px-4 py-3 pr-12 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
                   placeholder="••••••••"
                   required
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
