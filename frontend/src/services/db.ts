@@ -106,7 +106,6 @@ export const clearSyncQueue = async () => {
 export const performSync = async () => {
   try {
     const queue = await getSyncQueue();
-    if (queue.length === 0) return true;
 
     // Map 'entity' field to 'table' to match backend sync schema expectations
     const mappedQueue = queue.map((item: any) => ({
@@ -126,6 +125,7 @@ export const performSync = async () => {
       if (serverState.repayments) await setSetting('repayments', serverState.repayments);
       if (serverState.receipts) await setSetting('receipts', serverState.receipts);
       if (serverState.settings) await setSetting('global_settings', serverState.settings);
+      if (serverState.staffCount !== undefined) await setSetting('staffCount', serverState.staffCount);
       
       // Clear queue on success
       await clearSyncQueue();

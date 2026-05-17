@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Wallet, CreditCard, ShieldAlert, CheckCircle2, TrendingUp, HandCoins } from 'lucide-react';
+import { Wallet, CreditCard, ShieldAlert, CheckCircle2, TrendingUp, HandCoins, Users as UsersIcon } from 'lucide-react';
 import { getSetting } from '../services/db';
 import { useSettings } from '../context/useSettings';
 
@@ -13,6 +13,7 @@ interface DashboardStats {
   pendingVerification: number;
   pendingAmount: number;
   accumulatedInterest: number;
+  staffCount: number;
 }
 
 interface DBRecord {
@@ -45,7 +46,8 @@ const Dashboard = () => {
     members: 0,
     pendingVerification: 0,
     pendingAmount: 0,
-    accumulatedInterest: 0
+    accumulatedInterest: 0,
+    staffCount: 0
   });
 
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
@@ -56,6 +58,7 @@ const Dashboard = () => {
       const loansList = (await getSetting('loans') || []) as Array<{ principal: number; expectedReturn: number; balance: number }>;
       const membersList = await getSetting('members') || [];
       const repaymentsList = (await getSetting('repayments') || []) as DBRecord[];
+      const staffCount = await getSetting('staffCount') || 0;
 
       const confirmedContribs = contribs.filter((c) => c.status === 'CONFIRMED');
       const pendingContribs = contribs.filter((c) => c.status === 'PENDING');
@@ -69,7 +72,8 @@ const Dashboard = () => {
         members: membersList.length,
         pendingVerification: pendingContribs.length + pendingRepayments.length,
         pendingAmount: pendingContribs.reduce((acc, c) => acc + (c.amount || 0), 0) + pendingRepayments.reduce((acc, r) => acc + (r.amount || 0), 0),
-        accumulatedInterest
+        accumulatedInterest,
+        staffCount
       });
 
       const activities: Activity[] = [];
@@ -120,6 +124,8 @@ const Dashboard = () => {
     { title: 'Active loan book', value: `${settings.currency} ${data.loans.toLocaleString()}`, icon: CreditCard, color: 'text-blue-500', bg: 'bg-blue-500/10' },
     { title: 'Accumulated interest', value: `${settings.currency} ${data.accumulatedInterest.toLocaleString()}`, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
     { title: 'In transit', value: `${settings.currency} ${data.pendingAmount.toLocaleString()}`, icon: HandCoins, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { title: 'System Staff', value: `${data.staffCount}`, icon: ShieldAlert, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+    { title: 'Financial Members', value: `${data.members}`, icon: UsersIcon, color: 'text-teal-500', bg: 'bg-teal-500/10' }
   ];
 
   return (
@@ -145,7 +151,7 @@ const Dashboard = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         {stats.map((stat, i) => (
           <motion.div
             key={i}

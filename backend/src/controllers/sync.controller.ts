@@ -243,7 +243,12 @@ export const syncData = async (req: Request, res: Response) => {
       loans: await prisma.loan.findMany(),
       repayments: await prisma.repayment.findMany(),
       receipts: await prisma.receipt.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
-      settings: cleanSettings
+      settings: cleanSettings,
+      staffCount: await prisma.user.count({
+        where: {
+          role: { in: ['ADMIN', 'TREASURER', 'SECRETARY'] }
+        }
+      })
     };
 
     res.json({
