@@ -58,8 +58,9 @@ router.post('/:id/reset-password', authenticate, authorize(['ADMIN']), trackActi
     });
 
     res.json({ message: `Password reset successfully for ${user.name}` });
-  } catch (error) {
-    res.status(400).json({ error: 'Failed to reset password' });
+  } catch (error: any) {
+    console.error('Password reset backend error:', error);
+    res.status(400).json({ error: 'Failed to reset password', details: error?.message });
   }
 });
 
