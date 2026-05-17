@@ -47,7 +47,7 @@ const DashboardLayout = () => {
   ];
 
   if (user?.role === 'ADMIN') {
-    navItems.push({ to: '/dashboard/users', icon: Shield, label: 'Administration' });
+    navItems.push({ to: '/dashboard/users', icon: Shield, label: 'Staff management' });
     navItems.push({ to: '/dashboard/audit-trail', icon: HistoryIcon, label: 'Audit trail' });
   }
 

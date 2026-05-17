@@ -170,6 +170,37 @@ const Settings = () => {
         </div>
       </motion.div>
 
+      {/* User Preferences Section (Global - Accessible to all users) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass rounded-2xl p-6 md:p-8 shadow-sm"
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <Eye className="w-6 h-6 text-primary" />
+          <h2 className="text-xl font-semibold">Preferences</h2>
+        </div>
+
+        <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-xl border border-border/50">
+          <div>
+            <p className="text-sm font-bold">Header Profile Card</p>
+            <p className="text-[10px] text-muted-foreground">Show your name and photo in the top bar.</p>
+          </div>
+          <button
+            type="button"
+            title="Toggle Header Profile"
+            onClick={async () => {
+              const updated = { ...formData, showProfileInHeader: !formData.showProfileInHeader };
+              setFormData(updated);
+              await updateSettings(updated);
+            }}
+            className={`w-12 h-6 rounded-full p-1 transition-colors ${formData.showProfileInHeader ? 'bg-primary' : 'bg-muted'}`}
+          >
+            <div className={`w-4 h-4 rounded-full bg-white transition-transform ${formData.showProfileInHeader ? 'translate-x-6' : 'translate-x-0'}`} />
+          </button>
+        </div>
+      </motion.div>
+
       {/* System Settings Section (Admin Only) */}
       {isAdmin && (
       <motion.div
@@ -257,30 +288,6 @@ const Settings = () => {
                 className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
               />
             </div>
-
-            <div className="space-y-2">
-              <label htmlFor="loanDurationThresholdAmount" className="text-sm font-medium">Loan Duration Base Amount (MWK)</label>
-              <input
-                id="loanDurationThresholdAmount"
-                type="number"
-                name="loanDurationThresholdAmount"
-                value={formData.loanDurationThresholdAmount}
-                onChange={(e) => setFormData({ ...formData, loanDurationThresholdAmount: parseInt(e.target.value) })}
-                className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="loanDurationMonthsPerThreshold" className="text-sm font-medium">Months per base amount</label>
-              <input
-                id="loanDurationMonthsPerThreshold"
-                type="number"
-                name="loanDurationMonthsPerThreshold"
-                value={formData.loanDurationMonthsPerThreshold}
-                onChange={(e) => setFormData({ ...formData, loanDurationMonthsPerThreshold: parseInt(e.target.value) })}
-                className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
-              />
-            </div>
             
             <div className="space-y-2">
               <label htmlFor="currency" className="text-sm font-medium">Currency symbol</label>
@@ -293,21 +300,6 @@ const Settings = () => {
                 className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
                 placeholder="e.g. MWK"
               />
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-xl border border-border/50 col-span-1 md:col-span-2">
-              <div>
-                <p className="text-sm font-bold">Header Profile</p>
-                <p className="text-[10px] text-muted-foreground">Show your name and photo in the top bar.</p>
-              </div>
-              <button
-                type="button"
-                title="Toggle Header Profile"
-                onClick={() => setFormData({ ...formData, showProfileInHeader: !formData.showProfileInHeader })}
-                className={`w-12 h-6 rounded-full p-1 transition-colors ${formData.showProfileInHeader ? 'bg-primary' : 'bg-muted'}`}
-              >
-                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${formData.showProfileInHeader ? 'translate-x-6' : 'translate-x-0'}`} />
-              </button>
             </div>
           </div>
 
@@ -322,6 +314,126 @@ const Settings = () => {
             </button>
           </div>
         </form>
+      </motion.div>
+      )}
+
+      {/* Loan Term & Range Configuration (Admin Only) */}
+      {isAdmin && (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass rounded-2xl p-6 md:p-8 shadow-sm"
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <Save className="w-6 h-6 text-primary" />
+          <h2 className="text-xl font-semibold">Loan Term & Range Configuration</h2>
+        </div>
+
+        <div className="space-y-6">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border/50 bg-secondary/30">
+                  <th className="px-4 py-3 text-[10px] font-semibold capitalize tracking-widest text-muted-foreground">Min Amount ({settings.currency})</th>
+                  <th className="px-4 py-3 text-[10px] font-semibold capitalize tracking-widest text-muted-foreground">Max Amount ({settings.currency})</th>
+                  <th className="px-4 py-3 text-[10px] font-semibold capitalize tracking-widest text-muted-foreground">Duration (Months)</th>
+                  <th className="px-4 py-3 text-[10px] font-semibold capitalize tracking-widest text-muted-foreground">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(formData.loanDurationRules || []).map((rule, idx) => (
+                  <tr key={rule.id || idx} className="border-b border-border/20 hover:bg-secondary/10">
+                    <td className="px-4 py-3 font-bold text-sm">
+                      {rule.minAmount.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 font-bold text-sm">
+                      {rule.maxAmount.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 font-bold text-sm">
+                      {rule.durationMonths} Months
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const updatedRules = (formData.loanDurationRules || []).filter(r => r.id !== rule.id);
+                          const updated = { ...formData, loanDurationRules: updatedRules };
+                          setFormData(updated);
+                          await updateSettings(updated);
+                        }}
+                        className="text-xs font-bold text-destructive hover:bg-destructive/10 px-3 py-1.5 rounded-lg transition-colors border border-destructive/20"
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="p-4 bg-secondary/30 rounded-xl border border-border/50 space-y-4">
+            <p className="text-xs font-black uppercase tracking-widest text-primary">Add New Range</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-muted-foreground" htmlFor="new-rule-min">Min Amount</label>
+                <input
+                  id="new-rule-min"
+                  type="number"
+                  placeholder="e.g. 1"
+                  className="w-full px-3 py-2 bg-secondary/50 border border-border/50 rounded-lg focus:ring-2 focus:ring-primary outline-none font-bold text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-muted-foreground" htmlFor="new-rule-max">Max Amount</label>
+                <input
+                  id="new-rule-max"
+                  type="number"
+                  placeholder="e.g. 50000"
+                  className="w-full px-3 py-2 bg-secondary/50 border border-border/50 rounded-lg focus:ring-2 focus:ring-primary outline-none font-bold text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-muted-foreground" htmlFor="new-rule-duration">Duration (Months)</label>
+                <input
+                  id="new-rule-duration"
+                  type="number"
+                  placeholder="e.g. 3"
+                  className="w-full px-3 py-2 bg-secondary/50 border border-border/50 rounded-lg focus:ring-2 focus:ring-primary outline-none font-bold text-xs"
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                const minVal = parseFloat((document.getElementById('new-rule-min') as HTMLInputElement)?.value) || 0;
+                const maxVal = parseFloat((document.getElementById('new-rule-max') as HTMLInputElement)?.value) || 0;
+                const durVal = parseInt((document.getElementById('new-rule-duration') as HTMLInputElement)?.value) || 0;
+                
+                if (maxVal > minVal && durVal > 0) {
+                  const newRule = {
+                    id: Date.now().toString(),
+                    minAmount: minVal,
+                    maxAmount: maxVal,
+                    durationMonths: durVal
+                  };
+                  const updatedRules = [...(formData.loanDurationRules || []), newRule];
+                  const updated = { ...formData, loanDurationRules: updatedRules };
+                  setFormData(updated);
+                  await updateSettings(updated);
+                  
+                  // Clear fields
+                  (document.getElementById('new-rule-min') as HTMLInputElement).value = '';
+                  (document.getElementById('new-rule-max') as HTMLInputElement).value = '';
+                  (document.getElementById('new-rule-duration') as HTMLInputElement).value = '';
+                }
+              }}
+              className="px-4 py-2 bg-primary text-primary-foreground font-bold text-xs rounded-lg hover:opacity-90 active:scale-[0.98] transition-all"
+            >
+              + Add Range
+            </button>
+          </div>
+        </div>
       </motion.div>
       )}
 

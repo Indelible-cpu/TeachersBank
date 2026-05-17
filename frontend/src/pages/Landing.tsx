@@ -24,13 +24,6 @@ const Landing = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
-
   const toggleLanguage = () => {
     i18n.changeLanguage(i18n.language === 'en' ? 'ny' : 'en');
   };

@@ -13,8 +13,12 @@ const defaultSettings: Settings = {
   fontSize: 'medium',
   interestPercentage: 10,
   maturityMonths: 12,
-  loanDurationThresholdAmount: 50000,
-  loanDurationMonthsPerThreshold: 1,
+  loanDurationRules: [
+    { id: '1', minAmount: 1, maxAmount: 50000, durationMonths: 3 },
+    { id: '2', minAmount: 50001, maxAmount: 100000, durationMonths: 6 },
+    { id: '3', minAmount: 100001, maxAmount: 500000, durationMonths: 12 },
+    { id: '4', minAmount: 500001, maxAmount: 9999999, durationMonths: 24 }
+  ],
   showProfileInHeader: true,
   currency: 'MWK',
   baseShareAmount: 50000,

@@ -30,31 +30,50 @@ const Loans = () => {
   const [contributions, setContributions] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
+  const rules = settings.loanDurationRules || [
+    { id: '1', minAmount: 1, maxAmount: 50000, durationMonths: 3 },
+    { id: '2', minAmount: 50001, maxAmount: 100000, durationMonths: 6 },
+    { id: '3', minAmount: 100001, maxAmount: 500000, durationMonths: 12 },
+    { id: '4', minAmount: 500001, maxAmount: 9999999, durationMonths: 24 }
+  ];
+
+  const [selectedRuleId, setSelectedRuleId] = useState('');
+
   const [newLoan, setNewLoan] = useState({
     memberId: '',
     principal: '',
     dueDate: ''
   });
 
+  const handleRuleChange = (ruleId: string) => {
+    setSelectedRuleId(ruleId);
+    const rule = rules.find(r => r.id === ruleId);
+    if (rule) {
+      const date = new Date();
+      date.setMonth(date.getMonth() + rule.durationMonths);
+      setNewLoan(prev => ({
+        ...prev,
+        dueDate: date.toISOString().split('T')[0]
+      }));
+    } else {
+      setNewLoan(prev => ({
+        ...prev,
+        dueDate: ''
+      }));
+    }
+  };
+
   const handlePrincipalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    const amount = parseFloat(value) || 0;
-    
-    const thresholdAmount = settings.loanDurationThresholdAmount || 50000;
-    const monthsPerThreshold = settings.loanDurationMonthsPerThreshold || 1;
-    
-    // Calculate months (minimum 1 base threshold worth of months)
-    const calculatedMonths = Math.max(1, Math.ceil(amount / thresholdAmount)) * monthsPerThreshold;
-    
-    const date = new Date();
-    date.setMonth(date.getMonth() + calculatedMonths);
-    
-    setNewLoan({
-      ...newLoan,
-      principal: value,
-      dueDate: amount > 0 ? date.toISOString().split('T')[0] : ''
-    });
+    setNewLoan(prev => ({
+      ...prev,
+      principal: value
+    }));
   };
+
+  const selectedRule = rules.find(r => r.id === selectedRuleId);
+  const principalVal = parseFloat(newLoan.principal) || 0;
+  const isPrincipalInvalid = !!(selectedRule && (principalVal < selectedRule.minAmount || principalVal > selectedRule.maxAmount));
 
   useEffect(() => {
     let isMounted = true;
@@ -78,6 +97,16 @@ const Loans = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isReadOnly || !canWriteFinance) return;
+
+    if (!selectedRuleId) {
+      toast.error('Please select a Loan Range / Term limit');
+      return;
+    }
+
+    if (isPrincipalInvalid) {
+      toast.error('Cannot record loan: Principal amount is outside of the selected loan range.');
+      return;
+    }
 
     const selectedMember = members.find(m => m.id === newLoan.memberId);
     
@@ -116,6 +145,7 @@ const Loans = () => {
     
     toast.success('Loan issued and recorded successfully');
     setIsModalOpen(false);
+    setSelectedRuleId('');
     setNewLoan({ memberId: '', principal: '', dueDate: '' });
   };
 
@@ -238,6 +268,23 @@ const Loans = () => {
                 })()}
 
                 <div className="space-y-2">
+                  <label className="text-xs font-semibold capitalize tracking-widest text-muted-foreground ml-1" htmlFor="loan-term-range">Select Loan Range & Term</label>
+                  <select 
+                    id="loan-term-range" required
+                    value={selectedRuleId}
+                    onChange={e => handleRuleChange(e.target.value)}
+                    className="w-full px-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                  >
+                    <option value="">Choose Loan Range / Duration</option>
+                    {rules.map(r => (
+                      <option key={r.id} value={r.id}>
+                        {settings.currency} {r.minAmount.toLocaleString()} - {r.maxAmount.toLocaleString()} ({r.durationMonths} Months)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="loan-amount">Principal Amount</label>
                   <div className="relative">
                     <Banknote className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground opacity-40" />
@@ -245,19 +292,29 @@ const Loans = () => {
                       id="loan-amount" type="number" required min="0"
                       value={newLoan.principal}
                       onChange={handlePrincipalChange}
-                      className="w-full pl-12 pr-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-black"
+                      className={`w-full pl-12 pr-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 font-black ${isPrincipalInvalid ? 'border border-destructive focus:ring-destructive/10' : 'focus:ring-primary/10'}`}
+                      placeholder={selectedRule ? `Range: ${selectedRule.minAmount} - ${selectedRule.maxAmount}` : "0"}
                     />
                   </div>
+                  {isPrincipalInvalid && selectedRule && (
+                    <p className="text-[10px] text-rose-500 font-bold ml-2">
+                      Error: Amount must be between {settings.currency} {selectedRule.minAmount.toLocaleString()} and {settings.currency} {selectedRule.maxAmount.toLocaleString()}!
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="loan-due">Due Date</label>
-                  <input 
-                    id="loan-due" type="date" required
-                    value={newLoan.dueDate}
-                    onChange={e => setNewLoan({...newLoan, dueDate: e.target.value})}
-                    className="w-full px-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
-                  />
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Loan Duration & Term Limit</label>
+                  <div className="px-5 py-4 bg-secondary/30 rounded-2xl border border-border/50 text-sm font-bold flex flex-col gap-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground text-xs font-semibold">Term Duration:</span>
+                      <span className="text-primary">{selectedRule ? `${selectedRule.durationMonths} Months` : 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground text-xs font-semibold">Automatic Due Date:</span>
+                      <span className="text-foreground">{newLoan.dueDate ? new Date(newLoan.dueDate).toLocaleDateString() : 'N/A'}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex gap-4 pt-4">

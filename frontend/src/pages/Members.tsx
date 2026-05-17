@@ -35,7 +35,7 @@ const Members = () => {
     alternativeNames: ''
   });
 
-  const canAddMember = user?.role === 'ADMIN' || user?.role === 'SECRETARY';
+  const canAddMember = user?.role === 'SECRETARY';
 
   useEffect(() => {
     let isMounted = true;
