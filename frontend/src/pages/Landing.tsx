@@ -94,15 +94,22 @@ const Landing = () => {
               {showLearnMore ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
             </button>
             
-            {!showLearnMore && (
-              <button
-                onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
-                className="flex-1 w-full md:w-auto py-5 px-10 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-black tracking-wider rounded-2xl shadow-xl shadow-indigo-500/25 hover:shadow-2xl hover:shadow-indigo-500/40 hover:-translate-y-1 hover:scale-105 active:scale-95 active:translate-y-0 transition-all duration-300 text-base flex items-center justify-center gap-3 animate-pulse"
-              >
-                {isAuthenticated ? t('dashboard.title') : t('login.submit')}
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
+            <AnimatePresence>
+              {!showLearnMore && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9, y: 15 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 15 }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                  onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
+                  className="flex-1 w-full md:w-auto py-5 px-10 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-black tracking-wider rounded-2xl shadow-xl shadow-indigo-500/25 hover:shadow-2xl hover:shadow-indigo-500/40 hover:-translate-y-1 hover:scale-105 active:scale-95 active:translate-y-0 transition-all duration-300 text-base flex items-center justify-center gap-3 animate-pulse"
+                  style={{ animationDuration: '4s' }}
+                >
+                  {isAuthenticated ? t('dashboard.title') : t('login.submit')}
+                  <ArrowRight className="w-4 h-4" />
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
       </section>
