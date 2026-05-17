@@ -14,7 +14,9 @@ import {
   Coins, 
   HeartHandshake, 
   TrendingUp,
-  UserCheck
+  UserCheck,
+  Database,
+  Lock
 } from 'lucide-react';
 
 const Landing = () => {
@@ -64,7 +66,7 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className={`px-6 lg:px-16 max-w-4xl mx-auto flex flex-col items-center text-center space-y-6 w-full flex-1 justify-center ${!showLearnMore ? 'pt-24 pb-8' : 'pt-40 pb-20'}`}>
+      <section className="pt-32 pb-16 px-6 lg:px-16 max-w-4xl mx-auto flex flex-col items-center text-center space-y-6 w-full flex-1 justify-center">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -200,6 +202,57 @@ const Landing = () => {
                     <h3 className="text-xl font-bold">{t('landing.gateways_title')}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed font-medium">
                       {t('landing.gateways_desc')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Security, Storage & Privacy Section */}
+            <section className="py-20 bg-gradient-to-b from-transparent to-secondary/10 border-b border-border/40">
+              <div className="max-w-7xl mx-auto px-6 lg:px-16">
+                <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 border border-primary/10 rounded-full text-xs font-bold text-primary">
+                    <ShieldCheck className="w-4 h-4" />
+                    {t('landing.sec_stor_priv_title')}
+                  </div>
+                  <h2 className="text-4xl font-black tracking-tight">{t('landing.sec_stor_priv_title')}</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {/* Security */}
+                  <div className="glass p-8 rounded-[2rem] shadow-lg hover:border-emerald-500/20 transition-all flex flex-col gap-4 border border-white/5 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center font-bold relative z-10">
+                      <ShieldCheck className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl font-bold relative z-10">{t('landing.security_title')}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed font-medium relative z-10">
+                      {t('landing.security_desc')}
+                    </p>
+                  </div>
+
+                  {/* Storage */}
+                  <div className="glass p-8 rounded-[2rem] shadow-lg hover:border-blue-500/20 transition-all flex flex-col gap-4 border border-white/5 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center font-bold relative z-10">
+                      <Database className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl font-bold relative z-10">{t('landing.storage_title')}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed font-medium relative z-10">
+                      {t('landing.storage_desc')}
+                    </p>
+                  </div>
+
+                  {/* Privacy */}
+                  <div className="glass p-8 rounded-[2rem] shadow-lg hover:border-violet-500/20 transition-all flex flex-col gap-4 border border-white/5 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-b from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="w-12 h-12 bg-violet-500/10 text-violet-500 rounded-xl flex items-center justify-center font-bold relative z-10">
+                      <Lock className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl font-bold relative z-10">{t('landing.privacy_title')}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed font-medium relative z-10">
+                      {t('landing.privacy_desc')}
                     </p>
                   </div>
                 </div>
