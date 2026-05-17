@@ -6,6 +6,7 @@ import { Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { authApi } from '../services/api';
+import { verifyOfflineCredentials, cacheOfflineCredentials } from '../services/db';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -41,19 +42,49 @@ const Login = () => {
         throw new Error('Please fill in all fields');
       }
 
-      if (!isOnline) {
-        // In a real app, you might allow offline login if the user has a cached session
-        throw new Error('Internet connection required for login');
+      // Try online login first if navigator says online
+      if (isOnline) {
+        try {
+          // Set a short network timeout to fail fast if "out of bundle" (connected but no internet flow)
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 6000); // 6 second timeout
+          
+          const response = await authApi.login({ email, password });
+          clearTimeout(timeoutId);
+          
+          const { token, user } = response.data;
+          
+          // Cache credentials locally for offline fallback
+          await cacheOfflineCredentials(email, password, user, token);
+
+          await login(token, user, rememberMe);
+          navigate('/dashboard');
+          return;
+        } catch (networkErr: any) {
+          console.warn('Online login failed or timed out. Falling back to offline cache.', networkErr);
+          // If it was a credential rejection (400, 401, 403), do not fall back. Throw it directly.
+          if (networkErr.response && [400, 401, 403].includes(networkErr.response.status)) {
+            throw new Error(networkErr.response.data?.error || 'Invalid credentials');
+          }
+          // For other errors (like timeout, 5xx, or network failure), let it flow to offline verification below
+        }
       }
 
-      const response = await authApi.login({ email, password });
-      const { token, user } = response.data;
-
-      await login(token, user, rememberMe);
-      
-      navigate('/dashboard');
+      // Fallback: Verify offline credentials
+      const cachedSession = await verifyOfflineCredentials(email, password);
+      if (cachedSession) {
+        const { user, token } = cachedSession;
+        await login(token, user, rememberMe);
+        navigate('/dashboard');
+      } else {
+        if (!isOnline) {
+          throw new Error('Offline login failed. You must log in online at least once on this device.');
+        } else {
+          throw new Error('Invalid email or password.');
+        }
+      }
     } catch (err: any) {
-      const message = err.response?.data?.error || err.message || 'Login failed';
+      const message = err.message || 'Login failed';
       setError(message);
     } finally {
       setIsLoading(false);

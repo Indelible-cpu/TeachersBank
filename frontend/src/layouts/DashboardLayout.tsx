@@ -17,6 +17,7 @@ const DashboardLayout = () => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [showSignoutConfirm, setShowSignoutConfirm] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -28,8 +29,7 @@ const DashboardLayout = () => {
   }, [user?.id]);
 
   const handleLogout = async () => {
-    await logout();
-    navigate('/');
+    setShowSignoutConfirm(true);
   };
 
   const toggleLanguage = () => {
@@ -140,10 +140,10 @@ const DashboardLayout = () => {
             
             <button 
               onClick={handleLogout}
-              className="group flex items-center gap-2 text-xs font-bold text-destructive hover:bg-destructive/10 px-4 py-2 rounded-full transition-all"
+              className="p-2.5 rounded-full border border-destructive/20 text-destructive hover:bg-destructive/10 hover:border-destructive/40 transition-all"
+              title="Sign Out"
             >
-              <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              <span className="hidden sm:inline tracking-wider capitalize">{t('dashboard.logout').toLowerCase()}</span>
+              <LogOut className="w-4 h-4" />
             </button>
 
             {settings.showProfileInHeader && (
@@ -180,6 +180,51 @@ const DashboardLayout = () => {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
             onClick={closeSidebar}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Sleek Signout Confirmation Modal */}
+      <AnimatePresence>
+        {showSignoutConfirm && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="glass max-w-sm w-full p-8 rounded-[2rem] text-center space-y-6 shadow-2xl border border-white/20"
+            >
+              <div className="mx-auto w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
+                <LogOut className="w-6 h-6" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-black">Sign Out</h3>
+                <p className="text-sm text-muted-foreground font-medium">Are you sure you want to sign out of Teachers Bank Management System?</p>
+              </div>
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setShowSignoutConfirm(false)}
+                  className="flex-1 py-3 bg-secondary hover:bg-secondary/80 font-bold rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={async () => {
+                    const { logout } = useAuth(); // or directly use the destructured logout
+                    await logout();
+                    navigate('/');
+                  }}
+                  className="flex-1 py-3 bg-destructive hover:bg-destructive/90 text-white font-bold rounded-xl transition-all shadow-lg shadow-destructive/20"
+                >
+                  Yes, Signout
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

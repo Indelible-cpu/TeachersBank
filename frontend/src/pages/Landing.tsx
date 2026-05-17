@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from 'next-themes';
 import { 
   ShieldCheck, 
   Sparkles, 
@@ -16,19 +17,22 @@ import {
   TrendingUp,
   UserCheck,
   Database,
-  Lock
+  Lock,
+  Moon,
+  Sun
 } from 'lucide-react';
 
 const Landing = () => {
   const { isAuthenticated } = useAuth();
   const { settings } = useSettings();
   const { t, i18n } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [showLearnMore, setShowLearnMore] = useState(false);
 
   const toggleLanguage = () => {
-    i18n.changeLanguage(i18n.language === 'en' ? 'ny' : 'en');
+    i18n.changeLanguage(i18n.language.startsWith('en') ? 'ny' : 'en');
   };
 
   const faqs = [
@@ -55,7 +59,15 @@ const Landing = () => {
           <span className="text-lg md:text-2xl font-black text-primary tracking-tight text-center md:text-left leading-tight break-words">{settings.systemName}</span>
         </div>
 
-        <div className="flex items-center gap-6 shrink-0">
+        <div className="flex items-center gap-4 shrink-0">
+          <button 
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="p-2 rounded-full border border-primary/20 hover:bg-primary/5 transition-colors text-primary"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+          
           <button 
             onClick={toggleLanguage}
             className="px-4 py-1.5 text-xs font-black tracking-widest border border-primary/20 rounded-full hover:bg-primary/5 transition-colors"

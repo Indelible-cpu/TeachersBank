@@ -137,3 +137,32 @@ export const performSync = async () => {
     return false;
   }
 };
+
+async function hashPassword(message: string): Promise<string> {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+export const cacheOfflineCredentials = async (email: string, passwordPlain: string, user: any, token: string) => {
+  const db = await dbPromise;
+  const hash = await hashPassword(email.toLowerCase() + ':' + passwordPlain);
+  await db.put('users', {
+    id: email.toLowerCase(),
+    user,
+    token,
+    hash
+  });
+};
+
+export const verifyOfflineCredentials = async (email: string, passwordPlain: string) => {
+  const db = await dbPromise;
+  const record = await db.get('users', email.toLowerCase());
+  if (!record) return null;
+  const hash = await hashPassword(email.toLowerCase() + ':' + passwordPlain);
+  if (record.hash === hash) {
+    return { user: record.user, token: record.token };
+  }
+  return null;
+};
