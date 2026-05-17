@@ -13,6 +13,7 @@ import Receipts from './pages/Receipts';
 import Reports from './pages/Reports';
 import Users from './pages/Users';
 import AuditTrail from './pages/AuditTrail';
+import LoanConfigurations from './pages/LoanConfigurations';
 import DashboardLayout from './layouts/DashboardLayout';
 import InstallPrompt from './components/InstallPrompt';
 
@@ -43,6 +44,7 @@ function App() {
           <Route path="receipts" element={<Receipts />} />
           <Route path="reports" element={<Reports />} />
           <Route path="users" element={<Users />} />
+          <Route path="loan-configurations" element={<LoanConfigurations />} />
           <Route path="audit-trail" element={<AuditTrail />} />
           <Route path="settings" element={<Settings />} />
         </Route>

@@ -3,7 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
-import { LogOut, Home, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wallet, CreditCard, Receipt, FileText, Shield, User as UserIcon, Moon, Sun, History as HistoryIcon } from 'lucide-react';
+import { LogOut, Home, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wallet, CreditCard, Receipt, FileText, Shield, User as UserIcon, Moon, Sun, History as HistoryIcon, Sliders } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSetting } from '../services/db';
@@ -48,6 +48,7 @@ const DashboardLayout = () => {
 
   if (user?.role === 'ADMIN') {
     navItems.push({ to: '/dashboard/users', icon: Shield, label: 'Staff management' });
+    navItems.push({ to: '/dashboard/loan-configurations', icon: Sliders, label: 'Loan configurations' });
     navItems.push({ to: '/dashboard/audit-trail', icon: HistoryIcon, label: 'Audit trail' });
   }
 
