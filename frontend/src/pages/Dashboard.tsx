@@ -16,9 +16,22 @@ interface DashboardStats {
 }
 
 interface DBRecord {
+  id?: string;
   amount?: number;
+  principal?: number;
   balance?: number;
   status?: string;
+  timestamp?: string;
+  type?: string;
+}
+
+interface Activity {
+  id: string;
+  title: string;
+  subtitle: string;
+  amount: number;
+  timestamp: string;
+  isPositive: boolean;
 }
 
 const Dashboard = () => {
@@ -34,6 +47,8 @@ const Dashboard = () => {
     pendingAmount: 0,
     accumulatedInterest: 0
   });
+
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -56,6 +71,47 @@ const Dashboard = () => {
         pendingAmount: pendingContribs.reduce((acc, c) => acc + (c.amount || 0), 0) + pendingRepayments.reduce((acc, r) => acc + (r.amount || 0), 0),
         accumulatedInterest
       });
+
+      const activities: Activity[] = [];
+      
+      confirmedContribs.forEach(c => {
+        activities.push({
+          id: c.id || Math.random().toString(),
+          title: `${c.type === 'EMERGENCY' ? 'Emergency' : 'Share'} Contribution`,
+          subtitle: `System Verified`,
+          amount: c.amount || 0,
+          timestamp: c.timestamp || new Date(0).toISOString(),
+          isPositive: true
+        });
+      });
+
+      const confirmedRepayments = repaymentsList.filter((r) => r.status === 'CONFIRMED');
+      confirmedRepayments.forEach(r => {
+        activities.push({
+          id: r.id || Math.random().toString(),
+          title: `Loan Repayment`,
+          subtitle: `System Verified`,
+          amount: r.amount || 0,
+          timestamp: r.timestamp || new Date(0).toISOString(),
+          isPositive: true
+        });
+      });
+
+      const approvedLoans = loansList.filter((l: any) => l.status === 'APPROVED');
+      approvedLoans.forEach((l: any) => {
+        activities.push({
+          id: l.id || Math.random().toString(),
+          title: `Loan Disbursement`,
+          subtitle: `System Verified`,
+          amount: l.principal || 0,
+          timestamp: l.timestamp || new Date(0).toISOString(),
+          isPositive: false
+        });
+      });
+
+      activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setRecentActivities(activities.slice(0, 3)); // Keep top 3
+
     })();
   }, []);
 
@@ -145,22 +201,29 @@ const Dashboard = () => {
 
         <div className="glass p-10 rounded-[3rem] space-y-8">
           <h3 className="text-xl font-bold tracking-tight flex items-center gap-3">
-            <CheckCircle2 className="text-emerald-500" /> Recent verification
+            <CheckCircle2 className="text-emerald-500" /> Recent verifications
           </h3>
           <div className="space-y-4">
-             <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-transparent hover:border-emerald-500/20 transition-all">
-               <div className="flex items-center gap-4">
-                 <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500"><CheckCircle2 className="w-5 h-5" /></div>
-                 <div>
-                   <p className="text-sm font-bold">Monthly Share Batch</p>
-                   <p className="text-[10px] font-medium text-muted-foreground">Verified by {user?.name}</p>
+             {recentActivities.length > 0 ? recentActivities.map(activity => (
+               <div key={activity.id} className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-transparent hover:border-emerald-500/20 transition-all">
+                 <div className="flex items-center gap-4">
+                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activity.isPositive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                     <CheckCircle2 className="w-5 h-5" />
+                   </div>
+                   <div>
+                     <p className="text-sm font-bold">{activity.title}</p>
+                     <p className="text-[10px] font-medium text-muted-foreground">{activity.subtitle}</p>
+                   </div>
                  </div>
+                 <span className={`text-xs font-bold ${activity.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                   {activity.isPositive ? '+' : '-'}{settings.currency} {activity.amount.toLocaleString()}
+                 </span>
                </div>
-               <span className="text-xs font-bold text-emerald-600">+{settings.currency} 450,000</span>
-             </div>
-             <div className="flex items-center justify-center h-24 border-2 border-dashed border-border/50 rounded-3xl">
-               <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40">System log active</p>
-             </div>
+             )) : (
+               <div className="flex items-center justify-center h-24 border-2 border-dashed border-border/50 rounded-3xl">
+                 <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40">No recent activity</p>
+               </div>
+             )}
           </div>
         </div>
       </div>
