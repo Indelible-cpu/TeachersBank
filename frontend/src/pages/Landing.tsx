@@ -45,7 +45,7 @@ const Landing = () => {
   return (
     <div className={`min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20 ${!showLearnMore ? 'h-screen overflow-hidden' : ''}`}>
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40 px-6 lg:px-16 h-20 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40 px-6 lg:px-16 min-h-[5rem] py-3 flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <img 
             src="/icon-192x192.png" 
@@ -66,7 +66,7 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-16 px-6 lg:px-16 max-w-4xl mx-auto flex flex-col items-center text-center space-y-6 w-full flex-1 justify-center">
+      <section className="pt-36 pb-16 px-6 lg:px-16 max-w-4xl mx-auto flex flex-col items-center text-center space-y-6 w-full flex-1 justify-center">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -308,7 +308,7 @@ const Landing = () => {
       </AnimatePresence>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-border/40 glass py-12 px-6 lg:px-16 text-center text-sm font-bold text-muted-foreground flex flex-col sm:flex-row items-center justify-between gap-4">
+      <footer className="border-t border-border/40 glass py-6 px-6 lg:px-16 text-center text-sm font-bold text-muted-foreground flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           © {new Date().getFullYear()} {settings.organizationName}. All Rights Reserved.
         </div>

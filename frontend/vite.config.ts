@@ -36,8 +36,19 @@ export default defineConfig({
         ]
       },
       workbox: {
+        cacheId: 'tbts-v2',
+        skipWaiting: true,
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
+          {
+            urlPattern: /^\/icon-.*\.png$/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'app-icons-v2',
+              expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 }
+            }
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
