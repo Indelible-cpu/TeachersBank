@@ -55,7 +55,7 @@ const DashboardLayout = () => {
   return (
     <div className="min-h-screen bg-background flex text-foreground">
       {/* Sidebar - Desktop/Mobile */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass border-r transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass border-r transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out overflow-hidden select-none`}>
         <div className="p-6 flex items-center gap-3 border-b border-border/50">
           <Link to="/dashboard" className="flex items-center gap-3" onClick={closeSidebar}>
             <img 
@@ -71,7 +71,7 @@ const DashboardLayout = () => {
         
 
 
-        <nav className="flex flex-col gap-1 px-4 overflow-y-auto max-h-[calc(100vh-250px)] custom-scrollbar">
+        <nav className="flex flex-col gap-1 px-4 overflow-hidden">
           {navItems.map((item) => {
             const isActive = location.pathname === item.to;
             return (
