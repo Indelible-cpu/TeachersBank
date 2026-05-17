@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ShieldAlert, ShieldCheck, User as UserIcon, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, User as UserIcon, Users as UsersIcon, Eye, EyeOff, Trash2 } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/useToast';
@@ -12,17 +12,25 @@ interface User {
   role: string;
   isActive: boolean;
   createdAt: string;
+  member?: {
+    memberNumber: string;
+    phone?: string;
+    address?: string;
+    gender?: string;
+  } | null;
 }
 
 const Users = () => {
   const { user: currentUser } = useAuth();
   const toast = useToast();
   const [users, setUsers] = useState<User[]>([]);
+  const [activeTab, setActiveTab] = useState<'STAFF' | 'MEMBERS'>('STAFF');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'SECRETARY', nationalId: '' });
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editForm, setEditForm] = useState({ name: '', email: '', nationalId: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
   const [resettingUser, setResettingUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [showResetPassword, setShowResetPassword] = useState(false);
@@ -93,7 +101,7 @@ const Users = () => {
       setIsModalOpen(false);
       setNewUser({ name: '', email: '', password: '', role: 'SECRETARY', nationalId: '' });
       setShowPassword(false);
-      toast.success('User added successfully');
+      toast.success('Staff user registered successfully');
       fetchData(); // Refresh list
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: string } } };
@@ -138,12 +146,12 @@ const Users = () => {
         }
         await api.post(`/users/${editingUser.id}/reset-password`, { password: editForm.password });
       }
-      toast.success('Staff details updated successfully');
+      toast.success('Details updated successfully');
       setEditingUser(null);
       fetchData();
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: string } } };
-      toast.error(err.response?.data?.error || 'Failed to update staff details');
+      toast.error(err.response?.data?.error || 'Failed to update details');
     }
   };
 
@@ -159,42 +167,71 @@ const Users = () => {
     return <div className="p-8 text-center font-bold">Access Denied</div>;
   }
 
+  const filteredUsers = users.filter(u => {
+    if (activeTab === 'STAFF') {
+      return u.role !== 'MEMBER';
+    } else {
+      return u.role === 'MEMBER';
+    }
+  });
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+      {/* Upper header */}
       <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
             <Shield className="w-8 h-8 text-primary" />
-            Staff management
+            System Users Directory
           </h1>
-          <p className="text-muted-foreground font-medium italic">Manage user privileges and administrator roles.</p>
+          <p className="text-muted-foreground font-medium italic">Manage staff privileges and cooperative members credentials.</p>
         </div>
+        {activeTab === 'STAFF' && (
+          <button 
+            onClick={() => {
+              setShowPassword(false);
+              setIsModalOpen(true);
+            }}
+            className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-xl shadow-primary/20"
+          >
+            + Add Staff User
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex p-1.5 glass rounded-2xl w-fit">
         <button 
-          onClick={() => {
-            setShowPassword(false);
-            setIsModalOpen(true);
-          }}
-          className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-xl shadow-primary/20"
+          onClick={() => setActiveTab('STAFF')}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs transition-all ${activeTab === 'STAFF' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
         >
-          + Add system user
+          <ShieldAlert className="w-4 h-4" /> Staff Members ({users.filter(u => u.role !== 'MEMBER').length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('MEMBERS')}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs transition-all ${activeTab === 'MEMBERS' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
+        >
+          <UsersIcon className="w-4 h-4" /> Cooperative Members ({users.filter(u => u.role === 'MEMBER').length})
         </button>
       </div>
 
+      {/* Grid List */}
       <motion.div 
+        layout
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       >
-        {users.map((u) => (
+        {filteredUsers.map((u) => (
           <div key={u.id} className="glass rounded-[2rem] p-6 flex flex-col gap-5 border border-transparent hover:border-primary/20 transition-all shadow-sm">
             <div className="flex items-center justify-between">
               <div className={`p-3 rounded-2xl ${u.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
-                {u.role === 'ADMIN' ? <ShieldAlert /> : u.role === 'TREASURER' ? <ShieldCheck /> : <Shield />}
+                {u.role === 'ADMIN' ? <ShieldAlert /> : u.role === 'TREASURER' ? <ShieldCheck /> : u.role === 'SECRETARY' ? <Shield /> : <UserIcon />}
               </div>
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => toggleStatus(u)}
-                  className={`text-[10px] font-semibold px-3 py-1 rounded-full capitalize tracking-widest border transition-all ${u.isActive ? 'bg-emerald-500/5 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/5 text-rose-500 border-rose-500/20'}`}
+                  className={`text-[9px] font-semibold px-2.5 py-1 rounded-full capitalize tracking-widest border transition-all ${u.isActive ? 'bg-emerald-500/5 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/5 text-rose-500 border-rose-500/20'}`}
                 >
                   {u.isActive ? 'Active' : 'Suspended'}
                 </button>
@@ -203,10 +240,11 @@ const Users = () => {
                     const hasNid = u.name.includes('|NID:');
                     const displayName = hasNid ? u.name.split('|NID:')[0] : u.name;
                     const nationalId = hasNid ? u.name.split('|NID:')[1] : '';
+                    setShowEditPassword(false);
                     setEditingUser(u);
                     setEditForm({ name: displayName, email: u.email, nationalId: nationalId, password: '' });
                   }}
-                  className="text-[10px] font-semibold px-3 py-1 rounded-full capitalize tracking-widest border transition-all bg-secondary/80 text-foreground border-border hover:bg-secondary"
+                  className="text-[9px] font-semibold px-2.5 py-1 rounded-full capitalize tracking-widest border transition-all bg-secondary/80 text-foreground border-border hover:bg-secondary"
                 >
                   Edit Info
                 </button>
@@ -216,14 +254,14 @@ const Users = () => {
                     setNewPassword('');
                     setShowResetPassword(false);
                   }}
-                  className="text-[10px] font-semibold px-3 py-1 rounded-full capitalize tracking-widest border transition-all bg-primary/10 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground"
+                  className="text-[9px] font-semibold px-2.5 py-1 rounded-full capitalize tracking-widest border transition-all bg-primary/10 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground"
                 >
-                  Reset Password
+                  Reset Pass
                 </button>
                 {u.id !== currentUser?.id && (
                   <button 
                     onClick={() => handleDeleteUser(u)}
-                    className="text-[10px] font-semibold px-3 py-1 rounded-full capitalize tracking-widest border transition-all bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground"
+                    className="text-[9px] font-semibold px-2.5 py-1 rounded-full capitalize tracking-widest border transition-all bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground"
                   >
                     Delete
                   </button>
@@ -240,34 +278,46 @@ const Users = () => {
                   <>
                     <h3 className="font-black text-xl leading-tight">{displayName}</h3>
                     <p className="text-sm text-muted-foreground font-medium">{u.email}</p>
-                    {nationalId && (
-                      <span className="text-[10px] font-black bg-primary/10 text-primary px-2.5 py-0.5 rounded-full inline-block mt-2 tracking-wider">
-                        NID: {nationalId}
-                      </span>
-                    )}
+                    
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {nationalId && (
+                        <span className="text-[9px] font-black bg-primary/10 text-primary px-2.5 py-0.5 rounded-full tracking-wider">
+                          NID: {nationalId}
+                        </span>
+                      )}
+                      {u.member?.memberNumber && (
+                        <span className="text-[9px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full tracking-wider">
+                          MEMBER ID: {u.member.memberNumber}
+                        </span>
+                      )}
+                    </div>
                   </>
                 );
               })()}
             </div>
 
-            <div className="space-y-3 pt-4 border-t border-border/50">
-              <label className="text-[10px] font-semibold capitalize text-muted-foreground tracking-widest ml-1">Assign role</label>
-              <select 
-                title="Change User Role"
-                value={u.role}
-                onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary font-bold text-sm appearance-none"
-              >
-                <option value="ADMIN">Administrator</option>
-                <option value="TREASURER">Treasurer</option>
-                <option value="SECRETARY">Secretary</option>
-              </select>
-            </div>
+            {activeTab === 'STAFF' && (
+              <div className="space-y-3 pt-4 border-t border-border/50">
+                <label className="text-[10px] font-semibold capitalize text-muted-foreground tracking-widest ml-1">Assign role</label>
+                <select 
+                  title="Change User Role"
+                  value={u.role}
+                  onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                  className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary font-bold text-sm appearance-none"
+                >
+                  <option value="ADMIN">Administrator</option>
+                  <option value="TREASURER">Treasurer</option>
+                  <option value="SECRETARY">Secretary</option>
+                </select>
+              </div>
+            )}
           </div>
         ))}
       </motion.div>
 
+      {/* MODALS */}
       <AnimatePresence>
+        {/* Add system user Modal */}
         {isModalOpen && (
           <div 
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
@@ -281,14 +331,14 @@ const Users = () => {
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-black tracking-tight">Add System User</h2>
+                <h2 className="text-2xl font-black tracking-tight">Add System Staff User</h2>
                 <UserIcon className="w-8 h-8 text-primary/20" />
               </div>
 
               <form onSubmit={handleAddUser} className="space-y-5">
                  <div className="space-y-2">
                   <label htmlFor="newUserName" className="text-xs font-black text-muted-foreground ml-1">Full Name</label>
-                  <input id="newUserName" type="text" title="Full Name" placeholder="Full Name" required value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" autoComplete="name" />
+                  <input id="newUserName" type="text" placeholder="Full Name" required value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" autoComplete="name" />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="newUserNationalId" className="text-xs font-black text-muted-foreground ml-1">National ID (Optional)</label>
@@ -296,7 +346,7 @@ const Users = () => {
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="newUserEmail" className="text-xs font-black text-muted-foreground ml-1">Email</label>
-                  <input id="newUserEmail" type="email" title="Email" placeholder="Email Address" required value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" autoComplete="email" />
+                  <input id="newUserEmail" type="email" placeholder="Email Address" required value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" autoComplete="email" />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="newUserPassword" className="text-xs font-black text-muted-foreground ml-1">Password</label>
@@ -304,7 +354,6 @@ const Users = () => {
                     <input 
                       id="newUserPassword" 
                       type={showPassword ? 'text' : 'password'} 
-                      title="Password" 
                       placeholder="••••••••" 
                       required 
                       value={newUser.password} 
@@ -363,12 +412,11 @@ const Users = () => {
                     <input 
                       id="resetUserPassword" 
                       type={showResetPassword ? 'text' : 'password'} 
-                      title="New Password" 
                       placeholder="••••••••" 
                       required 
                       value={newPassword} 
                       onChange={e => setNewPassword(e.target.value)} 
-                      className="w-full pl-5 pr-12 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold font-mono" 
+                      className="w-full pl-5 pr-12 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" 
                       autoComplete="new-password"
                     />
                     <button
@@ -390,7 +438,7 @@ const Users = () => {
           </div>
         )}
 
-        {/* Edit Staff Details Modal */}
+        {/* Edit User Details Modal */}
         {editingUser && (
           <div 
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
@@ -404,7 +452,7 @@ const Users = () => {
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-black tracking-tight">Edit Staff Details</h2>
+                <h2 className="text-2xl font-black tracking-tight">{editingUser.role === 'MEMBER' ? 'Edit Member Details' : 'Edit Staff Details'}</h2>
                 <UserIcon className="w-8 h-8 text-primary/20" />
               </div>
 
@@ -423,14 +471,23 @@ const Users = () => {
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="editUserPassword" className="text-xs font-black text-muted-foreground ml-1">New Password (Optional - Leave blank to keep current)</label>
-                  <input 
-                    id="editUserPassword" 
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={editForm.password} 
-                    onChange={e => setEditForm({...editForm, password: e.target.value})} 
-                    className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" 
-                  />
+                  <div className="relative">
+                    <input 
+                      id="editUserPassword" 
+                      type={showEditPassword ? 'text' : 'password'} 
+                      placeholder="••••••••" 
+                      value={editForm.password} 
+                      onChange={e => setEditForm({...editForm, password: e.target.value})} 
+                      className="w-full pl-5 pr-12 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" 
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowEditPassword(!showEditPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground"
+                    >
+                      {showEditPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </div>
                 <div className="flex gap-4 pt-6">
                   <button type="button" onClick={() => setEditingUser(null)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all">Cancel</button>
@@ -458,9 +515,9 @@ const Users = () => {
                 <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto text-destructive">
                   <Trash2 className="w-8 h-8" />
                 </div>
-                <h2 className="text-2xl font-black tracking-tight">Delete Staff Member</h2>
+                <h2 className="text-2xl font-black tracking-tight">{deletingUserTarget.role === 'MEMBER' ? 'Delete Member' : 'Delete Staff Member'}</h2>
                 <p className="text-muted-foreground text-sm font-semibold">
-                  Are you sure you want to permanently delete <span className="font-bold text-foreground">{deletingUserTarget.name}</span>? This action cannot be undone.
+                  Are you sure you want to permanently delete {deletingUserTarget.role === 'MEMBER' ? 'member' : 'staff member'} <span className="font-bold text-foreground">{deletingUserTarget.name.split('|NID:')[0]}</span>? This action cannot be undone and will delete all their associated records.
                 </p>
               </div>
 
@@ -478,7 +535,7 @@ const Users = () => {
                     try {
                       await api.delete(`/users/${deletingUserTarget.id}`);
                       setUsers(users.filter(user => user.id !== deletingUserTarget.id));
-                      toast.success('User deleted successfully');
+                      toast.success(`${deletingUserTarget.role === 'MEMBER' ? 'Member' : 'User'} deleted successfully`);
                     } catch (error: unknown) {
                       const err = error as { response?: { data?: { error?: string } } };
                       toast.error(err.response?.data?.error || 'Failed to delete user');

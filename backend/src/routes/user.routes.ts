@@ -76,6 +76,11 @@ router.delete('/:id', authenticate, authorize(['ADMIN']), trackActivity('DELETE_
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
 
+    // Delete associated member records to prevent foreign key violation
+    await prisma.member.deleteMany({
+      where: { userId: id }
+    });
+
     await prisma.user.delete({
       where: { id }
     });

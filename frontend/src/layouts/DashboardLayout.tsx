@@ -38,7 +38,7 @@ const DashboardLayout = () => {
 
   const navItems = [
     { to: '/dashboard', label: t('dashboard.title'), icon: Home, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
-    { to: '/dashboard/members', label: t('members.title'), icon: Users, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/members', label: t('members.title'), icon: Users, roles: ['TREASURER', 'SECRETARY'] },
     { to: '/dashboard/contributions', label: t('contributions.title'), icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
     { to: '/dashboard/loans', label: t('loans.title'), icon: CreditCard, roles: ['TREASURER', 'SECRETARY'] },
     { to: '/dashboard/repayments', label: t('repayments.title'), icon: Receipt, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
@@ -69,19 +69,7 @@ const DashboardLayout = () => {
           </Link>
         </div>
         
-        <div className="px-4 py-4 mb-2">
-          <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-2xl border border-primary/10">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-              <UserIcon className="w-6 h-6" />
-            </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-bold truncate">{user?.name}</p>
-              <span className="text-[10px] font-semibold capitalize tracking-wider px-1.5 py-0.5 rounded bg-primary text-primary-foreground inline-block">
-                {user?.role?.toLowerCase()}
-              </span>
-            </div>
-          </div>
-        </div>
+
 
         <nav className="flex flex-col gap-1 px-4 overflow-y-auto max-h-[calc(100vh-250px)] custom-scrollbar">
           {navItems.map((item) => {
@@ -100,10 +88,26 @@ const DashboardLayout = () => {
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border/50 bg-background/80 backdrop-blur-md">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border/50 bg-background/80 backdrop-blur-md space-y-3">
+          <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-2xl border border-primary/10">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black">
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="Profile" className="w-full h-full rounded-full object-cover" />
+              ) : (
+                user?.name?.charAt(0)
+              )}
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-sm font-bold truncate leading-tight">{user?.name}</p>
+              <span className="text-[9px] font-bold capitalize tracking-wider px-1.5 py-0.5 rounded bg-primary text-primary-foreground inline-block mt-0.5">
+                {user?.role?.toLowerCase()}
+              </span>
+            </div>
+          </div>
+
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-primary/10 transition-colors text-sm font-bold"
+            className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-primary/10 transition-colors text-sm font-bold"
           >
             <span className="flex items-center gap-3">
               {theme === 'dark' ? <Moon className="w-5 h-5 text-primary" /> : <Sun className="w-5 h-5 text-primary" />}
