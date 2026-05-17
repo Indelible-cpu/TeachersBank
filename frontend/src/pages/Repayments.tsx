@@ -59,19 +59,18 @@ const Repayments = () => {
     const repayment: Repayment = {
       id: `R-${Date.now()}`,
       loanId: (loan.id as string),
+      memberId: (loan as any).memberId,
       memberName: (loan.memberName as string),
       amount,
       status: 'PENDING',
       timestamp: new Date().toISOString()
-    };
+    } as any;
     
     const updated = [repayment, ...repayments];
     setRepayments(updated);
     await setSetting('repayments', updated);
     
-    if (!isOnline) {
-      await addToSyncQueue('CREATE', 'repayments', repayment);
-    }
+    await addToSyncQueue('CREATE', 'repayments', repayment);
     
     setIsModalOpen(false);
     setNewRepayment({ loanId: '', amount: '' });
@@ -104,6 +103,21 @@ const Repayments = () => {
     });
     await setSetting('loans', updatedLoans);
     setActiveLoans(updatedLoans.filter((l: { balance: number }) => l.balance > 0));
+
+    // 1. Sync the confirmed repayment status
+    const confirmedRepayment = {
+      ...repayment,
+      status: 'CONFIRMED' as const,
+      confirmedAt: new Date().toISOString(),
+      confirmedBy: user?.name
+    };
+    await addToSyncQueue('UPDATE', 'repayments', confirmedRepayment);
+
+    // 2. Sync the updated loan balance
+    const loanToSync = updatedLoans.find((l: { id: string }) => l.id === repayment.loanId);
+    if (loanToSync) {
+      await addToSyncQueue('UPDATE', 'loans', loanToSync);
+    }
   };
 
   const pendingCount = repayments.filter(r => r.status === 'PENDING').length;

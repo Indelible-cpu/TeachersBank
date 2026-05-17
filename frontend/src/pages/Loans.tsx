@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, CreditCard, Banknote, Calendar, ShieldAlert } from 'lucide-react';
+import { Plus, CreditCard, Banknote, Calendar, ShieldAlert, XCircle } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting, addToSyncQueue } from '../services/db';
@@ -31,6 +31,7 @@ const Loans = () => {
   const [members, setMembers] = useState<Record<string, unknown>[]>([]);
   const [contributions, setContributions] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [rejectingLoanId, setRejectingLoanId] = useState<string | null>(null);
   
   const rules = settings.loanDurationRules || [
     { id: '1', minAmount: 5000, maxAmount: 50000, durationMonths: 3 },
@@ -175,18 +176,12 @@ const Loans = () => {
 
   const handleRejectLoan = async (loanId: string) => {
     if (isReadOnly || !canConfirm) return;
-    if (window.confirm('Are you sure you want to reject this loan?')) {
-      const updated = loans.map(l => l.id === loanId ? { ...l, status: 'REJECTED' as const } : l);
-      setLoans(updated);
-      await setSetting('loans', updated);
-      
-      const loan = updated.find(l => l.id === loanId);
-      if (loan) {
-        await addToSyncQueue('UPDATE', 'loans', loan);
-      }
-      toast.success('Loan rejected successfully');
-    }
+    setRejectingLoanId(loanId);
   };
+
+  if (user?.role === 'ADMIN') {
+    return <div className="p-8 text-center font-black text-rose-500 text-lg">Access Denied: Administrators do not have access to the Loan Management page.</div>;
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -424,6 +419,60 @@ const Loans = () => {
                   <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black shadow-xl shadow-primary/20">Issue & Record</button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Reject Confirmation Modal */}
+        {rejectingLoanId && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+            onClick={() => setRejectingLoanId(null)}
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-background rounded-[2.5rem] p-8 shadow-2xl border border-white/5"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto text-destructive">
+                  <XCircle className="w-8 h-8" />
+                </div>
+                <h2 className="text-2xl font-black tracking-tight">Reject Loan Application</h2>
+                <p className="text-muted-foreground text-sm font-semibold">
+                  Are you sure you want to reject this loan application? This action will set the loan status to REJECTED.
+                </p>
+              </div>
+
+              <div className="flex gap-4 pt-8">
+                <button 
+                  type="button" 
+                  onClick={() => setRejectingLoanId(null)}
+                  className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  onClick={async () => {
+                    const updated = loans.map(l => l.id === rejectingLoanId ? { ...l, status: 'REJECTED' as const } : l);
+                    setLoans(updated);
+                    await setSetting('loans', updated);
+                    
+                    const loan = updated.find(l => l.id === rejectingLoanId);
+                    if (loan) {
+                      await addToSyncQueue('UPDATE', 'loans', loan);
+                    }
+                    toast.success('Loan rejected successfully');
+                    setRejectingLoanId(null);
+                  }}
+                  className="flex-1 py-4 bg-destructive text-destructive-foreground rounded-[1.25rem] font-black hover:bg-destructive/90 transition-all"
+                >
+                  Yes, Reject
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

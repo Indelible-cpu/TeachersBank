@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ShieldAlert, ShieldCheck, User as UserIcon, Eye, EyeOff } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, User as UserIcon, Eye, EyeOff, Trash2 } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/useToast';
@@ -26,6 +26,7 @@ const Users = () => {
   const [resettingUser, setResettingUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [deletingUserTarget, setDeletingUserTarget] = useState<User | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -151,16 +152,7 @@ const Users = () => {
       toast.error('You cannot delete your own account');
       return;
     }
-    if (window.confirm(`Are you sure you want to permanently delete ${u.name}?`)) {
-      try {
-        await api.delete(`/users/${u.id}`);
-        setUsers(users.filter(user => user.id !== u.id));
-        toast.success('User deleted successfully');
-      } catch (error: unknown) {
-        const err = error as { response?: { data?: { error?: string } } };
-        toast.error(err.response?.data?.error || 'Failed to delete user');
-      }
-    }
+    setDeletingUserTarget(u);
   };
 
   if (currentUser?.role !== 'ADMIN') {
@@ -445,6 +437,60 @@ const Users = () => {
                   <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black hover:shadow-xl hover:shadow-primary/20 transition-all">Save Changes</button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deletingUserTarget && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+            onClick={() => setDeletingUserTarget(null)}
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-background rounded-[2.5rem] p-8 shadow-2xl border border-white/5"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto text-destructive">
+                  <Trash2 className="w-8 h-8" />
+                </div>
+                <h2 className="text-2xl font-black tracking-tight">Delete Staff Member</h2>
+                <p className="text-muted-foreground text-sm font-semibold">
+                  Are you sure you want to permanently delete <span className="font-bold text-foreground">{deletingUserTarget.name}</span>? This action cannot be undone.
+                </p>
+              </div>
+
+              <div className="flex gap-4 pt-8">
+                <button 
+                  type="button" 
+                  onClick={() => setDeletingUserTarget(null)}
+                  className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  onClick={async () => {
+                    try {
+                      await api.delete(`/users/${deletingUserTarget.id}`);
+                      setUsers(users.filter(user => user.id !== deletingUserTarget.id));
+                      toast.success('User deleted successfully');
+                    } catch (error: unknown) {
+                      const err = error as { response?: { data?: { error?: string } } };
+                      toast.error(err.response?.data?.error || 'Failed to delete user');
+                    } finally {
+                      setDeletingUserTarget(null);
+                    }
+                  }}
+                  className="flex-1 py-4 bg-destructive text-destructive-foreground rounded-[1.25rem] font-black hover:bg-destructive/90 transition-all"
+                >
+                  Yes, Delete
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
