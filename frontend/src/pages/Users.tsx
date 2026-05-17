@@ -171,7 +171,7 @@ const Users = () => {
     if (activeTab === 'STAFF') {
       return u.role !== 'MEMBER';
     } else {
-      return u.role === 'MEMBER';
+      return true; // All system users are also cooperative members!
     }
   });
 
@@ -211,7 +211,7 @@ const Users = () => {
           onClick={() => setActiveTab('MEMBERS')}
           className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs transition-all ${activeTab === 'MEMBERS' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
         >
-          <UsersIcon className="w-4 h-4" /> Cooperative Members ({users.filter(u => u.role === 'MEMBER').length})
+          <UsersIcon className="w-4 h-4" /> Cooperative Members ({users.length})
         </button>
       </div>
 
