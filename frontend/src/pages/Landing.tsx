@@ -173,7 +173,7 @@ const Landing = () => {
             </section>
 
             {/* About Section */}
-            <section className="py-20 bg-secondary/30 border-y border-border/40">
+            <section id="about" className="py-20 bg-secondary/30 border-y border-border/40">
               <div className="max-w-7xl mx-auto px-6 lg:px-16">
                 <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
                   <h2 className="text-4xl font-black tracking-tight">{t('landing.about_title')}</h2>
@@ -217,7 +217,7 @@ const Landing = () => {
             </section>
 
             {/* Security, Storage & Privacy Section */}
-            <section className="py-20 bg-gradient-to-b from-transparent to-secondary/10 border-b border-border/40">
+            <section id="privacy" className="py-20 bg-gradient-to-b from-transparent to-secondary/10 border-b border-border/40">
               <div className="max-w-7xl mx-auto px-6 lg:px-16">
                 <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
                   <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 border border-primary/10 rounded-full text-xs font-bold text-primary">
@@ -268,7 +268,7 @@ const Landing = () => {
             </section>
 
             {/* FAQ Section */}
-            <section className="py-20 max-w-4xl mx-auto px-6 w-full">
+            <section id="terms" className="py-20 max-w-4xl mx-auto px-6 w-full">
               <div className="text-center mb-16 space-y-4">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 border border-primary/10 rounded-full text-xs font-bold text-primary">
                   <HelpCircle className="w-4 h-4" />
@@ -327,10 +327,10 @@ const Landing = () => {
             </div>
 
             {/* Middle: Navigation links */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-center gap-6 md:gap-8">
-              <a href="#about" className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors duration-200">About</a>
-              <a href="#privacy" className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors duration-200">Privacy Policy</a>
-              <a href="#terms" className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors duration-200">Terms of Service</a>
+            <div className="flex flex-row items-center justify-center gap-6 md:gap-8 flex-wrap">
+              <a href="#about" className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors duration-200 whitespace-nowrap">About</a>
+              <a href="#privacy" className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors duration-200 whitespace-nowrap">Privacy Policy</a>
+              <a href="#terms" className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors duration-200 whitespace-nowrap">Terms of Service</a>
             </div>
 
             {/* Right: Support email link */}
@@ -338,7 +338,7 @@ const Landing = () => {
               <span className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-60">Support</span>
               <a 
                 href="mailto:indelible.support@gmail.com" 
-                className="text-sm font-bold text-primary hover:text-primary/80 hover:underline transition-all duration-200"
+                className="text-sm font-bold text-blue-500 hover:text-blue-600 hover:underline transition-all duration-200"
               >
                 indelible.support@gmail.com
               </a>
