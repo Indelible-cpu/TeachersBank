@@ -19,7 +19,9 @@ const Users = () => {
   const toast = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'MEMBER', nationalId: '' });
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'SECRETARY', nationalId: '' });
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', email: '', nationalId: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [resettingUser, setResettingUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState('');
@@ -88,7 +90,7 @@ const Users = () => {
       };
       await api.post('/auth/register', payload);
       setIsModalOpen(false);
-      setNewUser({ name: '', email: '', password: '', role: 'MEMBER', nationalId: '' });
+      setNewUser({ name: '', email: '', password: '', role: 'SECRETARY', nationalId: '' });
       setShowPassword(false);
       toast.success('User added successfully');
       fetchData(); // Refresh list
@@ -114,6 +116,33 @@ const Users = () => {
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: string } } };
       toast.error(err.response?.data?.error || 'Failed to reset password');
+    }
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    const cleanNid = editForm.nationalId.trim().toUpperCase();
+    if (cleanNid && !/^[A-Z0-9]{8}$/.test(cleanNid)) {
+      toast.error('National ID must be exactly 8 alphanumeric characters in uppercase.');
+      return;
+    }
+    try {
+      const finalName = cleanNid ? `${toTitleCase(editForm.name)}|NID:${cleanNid}` : toTitleCase(editForm.name);
+      await api.patch(`/users/${editingUser.id}`, { name: finalName, email: editForm.email });
+      if (editForm.password.trim()) {
+        if (editForm.password.trim().length < 6) {
+          toast.error('Password must be at least 6 characters long');
+          return;
+        }
+        await api.post(`/users/${editingUser.id}/reset-password`, { password: editForm.password });
+      }
+      toast.success('Staff details updated successfully');
+      setEditingUser(null);
+      fetchData();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } };
+      toast.error(err.response?.data?.error || 'Failed to update staff details');
     }
   };
 
@@ -179,6 +208,18 @@ const Users = () => {
                 </button>
                 <button 
                   onClick={() => {
+                    const hasNid = u.name.includes('|NID:');
+                    const displayName = hasNid ? u.name.split('|NID:')[0] : u.name;
+                    const nationalId = hasNid ? u.name.split('|NID:')[1] : '';
+                    setEditingUser(u);
+                    setEditForm({ name: displayName, email: u.email, nationalId: nationalId, password: '' });
+                  }}
+                  className="text-[10px] font-semibold px-3 py-1 rounded-full capitalize tracking-widest border transition-all bg-secondary/80 text-foreground border-border hover:bg-secondary"
+                >
+                  Edit Info
+                </button>
+                <button 
+                  onClick={() => {
                     setResettingUser(u);
                     setNewPassword('');
                     setShowResetPassword(false);
@@ -228,7 +269,6 @@ const Users = () => {
                 <option value="ADMIN">Administrator</option>
                 <option value="TREASURER">Treasurer</option>
                 <option value="SECRETARY">Secretary</option>
-                <option value="MEMBER">Regular Member</option>
               </select>
             </div>
           </div>
@@ -295,7 +335,6 @@ const Users = () => {
                     <option value="ADMIN">Administrator</option>
                     <option value="TREASURER">Treasurer</option>
                     <option value="SECRETARY">Secretary</option>
-                    <option value="MEMBER">Regular Member</option>
                   </select>
                 </div>
                 <div className="flex gap-4 pt-6">
@@ -353,6 +392,57 @@ const Users = () => {
                 <div className="flex gap-4 pt-4">
                   <button type="button" onClick={() => setResettingUser(null)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all">Cancel</button>
                   <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black hover:shadow-xl hover:shadow-primary/20 transition-all">Reset Password</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Edit Staff Details Modal */}
+        {editingUser && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+            onClick={() => setEditingUser(null)}
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg bg-background rounded-[2.5rem] p-8 shadow-2xl border border-white/5"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-black tracking-tight">Edit Staff Details</h2>
+                <UserIcon className="w-8 h-8 text-primary/20" />
+              </div>
+
+              <form onSubmit={handleSaveEdit} className="space-y-5">
+                 <div className="space-y-2">
+                  <label htmlFor="editUserName" className="text-xs font-black text-muted-foreground ml-1">Full Name</label>
+                  <input id="editUserName" type="text" required value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="editUserNationalId" className="text-xs font-black text-muted-foreground ml-1">National ID (Optional)</label>
+                  <input id="editUserNationalId" type="text" placeholder="e.g. ABC12345" value={editForm.nationalId} onChange={e => setEditForm({...editForm, nationalId: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="editUserEmail" className="text-xs font-black text-muted-foreground ml-1">Email</label>
+                  <input id="editUserEmail" type="email" required value={editForm.email} onChange={e => setEditForm({...editForm, email: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="editUserPassword" className="text-xs font-black text-muted-foreground ml-1">New Password (Optional - Leave blank to keep current)</label>
+                  <input 
+                    id="editUserPassword" 
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={editForm.password} 
+                    onChange={e => setEditForm({...editForm, password: e.target.value})} 
+                    className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" 
+                  />
+                </div>
+                <div className="flex gap-4 pt-6">
+                  <button type="button" onClick={() => setEditingUser(null)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all">Cancel</button>
+                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black hover:shadow-xl hover:shadow-primary/20 transition-all">Save Changes</button>
                 </div>
               </form>
             </motion.div>

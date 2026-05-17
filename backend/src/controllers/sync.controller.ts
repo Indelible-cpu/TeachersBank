@@ -65,6 +65,28 @@ export const syncData = async (req: Request, res: Response) => {
               auditDetails = `Successfully registered new cooperative member: ${data.fullname}`;
             }
             if (action === 'UPDATE') {
+              // 1. Get member's current userId to update their User credentials if present
+              const currentMember = await prisma.member.findUnique({ where: { id: data.id } });
+              if (currentMember && currentMember.userId) {
+                const userPayload: any = {};
+                if (data.email) userPayload.email = data.email;
+                if (data.fullname) userPayload.name = data.fullname;
+                if (data.password) {
+                  userPayload.password = await bcrypt.hash(data.password, 10);
+                }
+                
+                if (Object.keys(userPayload).length > 0) {
+                  await prisma.user.update({
+                    where: { id: currentMember.userId },
+                    data: userPayload
+                  });
+                }
+              }
+
+              // 2. Clear transient fields
+              delete cleanMemberData.email;
+              delete cleanMemberData.password;
+
               await prisma.member.update({ where: { id: data.id }, data: cleanMemberData });
               auditDetails = `Updated cooperative member details for: ${data.fullname || data.id}`;
             }

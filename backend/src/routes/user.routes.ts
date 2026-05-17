@@ -20,17 +20,19 @@ router.get('/', authenticate, authorize(['ADMIN']), async (req, res) => {
   }
 });
 
-// Update user role or status (Admin only)
+// Update user role or status or details (Admin only)
 router.patch('/:id', authenticate, authorize(['ADMIN']), trackActivity('UPDATE_USER'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { role, isActive } = req.body;
+    const { role, isActive, name, email } = req.body;
 
     const user = await prisma.user.update({
       where: { id: id as string },
       data: { 
         role: role,
-        isActive: isActive !== undefined ? isActive : undefined
+        isActive: isActive !== undefined ? isActive : undefined,
+        name: name,
+        email: email
       }
     });
 

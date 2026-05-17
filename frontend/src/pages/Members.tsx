@@ -36,6 +36,17 @@ const Members = () => {
     nationalId: ''
   });
 
+  const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [editForm, setEditForm] = useState({
+    fullname: '',
+    phone: '',
+    gender: 'MALE',
+    address: '',
+    nationalId: '',
+    email: '',
+    password: ''
+  });
+
   const canAddMember = user?.role === 'SECRETARY';
 
   useEffect(() => {
@@ -119,6 +130,57 @@ const Members = () => {
       fullname: '', phone: '', gender: 'MALE', address: '', 
       email: '', password: '', nationalId: ''
     });
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMember) return;
+
+    // Validate phone number
+    const digitsOnly = editForm.phone.replace(/\D/g, '');
+    if (digitsOnly.length < 10 || digitsOnly.length > 13) {
+      toast.error('Primary phone number must contain between 10 and 13 digits only.');
+      return;
+    }
+
+    // Validate optional National ID
+    const cleanNid = editForm.nationalId.trim().toUpperCase();
+    if (cleanNid && !/^[A-Z0-9]{8}$/.test(cleanNid)) {
+      toast.error('National ID must be exactly 8 alphanumeric characters in uppercase.');
+      return;
+    }
+
+    // Optional Email/Password updates if they want to modify login details
+    if (editForm.email && !editForm.email.includes('@')) {
+      toast.error('Please enter a valid email address.');
+      return;
+    }
+    if (editForm.password && editForm.password.length < 6) {
+      toast.error('Password must be at least 6 characters long.');
+      return;
+    }
+
+    // Update member record in memory and in IndexedDB
+    const updatedMember = {
+      ...editingMember,
+      fullname: toTitleCase(editForm.fullname),
+      phone: editForm.phone,
+      phone2: cleanNid || undefined,
+      gender: editForm.gender,
+      address: editForm.address,
+      email: editForm.email || undefined,
+      password: editForm.password || undefined
+    };
+
+    const updatedList = members.map(m => m.id === editingMember.id ? updatedMember : m);
+    setMembers(updatedList);
+    await setSetting('members', updatedList);
+
+    // Queue sync update mutation
+    await addToSyncQueue('UPDATE', 'members', updatedMember);
+
+    toast.success('Member details updated successfully');
+    setEditingMember(null);
   };
 
   const filteredMembers = members.filter(m => 
@@ -210,6 +272,28 @@ const Members = () => {
                 <span className="font-medium text-[12px] uppercase tracking-wide">Joined: {new Date(member.joinDate).toLocaleDateString()}</span>
               </div>
             </div>
+
+            {canAddMember && (
+              <div className="pt-3 border-t border-border/30 flex justify-end">
+                <button
+                  onClick={() => {
+                    setEditingMember(member);
+                    setEditForm({
+                      fullname: member.fullname,
+                      phone: member.phone,
+                      gender: member.gender,
+                      address: member.address || '',
+                      nationalId: member.phone2 || '',
+                      email: (member as any).email || '',
+                      password: ''
+                    });
+                  }}
+                  className="text-[10px] font-semibold px-3 py-1.5 rounded-full capitalize tracking-widest border transition-all bg-secondary/80 text-foreground border-border hover:bg-secondary"
+                >
+                  Edit Info
+                </button>
+              </div>
+            )}
           </motion.div>
         ))}
       </div>
@@ -342,6 +426,138 @@ const Members = () => {
                     className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black hover:shadow-xl hover:shadow-primary/20 transition-all"
                   >
                     {t('members.save')}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Edit Member Modal */}
+        {editingMember && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+            onClick={() => setEditingMember(null)}
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg bg-background rounded-[2.5rem] p-8 shadow-2xl border border-white/5"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-black tracking-tight">Edit Member Details</h2>
+                <UserIcon className="w-8 h-8 text-primary/20" />
+              </div>
+
+              <form onSubmit={handleSaveEdit} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-fullname">Full Name</label>
+                    <input 
+                      id="edit-fullname"
+                      type="text" 
+                      required
+                      value={editForm.fullname}
+                      onChange={e => setEditForm({...editForm, fullname: e.target.value})}
+                      className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                      placeholder="Official Name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-gender">Gender</label>
+                    <select 
+                      id="edit-gender"
+                      title="Select Gender"
+                      value={editForm.gender}
+                      onChange={e => setEditForm({...editForm, gender: e.target.value})}
+                      className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none"
+                    >
+                      <option value="MALE">Male</option>
+                      <option value="FEMALE">Female</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-address">Address</label>
+                    <input 
+                      id="edit-address"
+                      type="text" 
+                      value={editForm.address}
+                      onChange={e => setEditForm({...editForm, address: e.target.value})}
+                      className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-medium"
+                      placeholder="City, Area"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-national-id">National ID (Optional)</label>
+                    <input 
+                      id="edit-national-id"
+                      type="text" 
+                      value={editForm.nationalId}
+                      onChange={e => setEditForm({...editForm, nationalId: e.target.value})}
+                      className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                      placeholder="8 characters"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-phone">Primary Phone</label>
+                    <input 
+                      id="edit-phone"
+                      type="tel" 
+                      required
+                      value={editForm.phone}
+                      onChange={e => setEditForm({...editForm, phone: e.target.value})}
+                      className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                      placeholder="+265..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-email">Email Address</label>
+                    <input 
+                      id="edit-email"
+                      type="email" 
+                      required
+                      value={editForm.email}
+                      onChange={e => setEditForm({...editForm, email: e.target.value})}
+                      className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                      placeholder="member@teachersbank.com"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-password">New Password (Optional - Leave blank to keep current)</label>
+                  <input 
+                    id="edit-password"
+                    type="password" 
+                    value={editForm.password}
+                    onChange={e => setEditForm({...editForm, password: e.target.value})}
+                    className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                    placeholder="Min 6 characters"
+                  />
+                </div>
+
+                <div className="flex gap-4 pt-6">
+                  <button 
+                    type="button" 
+                    onClick={() => setEditingMember(null)}
+                    className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black hover:shadow-xl hover:shadow-primary/20 transition-all"
+                  >
+                    Save Changes
                   </button>
                 </div>
               </form>
