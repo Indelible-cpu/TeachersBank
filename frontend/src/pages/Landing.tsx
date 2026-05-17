@@ -322,7 +322,7 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-4 items-start md:items-center">
             {/* Left: Brand name + tagline */}
             <div className="flex flex-col gap-2 md:text-left">
-              <span className="text-2xl font-black text-foreground tracking-tight">Indelible</span>
+              <span className="text-2xl font-black text-foreground tracking-tight">Indelible Technologies</span>
               <p className="text-sm font-semibold text-muted-foreground opacity-80">Secure • Reliable • Built for scale</p>
             </div>
 
