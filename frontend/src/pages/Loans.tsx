@@ -18,6 +18,8 @@ interface Loan {
   dueDate: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'FULLY_PAID';
   timestamp: string;
+  shareInterest?: number;    // Interest accumulated from member's share pool (for disbursement reports)
+  memberShares?: number;     // Total confirmed shares at time of loan issuance
 }
 
 const Loans = () => {
@@ -111,6 +113,7 @@ const Loans = () => {
     const selectedMember = members.find(m => m.id === newLoan.memberId);
     
     // Calculate total confirmed share contributions for the selected member
+    // This is used for the share-disbursement interest (shown in reports per member)
     const memberShares = contributions
       .filter(c => c.memberId === newLoan.memberId && c.type === 'SHARE' && c.status === 'CONFIRMED')
       .reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
@@ -118,9 +121,13 @@ const Loans = () => {
     const principal = parseFloat(newLoan.principal);
     const interestRate = settings.interestPercentage || 10;
     
-    // Interest is based on the individual's contributed shares pool, not the loan principal!
-    const interestAmount = memberShares * (interestRate / 100);
-    const expectedReturn = principal + interestAmount;
+    // Loan repayment model: interest on the loan = principal × interestRate%
+    // (separate from share-disbursement interest which = memberShares × interestRate%)
+    const loanInterestAmount = principal * (interestRate / 100);
+    const expectedReturn = principal + loanInterestAmount;
+
+    // Share-pool interest stored for reporting/disbursement purposes
+    const shareInterestAmount = memberShares * (interestRate / 100);
 
     const loan: Loan = {
       id: Date.now().toString(),
@@ -130,6 +137,8 @@ const Loans = () => {
       interestRate,
       expectedReturn,
       balance: expectedReturn,
+      shareInterest: shareInterestAmount,
+      memberShares,
       dueDate: newLoan.dueDate,
       status: 'APPROVED',
       timestamp: new Date().toISOString()
@@ -202,11 +211,17 @@ const Loans = () => {
                 <span className="font-semibold text-foreground">{settings.currency} {loan.principal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">Interest pool ({loan.interestRate}%)</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{settings.currency} {(loan.expectedReturn - loan.principal).toLocaleString()}</span>
+                <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">Loan Interest ({loan.interestRate}%)</span>
+                <span className="font-semibold text-rose-500">+{settings.currency} {(loan.principal * (loan.interestRate / 100)).toLocaleString()}</span>
               </div>
+              {loan.shareInterest !== undefined && loan.shareInterest > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">Share Pool Interest ({loan.interestRate}%)</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">+{settings.currency} {loan.shareInterest.toLocaleString()}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center pt-2 border-t border-border/50">
-                <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Return balance</p>
+                <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Total To Repay</p>
                 <span className="font-semibold text-xl text-rose-600 dark:text-rose-400">{settings.currency} {loan.balance.toLocaleString()}</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 bg-secondary/30 p-2 rounded-xl">
@@ -252,17 +267,42 @@ const Loans = () => {
                     .filter(c => c.memberId === newLoan.memberId && c.type === 'SHARE' && c.status === 'CONFIRMED')
                     .reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
                   const interestRate = settings.interestPercentage || 10;
-                  const interestAmount = memberShares * (interestRate / 100);
+                  const previewPrincipal = parseFloat(newLoan.principal) || 0;
+                  // Share-pool interest: accumulated from savings (for disbursement reports)
+                  const shareInterest = memberShares * (interestRate / 100);
+                  // Loan repayment interest: charged on principal taken
+                  const loanInterest = previewPrincipal * (interestRate / 100);
+                  const totalRepayable = previewPrincipal + loanInterest;
                   return (
-                    <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 text-xs font-bold space-y-2">
-                      <div className="flex justify-between items-center text-muted-foreground">
-                        <span>Total Contributed Shares:</span>
-                        <span className="text-foreground">{settings.currency} {memberShares.toLocaleString()}</span>
+                    <div className="space-y-2">
+                      <div className="p-4 bg-blue-500/5 rounded-2xl border border-blue-500/10 text-xs font-bold space-y-2">
+                        <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Share Pool (Disbursement Report)</p>
+                        <div className="flex justify-between items-center text-muted-foreground">
+                          <span>Total Confirmed Shares:</span>
+                          <span className="text-foreground">{settings.currency} {memberShares.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-muted-foreground">
+                          <span>Share Pool Interest ({interestRate}%):</span>
+                          <span className="text-emerald-600 dark:text-emerald-400">+{settings.currency} {shareInterest.toLocaleString()}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center text-muted-foreground">
-                        <span>Share Interest Pool ({interestRate}%):</span>
-                        <span className="text-emerald-600 dark:text-emerald-400">+{settings.currency} {interestAmount.toLocaleString()}</span>
-                      </div>
+                      {previewPrincipal > 0 && (
+                        <div className="p-4 bg-rose-500/5 rounded-2xl border border-rose-500/10 text-xs font-bold space-y-2">
+                          <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">Loan Repayment Breakdown</p>
+                          <div className="flex justify-between items-center text-muted-foreground">
+                            <span>Principal:</span>
+                            <span className="text-foreground">{settings.currency} {previewPrincipal.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-muted-foreground">
+                            <span>Interest on Loan ({interestRate}%):</span>
+                            <span className="text-rose-500">+{settings.currency} {loanInterest.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center border-t border-border/30 pt-2">
+                            <span className="text-foreground">Total To Repay:</span>
+                            <span className="text-rose-600 dark:text-rose-400 font-black">{settings.currency} {totalRepayable.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })()}

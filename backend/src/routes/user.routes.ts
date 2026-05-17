@@ -83,8 +83,8 @@ router.delete('/:id', authenticate, authorize(['ADMIN']), trackActivity('DELETE_
   }
 });
 
-// Audit Logs (Admin only)
-router.get('/audit-logs', authenticate, authorize(['ADMIN']), async (req, res) => {
+// Audit Logs (Admin, Secretary, Treasurer)
+router.get('/audit-logs', authenticate, authorize(['ADMIN', 'SECRETARY', 'TREASURER']), async (req, res) => {
   try {
     const logs = await prisma.auditLog.findMany({
       include: { user: { select: { name: true, email: true } } },
