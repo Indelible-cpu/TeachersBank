@@ -138,7 +138,7 @@ const Landing = () => {
 
           <div className="border-t border-border/10 pt-8 flex items-center justify-center">
             <p className="text-sm font-bold text-muted-foreground opacity-60 tracking-wide">
-              © 2026 Indelible. All rights reserved.
+              © 2026 Indelible Technologies. All rights reserved.
             </p>
           </div>
 
