@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { FileText, Printer, Share2, Filter, User, Calendar, ShieldCheck, ShieldAlert } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
+import api from '../services/api';
 import { getSetting } from '../services/db';
 import { useSettings } from '../context/useSettings';
 import { useToast } from '../context/useToast';
@@ -21,6 +22,7 @@ const Reports = () => {
   const [contributions, setContributions] = useState<any[]>([]);
   const [loans, setLoans] = useState<any[]>([]);
   const [repayments, setRepayments] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
 
   const reportRef = useRef<HTMLDivElement>(null);
 
@@ -36,6 +38,15 @@ const Reports = () => {
       const cachedContribs = await getSetting('contributions') || [];
       const cachedLoans = await getSetting('loans') || [];
       const cachedRepayments = await getSetting('repayments') || [];
+      
+      try {
+        const res = await api.get('/users');
+        if (isMounted) {
+          setUsers(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch users in reports', err);
+      }
       
       if (isMounted) {
         setMembers(cachedMembers);
@@ -72,6 +83,12 @@ const Reports = () => {
   const accumulatedInterest = filteredLoans.reduce((sum, l) => sum + ((Number(l.expectedReturn) || 0) - (Number(l.principal) || 0)), 0);
 
   const currentMember = members.find(m => m.id === selectedMember);
+
+  const secretaryUser = users.find(u => u.role === 'SECRETARY' && u.isActive) || users.find(u => u.role === 'SECRETARY');
+  const secretaryName = secretaryUser ? secretaryUser.name : 'Not Designated';
+
+  const treasurerUser = users.find(u => u.role === 'TREASURER' && u.isActive) || users.find(u => u.role === 'TREASURER');
+  const treasurerName = treasurerUser ? treasurerUser.name : 'Not Designated';
 
   const generatePDFOptions = () => ({
     margin: 10,
@@ -235,22 +252,24 @@ const Reports = () => {
           </div>
         )}
 
-        <div className="mt-20 pt-16 border-t-2 border-primary/20 flex justify-between items-end">
+        <div className="mt-20 pt-16 border-t border-primary/20 flex justify-between items-end">
           <div className="space-y-8">
             <div className="space-y-1">
-              <div className="w-48 h-0.5 bg-primary/50"></div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Secretary Signature</p>
+              <p className="text-xs font-black text-foreground/90">{secretaryName}</p>
+              <div className="w-48 h-px bg-primary/30"></div>
+              <p className="text-[10px] font-bold text-muted-foreground">Secretary Signature</p>
             </div>
             <div className="space-y-1">
-              <div className="w-48 h-0.5 bg-primary/50"></div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Treasurer Signature</p>
+              <p className="text-xs font-black text-foreground/90">{treasurerName}</p>
+              <div className="w-48 h-px bg-primary/30"></div>
+              <p className="text-[10px] font-bold text-muted-foreground">Treasurer Signature</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[10px] font-black uppercase text-muted-foreground/60 mb-2">System Authenticated</p>
+            <p className="text-[10px] font-bold text-muted-foreground/60 mb-2">System Authenticated</p>
             <div className="flex items-center gap-2 justify-end text-primary">
-              <ShieldCheck className="w-5 h-5" />
-              <span className="font-black text-lg tracking-tighter">TeachersBank SECURE</span>
+              <ShieldCheck className="w-5 h-5 animate-pulse" />
+              <span className="font-black text-base tracking-tight">{settings.systemName} Secure</span>
             </div>
           </div>
         </div>
