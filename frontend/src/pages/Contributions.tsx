@@ -5,6 +5,7 @@ import { Plus, Wallet, HeartPulse, History, CheckCircle2, ShieldCheck, ShieldAle
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting, addToSyncQueue } from '../services/db';
+import { useToast } from '../context/useToast';
 
 interface Member {
   id: string;
@@ -39,6 +40,7 @@ const Contributions = () => {
   const { t } = useTranslation();
   const { isOnline, settings } = useSettings();
   const { isReadOnly, canConfirm, canWriteFinance, user } = useAuth();
+  const toast = useToast();
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,15 +52,24 @@ const Contributions = () => {
   const [newContrib, setNewContrib] = useState({
     memberId: '',
     contributorName: '',
-    shareAmount: settings.baseShareAmount.toString(),
-    emergencyAmount: settings.baseEmergencyAmount.toString(),
+    shareAmount: (settings?.baseShareAmount ?? 50000).toString(),
+    emergencyAmount: (settings?.baseEmergencyAmount ?? 5000).toString(),
     month: currentMonthIdx + 1,
     year: currentYear,
     isAdvance: false,
     recordBoth: true
   });
 
-
+  // Keep form values in sync with settings when settings load
+  useEffect(() => {
+    if (settings) {
+      setNewContrib(prev => ({
+        ...prev,
+        shareAmount: (settings.baseShareAmount ?? 50000).toString(),
+        emergencyAmount: (settings.baseEmergencyAmount ?? 5000).toString()
+      }));
+    }
+  }, [settings]);
 
   useEffect(() => {
     let isMounted = true;
@@ -98,7 +109,7 @@ const Contributions = () => {
     };
 
     if (newContrib.recordBoth && (checkDuplicate('SHARE') || checkDuplicate('EMERGENCY'))) {
-      alert('A contribution for this month already exists.');
+      toast.error('A contribution for this month already exists.');
       return;
     }
 

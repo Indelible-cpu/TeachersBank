@@ -6,6 +6,7 @@ import html2pdf from 'html2pdf.js';
 import { useRef } from 'react';
 import { useSettings } from '../context/useSettings';
 import { getSetting } from '../services/db';
+import { useToast } from '../context/useToast';
 
 interface ReceiptData {
   id: string;
@@ -20,6 +21,7 @@ interface ReceiptData {
 const Receipts = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const toast = useToast();
   const [receipts, setReceipts] = useState<ReceiptData[]>([]);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
   const receiptRef = useRef<HTMLDivElement>(null);
@@ -74,11 +76,11 @@ const Receipts = () => {
         });
       } else {
         handleDownloadPDF();
-        alert('File sharing not supported. Document downloaded instead.');
+        toast.info('File sharing not supported. Document downloaded instead.');
       }
     } catch (error) {
       console.error('Error sharing receipt', error);
-      alert('Could not share the receipt.');
+      toast.error('Could not share the receipt.');
     }
   };
 

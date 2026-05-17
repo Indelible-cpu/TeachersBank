@@ -8,6 +8,7 @@ import { ThemeProvider } from 'next-themes';
 import { SettingsProvider } from './context/SettingsContext';
 import { AuthProvider } from './context/AuthContext';
 import { PWAProvider } from './context/PWAContext';
+import { ToastProvider } from './context/ToastContext';
 
 // Initialize IndexedDB
 initDB();
@@ -18,7 +19,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <SettingsProvider>
         <AuthProvider>
           <PWAProvider>
-            <App />
+            <ToastProvider>
+              <App />
+            </ToastProvider>
           </PWAProvider>
         </AuthProvider>
       </SettingsProvider>

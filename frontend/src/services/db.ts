@@ -103,18 +103,24 @@ export const performSync = async () => {
     const queue = await getSyncQueue();
     if (queue.length === 0) return true;
 
-    const response = await syncApi.sync(queue);
+    // Map 'entity' field to 'table' to match backend sync schema expectations
+    const mappedQueue = queue.map((item: any) => ({
+      action: item.action,
+      table: item.entity || item.table,
+      data: item.data
+    }));
+
+    const response = await syncApi.sync(mappedQueue);
     
     if (response.data && response.data.serverState) {
-      const db = await dbPromise;
       const { serverState } = response.data;
       
-      // Update local cache with server truth
-      if (serverState.members) await db.put('members', serverState.members, 'members_list');
-      if (serverState.loans) await db.put('loans', serverState.loans, 'loans_list');
-      if (serverState.repayments) await db.put('repayments', serverState.repayments, 'repayments_list');
-      if (serverState.receipts) await db.put('receipts', serverState.receipts, 'receipts_list');
-      if (serverState.settings) await db.put('settings', serverState.settings, 'global_settings');
+      // Update local active cache with server truth in the 'settings' store
+      if (serverState.members) await setSetting('members', serverState.members);
+      if (serverState.loans) await setSetting('loans', serverState.loans);
+      if (serverState.repayments) await setSetting('repayments', serverState.repayments);
+      if (serverState.receipts) await setSetting('receipts', serverState.receipts);
+      if (serverState.settings) await setSetting('global_settings', serverState.settings);
       
       // Clear queue on success
       await clearSyncQueue();

@@ -5,10 +5,12 @@ import { FileText, Printer, Share2, Filter, User, Calendar, ShieldCheck, ShieldA
 import html2pdf from 'html2pdf.js';
 import { getSetting } from '../services/db';
 import { useSettings } from '../context/useSettings';
+import { useToast } from '../context/useToast';
 
 const Reports = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const toast = useToast();
   
   const [reportType, setReportType] = useState<'FULL' | 'INDIVIDUAL'>('FULL');
   const [selectedMonth, setSelectedMonth] = useState('ALL');
@@ -102,11 +104,11 @@ const Reports = () => {
       } else {
         // Fallback to download if Web Share API doesn't support files
         handleDownloadPDF();
-        alert('File sharing not supported on this browser. Downloading PDF instead.');
+        toast.info('File sharing not supported on this browser. Downloading PDF instead.');
       }
     } catch (error) {
       console.error('Error sharing PDF', error);
-      alert('Could not share the document.');
+      toast.error('Could not share the document.');
     }
   };
 

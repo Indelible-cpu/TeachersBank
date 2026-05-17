@@ -37,21 +37,21 @@ const DashboardLayout = () => {
   };
 
   const navItems = [
-    { to: '/', icon: Home, label: t('dashboard.title') },
-    { to: '/members', icon: Users, label: t('members.title') },
-    { to: '/contributions', icon: Wallet, label: t('contributions.title') },
-    { to: '/loans', icon: CreditCard, label: t('loans.title') },
-    { to: '/repayments', icon: Receipt, label: t('repayments.title') },
-    { to: '/receipts', icon: Receipt, label: t('receipts.title') },
-    { to: '/reports', icon: FileText, label: t('reports.title') },
+    { to: '/dashboard', icon: Home, label: t('dashboard.title') },
+    { to: '/dashboard/members', icon: Users, label: t('members.title') },
+    { to: '/dashboard/contributions', icon: Wallet, label: t('contributions.title') },
+    { to: '/dashboard/loans', icon: CreditCard, label: t('loans.title') },
+    { to: '/dashboard/repayments', icon: Receipt, label: t('repayments.title') },
+    { to: '/dashboard/receipts', icon: Receipt, label: t('receipts.title') },
+    { to: '/dashboard/reports', icon: FileText, label: t('reports.title') },
   ];
 
   if (user?.role === 'ADMIN') {
-    navItems.push({ to: '/users', icon: Shield, label: 'Administration' });
-    navItems.push({ to: '/audit-trail', icon: HistoryIcon, label: 'Audit trail' });
+    navItems.push({ to: '/dashboard/users', icon: Shield, label: 'Administration' });
+    navItems.push({ to: '/dashboard/audit-trail', icon: HistoryIcon, label: 'Audit trail' });
   }
 
-  navItems.push({ to: '/settings', icon: SettingsIcon, label: t('settings.title') });
+  navItems.push({ to: '/dashboard/settings', icon: SettingsIcon, label: t('settings.title') });
 
   const closeSidebar = () => setIsSidebarOpen(false);
 
@@ -60,7 +60,7 @@ const DashboardLayout = () => {
       {/* Sidebar - Desktop/Mobile */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass border-r transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
         <div className="p-6 flex items-center gap-3 border-b border-border/50">
-          <Link to="/" className="flex items-center gap-3" onClick={closeSidebar}>
+          <Link to="/dashboard" className="flex items-center gap-3" onClick={closeSidebar}>
             <img 
               src="/icon-192x192.png" 
               alt="Logo" 

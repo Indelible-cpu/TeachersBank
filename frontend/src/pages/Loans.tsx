@@ -5,6 +5,7 @@ import { Plus, CreditCard, Banknote, Calendar, ShieldAlert } from 'lucide-react'
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting, addToSyncQueue } from '../services/db';
+import { useToast } from '../context/useToast';
 
 interface Loan {
   id: string;
@@ -23,8 +24,10 @@ const Loans = () => {
   const { t } = useTranslation();
   const { isOnline, settings } = useSettings();
   const { isReadOnly, canWriteFinance } = useAuth();
+  const toast = useToast();
   const [loans, setLoans] = useState<Loan[]>([]);
   const [members, setMembers] = useState<Record<string, unknown>[]>([]);
+  const [contributions, setContributions] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const [newLoan, setNewLoan] = useState({
@@ -63,6 +66,11 @@ const Loans = () => {
       if (cachedLoans && isMounted) {
         setLoans(cachedLoans);
       }
+
+      const cachedContribs = await getSetting('contributions') || [];
+      if (cachedContribs && isMounted) {
+        setContributions(cachedContribs);
+      }
     })();
     return () => { isMounted = false; };
   }, []);
@@ -73,9 +81,17 @@ const Loans = () => {
 
     const selectedMember = members.find(m => m.id === newLoan.memberId);
     
+    // Calculate total confirmed share contributions for the selected member
+    const memberShares = contributions
+      .filter(c => c.memberId === newLoan.memberId && c.type === 'SHARE' && c.status === 'CONFIRMED')
+      .reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+
     const principal = parseFloat(newLoan.principal);
     const interestRate = settings.interestPercentage || 10;
-    const expectedReturn = principal + (principal * (interestRate / 100));
+    
+    // Interest is based on the individual's contributed shares pool, not the loan principal!
+    const interestAmount = memberShares * (interestRate / 100);
+    const expectedReturn = principal + interestAmount;
 
     const loan: Loan = {
       id: Date.now().toString(),
@@ -98,6 +114,7 @@ const Loans = () => {
       await addToSyncQueue('CREATE', 'loans', loan);
     }
     
+    toast.success('Loan issued and recorded successfully');
     setIsModalOpen(false);
     setNewLoan({ memberId: '', principal: '', dueDate: '' });
   };
@@ -199,6 +216,26 @@ const Loans = () => {
                     {members.map(m => <option key={String(m.id)} value={String(m.id)}>{String(m.fullname)}</option>)}
                   </select>
                 </div>
+
+                {newLoan.memberId && (() => {
+                  const memberShares = contributions
+                    .filter(c => c.memberId === newLoan.memberId && c.type === 'SHARE' && c.status === 'CONFIRMED')
+                    .reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+                  const interestRate = settings.interestPercentage || 10;
+                  const interestAmount = memberShares * (interestRate / 100);
+                  return (
+                    <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 text-xs font-bold space-y-2">
+                      <div className="flex justify-between items-center text-muted-foreground">
+                        <span>Total Contributed Shares:</span>
+                        <span className="text-foreground">{settings.currency} {memberShares.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-muted-foreground">
+                        <span>Share Interest Pool ({interestRate}%):</span>
+                        <span className="text-emerald-600 dark:text-emerald-400">+{settings.currency} {interestAmount.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="loan-amount">Principal Amount</label>

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, ShieldAlert, ShieldCheck, User as UserIcon, Activity, Clock, Terminal, CheckCircle, XCircle } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/useToast';
 
 interface User {
   id: string;
@@ -26,6 +27,7 @@ interface AuditLog {
 
 const Users = () => {
   const { user: currentUser } = useAuth();
+  const toast = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [activeTab, setActiveTab] = useState<'users' | 'logs'>('users');
@@ -54,9 +56,10 @@ const Users = () => {
     try {
       await api.patch(`/users/${userId}`, { role: newRole });
       setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      toast.success('Role updated successfully');
     } catch (error) {
       console.error('Failed to update role', error);
-      alert('Failed to update role');
+      toast.error('Failed to update role');
     }
   };
 
@@ -64,9 +67,10 @@ const Users = () => {
     try {
       await api.patch(`/users/${u.id}`, { isActive: !u.isActive });
       setUsers(users.map(user => user.id === u.id ? { ...user, isActive: !u.isActive } : user));
+      toast.success(`User status ${!u.isActive ? 'activated' : 'suspended'} successfully`);
     } catch (error) {
       console.error('Failed to update status', error);
-      alert('Failed to update status');
+      toast.error('Failed to update status');
     }
   };
 
@@ -76,25 +80,27 @@ const Users = () => {
       await api.post('/auth/register', newUser);
       setIsModalOpen(false);
       setNewUser({ name: '', email: '', password: '', role: 'MEMBER' });
+      toast.success('User added successfully');
       fetchData(); // Refresh list
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: string } } };
-      alert(err.response?.data?.error || 'Failed to add user');
+      toast.error(err.response?.data?.error || 'Failed to add user');
     }
   };
 
   const handleDeleteUser = async (u: User) => {
     if (u.id === currentUser?.id) {
-      alert('You cannot delete your own account');
+      toast.error('You cannot delete your own account');
       return;
     }
     if (window.confirm(`Are you sure you want to permanently delete ${u.name}?`)) {
       try {
         await api.delete(`/users/${u.id}`);
         setUsers(users.filter(user => user.id !== u.id));
+        toast.success('User deleted successfully');
       } catch (error: unknown) {
         const err = error as { response?: { data?: { error?: string } } };
-        alert(err.response?.data?.error || 'Failed to delete user');
+        toast.error(err.response?.data?.error || 'Failed to delete user');
       }
     }
   };

@@ -12,7 +12,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (token: string, user: User) => Promise<void>;
+  login: (token: string, user: User, rememberMe?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isReadOnly: boolean; // General UI restriction
@@ -33,8 +33,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const loadAuth = async () => {
     try {
-      const storedToken = await getSetting('auth_token');
-      const storedUser = await getSetting('auth_user');
+      let storedToken = sessionStorage.getItem('auth_token');
+      let storedUser: User | null = null;
+      const sessionUserStr = sessionStorage.getItem('auth_user');
+      if (sessionUserStr) {
+        storedUser = JSON.parse(sessionUserStr) as User;
+      }
+      
+      if (!storedToken || !storedUser) {
+        // If not in sessionStorage, check persistent if remember_me is true
+        const rememberMe = localStorage.getItem('remember_me') === 'true';
+        if (rememberMe) {
+          storedToken = await getSetting('auth_token');
+          storedUser = await getSetting('auth_user');
+        }
+      }
       
       if (storedToken && storedUser) {
         setToken(storedToken);
@@ -47,11 +60,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const login = async (newToken: string, newUser: User) => {
+  const login = async (newToken: string, newUser: User, rememberMe = false) => {
     setToken(newToken);
     setUser(newUser);
-    await setSetting('auth_token', newToken);
-    await setSetting('auth_user', newUser);
+    if (rememberMe) {
+      await setSetting('auth_token', newToken);
+      await setSetting('auth_user', newUser);
+      localStorage.setItem('remember_me', 'true');
+      localStorage.setItem('remembered_email', newUser.email);
+    } else {
+      sessionStorage.setItem('auth_token', newToken);
+      sessionStorage.setItem('auth_user', JSON.stringify(newUser));
+      localStorage.setItem('remember_me', 'false');
+      // If we don't remember, we can delete the saved token from IndexedDB so it's not loaded next time
+      await setSetting('auth_token', null);
+      await setSetting('auth_user', null);
+    }
   };
 
   const logout = async () => {
@@ -59,6 +83,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     await setSetting('auth_token', null);
     await setSetting('auth_user', null);
+    sessionStorage.removeItem('auth_token');
+    sessionStorage.removeItem('auth_user');
     localStorage.removeItem('auth_token');
   };
 

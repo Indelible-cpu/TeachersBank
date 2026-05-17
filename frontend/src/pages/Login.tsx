@@ -4,12 +4,13 @@ import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
 import { Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { authApi } from '../services/api';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,6 +19,17 @@ const Login = () => {
   const { settings, isOnline } = useSettings();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('remembered_email');
+    const savedRememberMe = localStorage.getItem('remember_me') === 'true';
+    if (savedRememberMe) {
+      setRememberMe(true);
+      if (savedEmail) {
+        setEmail(savedEmail);
+      }
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,10 +49,10 @@ const Login = () => {
       const response = await authApi.login({ email, password });
       const { token, user } = response.data;
 
-      await login(token, user);
+      await login(token, user, rememberMe);
       localStorage.setItem('auth_token', token); // Also store in localStorage for the axios interceptor
       
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: any) {
       const message = err.response?.data?.error || err.message || 'Login failed';
       setError(message);
@@ -116,6 +128,18 @@ const Login = () => {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+            </div>
+
+            <div className="flex items-center justify-between mb-4">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input 
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="rounded border-border text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                />
+                <span className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">Remember Me</span>
+              </label>
             </div>
 
             <button 

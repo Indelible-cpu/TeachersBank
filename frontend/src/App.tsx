@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
@@ -26,9 +27,10 @@ function App() {
     <Router>
       <InstallPrompt />
       <Routes>
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         
-        <Route path="/" element={
+        <Route path="/dashboard" element={
           <ProtectedRoute>
             <DashboardLayout />
           </ProtectedRoute>
@@ -44,6 +46,9 @@ function App() {
           <Route path="audit-trail" element={<AuditTrail />} />
           <Route path="settings" element={<Settings />} />
         </Route>
+        
+        {/* Fallback for legacy / unmatched links */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
