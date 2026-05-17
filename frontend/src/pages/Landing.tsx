@@ -85,10 +85,6 @@ const Landing = () => {
           transition={{ duration: 0.6 }}
           className="space-y-6 flex flex-col items-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 border border-primary/10 rounded-full text-xs font-bold text-primary">
-            <Sparkles className="w-4 h-4" />
-            {t('landing.hero_tag')}
-          </div>
           
           <h1 className="text-5xl lg:text-7xl font-black tracking-tight leading-none text-foreground">
             {t('landing.hero_title_1')} <br />
@@ -319,12 +315,42 @@ const Landing = () => {
         )}
       </AnimatePresence>
 
-      {/* Footer */}
-      <footer className="border-t border-border/40 glass py-6 px-6 lg:px-16 text-center text-sm font-bold text-muted-foreground flex items-center justify-center gap-4 w-full">
-        <div>
-          © <a href="tel:2026" className="hover:underline text-primary">2026</a> Indelible. All rights reserved.
-          <br />
-          Support: <a href="http://indelible.support" className="hover:underline text-primary">indelible.support</a>@<a href="http://gmail.com" className="hover:underline text-primary">gmail.com</a>
+      {/* SaaS Footer */}
+      <footer className="border-t border-border/10 bg-secondary/20 pt-16 pb-8 px-6 lg:px-16 w-full mt-auto">
+        <div className="max-w-7xl mx-auto flex flex-col gap-12">
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-4 items-start md:items-center">
+            {/* Left: Brand name + tagline */}
+            <div className="flex flex-col gap-2 md:text-left">
+              <span className="text-2xl font-black text-foreground tracking-tight">Indelible</span>
+              <p className="text-sm font-semibold text-muted-foreground opacity-80">Secure • Reliable • Built for scale</p>
+            </div>
+
+            {/* Middle: Navigation links */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-center gap-6 md:gap-8">
+              <a href="#about" className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors duration-200">About</a>
+              <a href="#privacy" className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors duration-200">Privacy Policy</a>
+              <a href="#terms" className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors duration-200">Terms of Service</a>
+            </div>
+
+            {/* Right: Support email link */}
+            <div className="flex flex-col items-start md:items-end gap-1.5">
+              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-60">Support</span>
+              <a 
+                href="mailto:indelible.support@gmail.com" 
+                className="text-sm font-bold text-primary hover:text-primary/80 hover:underline transition-all duration-200"
+              >
+                indelible.support@gmail.com
+              </a>
+            </div>
+          </div>
+
+          <div className="border-t border-border/10 pt-8 flex items-center justify-center">
+            <p className="text-sm font-bold text-muted-foreground opacity-60 tracking-wide">
+              © 2026 Indelible. All rights reserved.
+            </p>
+          </div>
+          
         </div>
       </footer>
     </div>
