@@ -11,7 +11,7 @@ import {
   ArrowRight, 
   ChevronDown, 
   ChevronUp, 
-  PiggyBank, 
+  Coins, 
   HeartHandshake, 
   TrendingUp,
   UserCheck
@@ -34,8 +34,10 @@ const Landing = () => {
     { q: t('landing.faq_q2'), a: t('landing.faq_a2') },
     { q: t('landing.faq_q3'), a: t('landing.faq_a3') },
     { q: t('landing.faq_q4'), a: t('landing.faq_a4') },
-    { q: t('landing.faq_q5'), a: t('landing.faq_q5') },
-    { q: t('landing.faq_q6'), a: t('landing.faq_a6') }
+    { q: t('landing.faq_q5'), a: t('landing.faq_a5') },
+    { q: t('landing.faq_q6'), a: t('landing.faq_a6') },
+    { q: t('landing.faq_q7'), a: t('landing.faq_a7') },
+    { q: t('landing.faq_q8'), a: t('landing.faq_a8') }
   ];
 
   return (
@@ -54,17 +56,9 @@ const Landing = () => {
         <div className="flex items-center gap-6">
           <button 
             onClick={toggleLanguage}
-            className="px-3.5 py-1.5 text-xs font-black uppercase tracking-widest border border-primary/20 rounded-full hover:bg-primary/5 transition-colors"
+            className="px-4 py-1.5 text-xs font-black tracking-widest border border-primary/20 rounded-full hover:bg-primary/5 transition-colors"
           >
-            {i18n.language.toUpperCase()}
-          </button>
-          
-          <button
-            onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground font-bold rounded-full hover:opacity-90 shadow-lg shadow-primary/20 transition-all text-sm animate-pulse"
-          >
-            {isAuthenticated ? t('dashboard.title') : t('login.submit')}
-            <ArrowRight className="w-4 h-4" />
+            {i18n.language === 'en' ? 'English' : 'Chichewa'}
           </button>
         </div>
       </header>
@@ -91,13 +85,21 @@ const Landing = () => {
             {t('landing.hero_desc')}
           </p>
 
-          <div className="pt-4">
+          <div className="pt-6 flex flex-col items-center gap-4 w-full max-w-xs">
             <button
               onClick={() => setShowLearnMore(!showLearnMore)}
-              className="px-10 py-5 bg-primary text-primary-foreground font-black uppercase tracking-wider rounded-2xl hover:opacity-90 shadow-2xl shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all text-sm flex items-center gap-3"
+              className="w-full py-4.5 bg-secondary text-secondary-foreground font-black tracking-wider rounded-2xl hover:opacity-90 shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-3 border border-border/40"
             >
               {showLearnMore ? t('landing.btn_show_less') : t('landing.btn_learn_more')}
               {showLearnMore ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </button>
+            
+            <button
+              onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
+              className="w-full py-4.5 bg-primary text-primary-foreground font-black tracking-wider rounded-2xl hover:opacity-90 shadow-2xl shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-3"
+            >
+              {isAuthenticated ? t('dashboard.title') : t('login.submit')}
+              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </motion.div>
@@ -116,18 +118,18 @@ const Landing = () => {
             <section className="py-12 max-w-4xl mx-auto px-6">
               <div className="glass p-8 rounded-[3rem] shadow-2xl border border-white/20 dark:border-white/5 w-full relative overflow-hidden">
                 <div className="flex justify-between items-center mb-8 border-b border-border/20 pb-4">
-                  <span className="text-sm font-black uppercase tracking-widest text-muted-foreground">{t('landing.live_status')}</span>
+                  <span className="text-sm font-black tracking-widest text-muted-foreground">{t('landing.live_status')}</span>
                   <span className="flex items-center gap-2">
                     <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
-                    <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest">Live</span>
+                    <span className="text-xs font-bold text-emerald-500 tracking-widest">Live</span>
                   </span>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="p-5 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 flex flex-col gap-3">
-                    <PiggyBank className="w-10 h-10 text-emerald-500" />
+                    <Coins className="w-10 h-10 text-emerald-500" />
                     <div>
-                      <h4 className="text-xs font-black text-muted-foreground uppercase tracking-wider">{t('landing.verified_share_pool')}</h4>
+                      <h4 className="text-xs font-black text-muted-foreground tracking-wider">{t('landing.verified_share_pool')}</h4>
                       <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-1">{t('landing.verified_growth')}</p>
                     </div>
                   </div>
@@ -135,7 +137,7 @@ const Landing = () => {
                   <div className="p-5 bg-rose-500/5 rounded-2xl border border-rose-500/10 flex flex-col gap-3">
                     <HeartHandshake className="w-10 h-10 text-rose-500" />
                     <div>
-                      <h4 className="text-xs font-black text-muted-foreground uppercase tracking-wider">{t('landing.emergency_fund')}</h4>
+                      <h4 className="text-xs font-black text-muted-foreground tracking-wider">{t('landing.emergency_fund')}</h4>
                       <p className="text-lg font-black text-rose-600 dark:text-rose-400 mt-1">{t('landing.ready_support')}</p>
                     </div>
                   </div>
@@ -143,7 +145,7 @@ const Landing = () => {
                   <div className="p-5 bg-blue-500/5 rounded-2xl border border-blue-500/10 flex flex-col gap-3">
                     <TrendingUp className="w-10 h-10 text-blue-500" />
                     <div>
-                      <h4 className="text-xs font-black text-muted-foreground uppercase tracking-wider">{t('landing.loan_interest_calc')}</h4>
+                      <h4 className="text-xs font-black text-muted-foreground tracking-wider">{t('landing.loan_interest_calc')}</h4>
                       <p className="text-lg font-black text-blue-600 dark:text-blue-400 mt-1">{t('landing.share_based_calc')}</p>
                     </div>
                   </div>

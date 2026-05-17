@@ -131,6 +131,10 @@
     "faq_q5": "Can the system work without an active internet connection?",
     "faq_a5": "Yes! TBTS is built as a Progressive Web App (PWA) with built-in offline capability. You can register members, log contributions, and view records completely offline. All actions are securely queued in local IndexedDB and automatically synchronized with the main database as soon as connection is restored.",
     "faq_q6": "How secure is my financial data in this system?",
-    "faq_a6": "TBTS employs multiple layers of security, including role-based routing barriers, cryptographic hashing of passwords, and secure session management. Crucially, the dual-control model ensures no single individual can record and approve transactions alone, blocking internal fraud."
+    "faq_a6": "TBTS employs multiple layers of security, including role-based routing barriers, cryptographic hashing of passwords, and secure session management. Crucially, the dual-control model ensures no single individual can record and approve transactions alone, blocking internal fraud.",
+    "faq_q7": "Who is eligible to use the system?",
+    "faq_a7": "TBTS is specifically designed for teachers' savings cooperatives, credit unions, and educator-led financial pools. Registered educators, school coordinators, secretaries, treasurers, and cooperative administrators are fully eligible to access their respective secure portals.",
+    "faq_q8": "What is the step-by-step workflow per system role?",
+    "faq_a8": "The workflow is role-based: 1) Admin configures cooperative terms, dynamic currencies, and manages system users. 2) Secretary registers members, logs contributions, records loan requests, and repayments (marked as pending). 3) Treasurer verifies pending transactions, approves loans, and confirms cash payouts. 4) Member audits personal share logs, active loans, and downloads real-time PDF receipts."
   }
 }
