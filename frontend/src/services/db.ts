@@ -84,6 +84,11 @@ export const addToSyncQueue = async (action: 'CREATE' | 'UPDATE' | 'DELETE', ent
     data,
     timestamp: Date.now(),
   });
+  
+  if (navigator.onLine) {
+    // Fire-and-forget sync trigger in the background
+    performSync().catch(err => console.error('Background sync failed:', err));
+  }
 };
 
 export const getSyncQueue = async () => {

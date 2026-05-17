@@ -37,22 +37,18 @@ const DashboardLayout = () => {
   };
 
   const navItems = [
-    { to: '/dashboard', icon: Home, label: t('dashboard.title') },
-    { to: '/dashboard/members', icon: Users, label: t('members.title') },
-    { to: '/dashboard/contributions', icon: Wallet, label: t('contributions.title') },
-    { to: '/dashboard/loans', icon: CreditCard, label: t('loans.title') },
-    { to: '/dashboard/repayments', icon: Receipt, label: t('repayments.title') },
-    { to: '/dashboard/receipts', icon: Receipt, label: t('receipts.title') },
-    { to: '/dashboard/reports', icon: FileText, label: t('reports.title') },
-  ];
-
-  if (user?.role === 'ADMIN') {
-    navItems.push({ to: '/dashboard/users', icon: Shield, label: 'Staff management' });
-    navItems.push({ to: '/dashboard/loan-configurations', icon: Sliders, label: 'Loan configurations' });
-    navItems.push({ to: '/dashboard/audit-trail', icon: HistoryIcon, label: 'Audit trail' });
-  }
-
-  navItems.push({ to: '/dashboard/settings', icon: SettingsIcon, label: t('settings.title') });
+    { to: '/dashboard', label: t('dashboard.title'), icon: Home, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
+    { to: '/dashboard/members', label: t('members.title'), icon: Users, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/contributions', label: t('contributions.title'), icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/loans', label: t('loans.title'), icon: CreditCard, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/repayments', label: t('repayments.title'), icon: Receipt, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/receipts', label: t('receipts.title'), icon: Receipt, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
+    { to: '/dashboard/reports', label: t('reports.title'), icon: FileText, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/audit-trail', label: t('audit.title'), icon: HistoryIcon, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/users', label: t('users.title'), icon: Shield, roles: ['ADMIN'] },
+    { to: '/dashboard/loan-configurations', label: t('loan_configs.title'), icon: Sliders, roles: ['ADMIN'] },
+    { to: '/dashboard/settings', label: t('settings.title'), icon: SettingsIcon, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] }
+  ].filter(item => item.roles.includes(user?.role || ''));
 
   const closeSidebar = () => setIsSidebarOpen(false);
 
@@ -87,7 +83,7 @@ const DashboardLayout = () => {
           </div>
         </div>
 
-        <nav className="flex flex-col gap-1 px-4 overflow-y-auto max-h-[calc(100vh-250px)]">
+        <nav className="flex flex-col gap-1 px-4 overflow-y-auto max-h-[calc(100vh-250px)] custom-scrollbar">
           {navItems.map((item) => {
             const isActive = location.pathname === item.to;
             return (
@@ -130,16 +126,16 @@ const DashboardLayout = () => {
             </button>
             
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 text-sm font-medium">
-              {isOnline ? <><Wifi className="w-4 h-4 text-green-500"/> <span className="text-[10px] font-semibold tracking-tight">Connected</span></> : <><WifiOff className="w-4 h-4 text-red-500"/> <span className="text-[10px] font-semibold tracking-tight">Offline mode</span></>}
+              {isOnline ? <><Wifi className="w-4 h-4 text-green-500"/> <span className="text-[10px] font-semibold tracking-tight">{t('dashboard.connected')}</span></> : <><WifiOff className="w-4 h-4 text-red-500"/> <span className="text-[10px] font-semibold tracking-tight">{t('dashboard.offline_mode')}</span></>}
             </div>
           </div>
           
           <div className="flex items-center gap-4">
             <button 
               onClick={toggleLanguage}
-              className="px-3 py-1.5 text-xs font-black uppercase tracking-widest border border-primary/20 rounded-full hover:bg-primary/10 transition-colors"
+              className="px-3 py-1.5 text-xs font-black tracking-widest border border-primary/20 rounded-full hover:bg-primary/10 transition-colors"
             >
-              {i18n.language.toUpperCase()}
+              {i18n.language.startsWith('en') ? 'Eng' : 'Ny'}
             </button>
             
             <button 

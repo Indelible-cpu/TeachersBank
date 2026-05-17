@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { getSetting, setSetting, addToSyncQueue } from '../services/db';
+import { getSetting, setSetting, addToSyncQueue, performSync } from '../services/db';
 import type { Settings } from '../types/settings';
 import { SettingsContext } from './SettingsContextBase';
 
@@ -30,11 +30,18 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
+    const handleOnline = () => {
+      setIsOnline(true);
+      performSync();
+    };
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+
+    if (navigator.onLine) {
+      performSync();
+    }
 
     let isMounted = true;
     (async () => {

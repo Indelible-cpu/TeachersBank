@@ -80,3 +80,17 @@
 .glass {
   @apply bg-white/70 dark:bg-black/70 backdrop-blur-md border border-white/20 dark:border-white/10;
 }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--primary) / 0.2);
+  border-radius: 10px;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--primary) / 0.5);
+}

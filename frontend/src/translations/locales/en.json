@@ -21,7 +21,9 @@
     "contributions": "Contributions",
     "loans": "Loans",
     "receipts": "Receipts",
-    "logout": "Logout"
+    "logout": "Logout",
+    "connected": "Connected",
+    "offline_mode": "Offline mode"
   },
   "members": {
     "title": "Members Directory",
@@ -143,5 +145,14 @@
     "faq_a7": "TEBAMS is specifically designed for teachers' savings cooperatives, credit unions, and educator-led financial pools. Registered educators, school coordinators, secretaries, treasurers, and cooperative administrators are fully eligible to access their respective secure portals.",
     "faq_q8": "What is the step-by-step workflow per system role?",
     "faq_a8": "The workflow is role-based: 1) Admin configures cooperative terms, dynamic currencies, and manages system users. 2) Secretary registers members, logs contributions, records loan requests, and repayments (marked as pending). 3) Treasurer verifies pending transactions, approves loans, and confirms cash payouts. 4) Member audits personal share logs, active loans, and downloads real-time PDF receipts."
+  },
+  "audit": {
+    "title": "Audit Trail"
+  },
+  "users": {
+    "title": "System Users"
+  },
+  "loan_configs": {
+    "title": "Loan Configs"
   }
 }
