@@ -216,7 +216,7 @@ const Members = () => {
               <form onSubmit={handleSave} className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="fullname">Full Name</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="fullname">Full Name</label>
                     <input 
                       id="fullname"
                       type="text" 
@@ -228,7 +228,7 @@ const Members = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="gender">Gender</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="gender">Gender</label>
                     <select 
                       id="gender"
                       title="Select Gender"
@@ -247,19 +247,19 @@ const Members = () => {
 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="member-id">Member ID</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="member-id">Member ID</label>
                     <input 
                       id="member-id"
                       type="text" 
                       required
                       value={newMember.memberNumber}
                       onChange={e => setNewMember({...newMember, memberNumber: e.target.value})}
-                      className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-black uppercase"
+                      className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-black"
                       placeholder="M001"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="address">Address</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="address">Address</label>
                     <input 
                       id="address"
                       type="text" 
@@ -273,7 +273,7 @@ const Members = () => {
 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="phone-1">Primary Phone</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="phone-1">Primary Phone</label>
                     <input 
                       id="phone-1"
                       type="tel" 
@@ -285,7 +285,7 @@ const Members = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-semibold capitalize tracking-widest text-muted-foreground ml-1" htmlFor="phone-2">Secondary phone</label>
+                    <label className="text-xs font-bold text-muted-foreground ml-1" htmlFor="phone-2">Secondary Phone</label>
                     <input 
                       id="phone-2"
                       type="tel" 
@@ -301,13 +301,13 @@ const Members = () => {
                   <button 
                     type="button" 
                     onClick={() => setIsModalOpen(false)}
-                    className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black uppercase tracking-widest hover:bg-secondary/80 transition-all"
+                    className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all"
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit" 
-                    className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black uppercase tracking-widest hover:shadow-xl hover:shadow-primary/20 transition-all"
+                    className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black hover:shadow-xl hover:shadow-primary/20 transition-all"
                   >
                     {t('members.save')}
                   </button>

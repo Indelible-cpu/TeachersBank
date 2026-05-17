@@ -31,26 +31,26 @@ const Landing = () => {
 
   const faqs = [
     { q: t('landing.faq_q1'), a: t('landing.faq_a1') },
+    { q: t('landing.faq_q5'), a: t('landing.faq_a5') },
     { q: t('landing.faq_q2'), a: t('landing.faq_a2') },
     { q: t('landing.faq_q3'), a: t('landing.faq_a3') },
     { q: t('landing.faq_q4'), a: t('landing.faq_a4') },
-    { q: t('landing.faq_q5'), a: t('landing.faq_a5') },
     { q: t('landing.faq_q6'), a: t('landing.faq_a6') },
     { q: t('landing.faq_q7'), a: t('landing.faq_a7') },
     { q: t('landing.faq_q8'), a: t('landing.faq_a8') }
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20">
+    <div className={`min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20 ${!showLearnMore ? 'h-screen overflow-hidden' : ''}`}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40 px-6 lg:px-16 h-20 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 max-w-[60%] md:max-w-none">
           <img 
             src="/icon-192x192.png" 
             alt="Logo" 
-            className="w-10 h-10 rounded-full object-cover shadow-md"
+            className="w-10 h-10 rounded-full object-cover shadow-md shrink-0"
           />
-          <span className="text-2xl font-black text-primary tracking-tight">{settings.systemName}</span>
+          <span className="text-lg md:text-2xl font-black text-primary tracking-tight text-center md:text-left leading-tight line-clamp-2">{settings.systemName}</span>
         </div>
 
         <div className="flex items-center gap-6">
@@ -58,13 +58,13 @@ const Landing = () => {
             onClick={toggleLanguage}
             className="px-4 py-1.5 text-xs font-black tracking-widest border border-primary/20 rounded-full hover:bg-primary/5 transition-colors"
           >
-            {i18n.language === 'en' ? 'English' : 'Chichewa'}
+            {i18n.language === 'en' ? 'Eng' : 'Ny'}
           </button>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="pt-40 pb-20 px-6 lg:px-16 max-w-4xl mx-auto flex flex-col items-center text-center space-y-8 w-full flex-1 justify-center">
+      <section className={`px-6 lg:px-16 max-w-4xl mx-auto flex flex-col items-center text-center space-y-6 w-full flex-1 justify-center ${!showLearnMore ? 'pt-24 pb-8' : 'pt-40 pb-20'}`}>
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -85,10 +85,10 @@ const Landing = () => {
             {t('landing.hero_desc')}
           </p>
 
-          <div className="pt-6 flex flex-col items-center gap-4 w-full max-w-xs">
+          <div className="pt-8 flex flex-col md:flex-row items-center justify-center gap-6 w-full max-w-2xl px-4">
             <button
               onClick={() => setShowLearnMore(!showLearnMore)}
-              className="w-full py-4.5 bg-secondary text-secondary-foreground font-black tracking-wider rounded-2xl hover:opacity-90 shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-3 border border-border/40"
+              className="flex-1 w-full md:w-auto py-5 px-10 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black tracking-wider rounded-2xl shadow-xl shadow-emerald-500/25 hover:shadow-2xl hover:shadow-emerald-500/40 hover:-translate-y-1 hover:scale-105 active:scale-95 active:translate-y-0 transition-all duration-300 text-base flex items-center justify-center gap-3 border border-emerald-500/20"
             >
               {showLearnMore ? t('landing.btn_show_less') : t('landing.btn_learn_more')}
               {showLearnMore ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -96,7 +96,7 @@ const Landing = () => {
             
             <button
               onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
-              className="w-full py-4.5 bg-primary text-primary-foreground font-black tracking-wider rounded-2xl hover:opacity-90 shadow-2xl shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-3"
+              className="flex-1 w-full md:w-auto py-5 px-10 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-black tracking-wider rounded-2xl shadow-xl shadow-indigo-500/25 hover:shadow-2xl hover:shadow-indigo-500/40 hover:-translate-y-1 hover:scale-105 active:scale-95 active:translate-y-0 transition-all duration-300 text-base flex items-center justify-center gap-3 animate-pulse"
             >
               {isAuthenticated ? t('dashboard.title') : t('login.submit')}
               <ArrowRight className="w-4 h-4" />

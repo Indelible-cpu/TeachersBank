@@ -268,7 +268,7 @@ const Loans = () => {
                 })()}
 
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold capitalize tracking-widest text-muted-foreground ml-1" htmlFor="loan-term-range">Select Loan Range & Term</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1" htmlFor="loan-term-range">Select Loan Range & Term</label>
                   <select 
                     id="loan-term-range" required
                     value={selectedRuleId}
@@ -285,7 +285,7 @@ const Loans = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="loan-amount">Principal Amount</label>
+                  <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="loan-amount">Principal Amount</label>
                   <div className="relative">
                     <Banknote className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground opacity-40" />
                     <input 
@@ -304,7 +304,7 @@ const Loans = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Loan Duration & Term Limit</label>
+                  <label className="text-xs font-black text-muted-foreground ml-1">Loan Duration & Term Limit</label>
                   <div className="px-5 py-4 bg-secondary/30 rounded-2xl border border-border/50 text-sm font-bold flex flex-col gap-1">
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground text-xs font-semibold">Term Duration:</span>
@@ -318,8 +318,8 @@ const Loans = () => {
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black uppercase tracking-widest">Cancel</button>
-                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black uppercase tracking-widest shadow-xl shadow-primary/20">Issue & Record</button>
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black">Cancel</button>
+                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black shadow-xl shadow-primary/20">Issue & Record</button>
                 </div>
               </form>
             </motion.div>

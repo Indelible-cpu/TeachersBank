@@ -202,7 +202,7 @@ const Users = () => {
                 className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary font-bold text-sm appearance-none"
               >
                 <option value="ADMIN">Administrator</option>
-                <option value="TREASURER">Treasurer (Read-Only)</option>
+                <option value="TREASURER">Treasurer</option>
                 <option value="SECRETARY">Secretary</option>
                 <option value="MEMBER">Regular Member</option>
               </select>
@@ -230,16 +230,16 @@ const Users = () => {
               </div>
 
               <form onSubmit={handleAddUser} className="space-y-5">
-                <div className="space-y-2">
-                  <label htmlFor="newUserName" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Full Name</label>
+                 <div className="space-y-2">
+                  <label htmlFor="newUserName" className="text-xs font-black text-muted-foreground ml-1">Full Name</label>
                   <input id="newUserName" type="text" title="Full Name" placeholder="Full Name" required value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" autoComplete="name" />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="newUserEmail" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Email</label>
+                  <label htmlFor="newUserEmail" className="text-xs font-black text-muted-foreground ml-1">Email</label>
                   <input id="newUserEmail" type="email" title="Email" placeholder="Email Address" required value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" autoComplete="email" />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="newUserPassword" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Password</label>
+                  <label htmlFor="newUserPassword" className="text-xs font-black text-muted-foreground ml-1">Password</label>
                   <div className="relative">
                     <input 
                       id="newUserPassword" 
@@ -262,7 +262,7 @@ const Users = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="newUserRole" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Role</label>
+                  <label htmlFor="newUserRole" className="text-xs font-black text-muted-foreground ml-1">Role</label>
                   <select id="newUserRole" title="Role" value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none">
                     <option value="ADMIN">Administrator</option>
                     <option value="TREASURER">Treasurer</option>
@@ -271,8 +271,8 @@ const Users = () => {
                   </select>
                 </div>
                 <div className="flex gap-4 pt-6">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black uppercase tracking-widest">Cancel</button>
-                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black uppercase tracking-widest">Add User</button>
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black">Cancel</button>
+                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black">Add User</button>
                 </div>
               </form>
             </motion.div>
@@ -294,12 +294,12 @@ const Users = () => {
             >
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl font-black tracking-tight">Reset Password</h2>
-                <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-primary/10 text-primary uppercase tracking-widest">{resettingUser.name}</span>
+                <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-primary/10 text-primary">{resettingUser.name}</span>
               </div>
 
               <form onSubmit={handleResetPassword} className="space-y-6">
                 <div className="space-y-2">
-                  <label htmlFor="resetUserPassword" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">New Password</label>
+                  <label htmlFor="resetUserPassword" className="text-xs font-black text-muted-foreground ml-1">New Password</label>
                   <div className="relative">
                     <input 
                       id="resetUserPassword" 
@@ -323,8 +323,8 @@ const Users = () => {
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setResettingUser(null)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black uppercase tracking-widest hover:bg-secondary/80 transition-all">Cancel</button>
-                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black uppercase tracking-widest hover:shadow-xl hover:shadow-primary/20 transition-all">Reset Password</button>
+                  <button type="button" onClick={() => setResettingUser(null)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all">Cancel</button>
+                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black hover:shadow-xl hover:shadow-primary/20 transition-all">Reset Password</button>
                 </div>
               </form>
             </motion.div>
