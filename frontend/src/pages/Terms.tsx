@@ -45,7 +45,22 @@ const Terms = () => {
     },
     {
       title: '10. Contact',
-      body: 'For any questions regarding these Terms, contact the system support team at indelible.support@gmail.com.',
+      body: (
+        <>
+          For any questions regarding these Terms, contact the system support team at{' '}
+          <a href="mailto:indelible.support@gmail.com" className="text-blue-500 hover:text-blue-600 hover:underline">
+            indelible.support@gmail.com
+          </a>
+          , or via{' '}
+          <a href="https://wa.me/265993732694" target="_blank" rel="noopener noreferrer" className="text-[#25D366] hover:underline font-bold">
+            WhatsApp
+          </a>{' '}
+          and{' '}
+          <a href="https://www.facebook.com/JEFInvestment" target="_blank" rel="noopener noreferrer" className="text-[#1877F2] hover:underline font-bold">
+            Facebook
+          </a>.
+        </>
+      ),
     },
   ];
 
