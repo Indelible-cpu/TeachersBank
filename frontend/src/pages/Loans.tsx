@@ -25,7 +25,7 @@ interface Loan {
 const Loans = () => {
   const { t } = useTranslation();
   const { isOnline, settings } = useSettings();
-  const { isReadOnly, canWriteFinance } = useAuth();
+  const { isReadOnly, canWriteFinance, canConfirm, user } = useAuth();
   const toast = useToast();
   const [loans, setLoans] = useState<Loan[]>([]);
   const [members, setMembers] = useState<Record<string, unknown>[]>([]);
@@ -140,7 +140,7 @@ const Loans = () => {
       shareInterest: shareInterestAmount,
       memberShares,
       dueDate: newLoan.dueDate,
-      status: 'APPROVED',
+      status: 'PENDING',
       timestamp: new Date().toISOString()
     };
     
@@ -150,12 +150,42 @@ const Loans = () => {
     
     if (!isOnline) {
       await addToSyncQueue('CREATE', 'loans', loan);
+    } else {
+      await addToSyncQueue('CREATE', 'loans', loan);
     }
     
-    toast.success('Loan issued and recorded successfully');
+    toast.success('Loan issued and recorded successfully. Pending Treasurer confirmation.');
     setIsModalOpen(false);
     setSelectedRuleId('');
     setNewLoan({ memberId: '', principal: '', dueDate: '' });
+  };
+
+  const handleApproveLoan = async (loanId: string) => {
+    if (isReadOnly || !canConfirm) return;
+    const updated = loans.map(l => l.id === loanId ? { ...l, status: 'APPROVED' as const } : l);
+    setLoans(updated);
+    await setSetting('loans', updated);
+    
+    const loan = updated.find(l => l.id === loanId);
+    if (loan) {
+      await addToSyncQueue('UPDATE', 'loans', loan);
+    }
+    toast.success('Loan confirmed and approved successfully');
+  };
+
+  const handleRejectLoan = async (loanId: string) => {
+    if (isReadOnly || !canConfirm) return;
+    if (window.confirm('Are you sure you want to reject this loan?')) {
+      const updated = loans.map(l => l.id === loanId ? { ...l, status: 'REJECTED' as const } : l);
+      setLoans(updated);
+      await setSetting('loans', updated);
+      
+      const loan = updated.find(l => l.id === loanId);
+      if (loan) {
+        await addToSyncQueue('UPDATE', 'loans', loan);
+      }
+      toast.success('Loan rejected successfully');
+    }
   };
 
   return (
@@ -192,6 +222,16 @@ const Loans = () => {
                 Fully paid
               </div>
             )}
+            {loan.status === 'PENDING' && (
+              <div className="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-semibold px-4 py-1.5 rounded-bl-2xl capitalize tracking-widest animate-pulse">
+                Pending Confirmation
+              </div>
+            )}
+            {loan.status === 'REJECTED' && (
+              <div className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-semibold px-4 py-1.5 rounded-bl-2xl capitalize tracking-widest">
+                Rejected
+              </div>
+            )}
             
             <div className="flex items-center gap-4">
               <div className={`p-4 rounded-2xl ${loan.balance > 0 ? 'bg-blue-500/10 text-blue-500' : 'bg-emerald-500/10 text-emerald-500'} shadow-inner`}>
@@ -199,7 +239,12 @@ const Loans = () => {
               </div>
               <div className="overflow-hidden">
                 <h3 className="font-bold text-lg leading-tight truncate">{loan.memberName}</h3>
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize tracking-widest ${loan.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-secondary text-secondary-foreground'}`}>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize tracking-widest ${
+                  loan.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600' : 
+                  loan.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600' : 
+                  loan.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-600' : 
+                  'bg-secondary text-secondary-foreground'
+                }`}>
                   {loan.status?.toLowerCase() || ''}
                 </span>
               </div>
@@ -228,6 +273,23 @@ const Loans = () => {
                 <Calendar className="w-4 h-4 text-primary" />
                 <span className="font-semibold capitalize tracking-tight">Due: {new Date(loan.dueDate).toLocaleDateString()}</span>
               </div>
+              
+              {loan.status === 'PENDING' && canConfirm && (
+                <div className="flex gap-2 pt-3 border-t border-border/50 mt-3">
+                  <button 
+                    onClick={() => handleApproveLoan(loan.id)}
+                    className="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-emerald-500/10 active:scale-[0.97]"
+                  >
+                    Confirm
+                  </button>
+                  <button 
+                    onClick={() => handleRejectLoan(loan.id)}
+                    className="flex-1 py-2 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-rose-500/10 active:scale-[0.97]"
+                  >
+                    Reject
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         ))}
@@ -235,12 +297,12 @@ const Loans = () => {
 
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={() => setIsModalOpen(false)}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md overflow-y-auto" onClick={() => setIsModalOpen(false)}>
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md bg-background rounded-[2.5rem] p-8 shadow-2xl border border-white/5"
+              className="w-full max-w-md bg-background rounded-[2.5rem] p-8 shadow-2xl border border-white/5 max-h-[90vh] overflow-y-auto scrollbar-thin"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8">
