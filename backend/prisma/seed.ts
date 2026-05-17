@@ -14,7 +14,13 @@ async function main() {
       systemName: 'TBTS',
       defaultLanguage: 'en',
       interestPercentage: 10,
-      maturityMonths: 12
+      maturityMonths: 12,
+      contactDetails: JSON.stringify([
+        { id: '1', minAmount: 5000, maxAmount: 50000, durationMonths: 3 },
+        { id: '2', minAmount: 50001, maxAmount: 100000, durationMonths: 6 },
+        { id: '3', minAmount: 100001, maxAmount: 500000, durationMonths: 12 },
+        { id: '4', minAmount: 500001, maxAmount: 9999999, durationMonths: 24 }
+      ])
     }
   });
   console.log('Settings seeded:', settings.systemName);

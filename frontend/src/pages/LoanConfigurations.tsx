@@ -20,7 +20,7 @@ const LoanConfigurations = () => {
   const isAdmin = user?.role === 'ADMIN';
 
   const [loanRules, setLoanRules] = useState<LoanRule[]>(settings.loanDurationRules || [
-    { id: '1', minAmount: 1, maxAmount: 50000, durationMonths: 3 },
+    { id: '1', minAmount: 5000, maxAmount: 50000, durationMonths: 3 },
     { id: '2', minAmount: 50001, maxAmount: 100000, durationMonths: 6 },
     { id: '3', minAmount: 100001, maxAmount: 500000, durationMonths: 12 },
     { id: '4', minAmount: 500001, maxAmount: 9999999, durationMonths: 24 }

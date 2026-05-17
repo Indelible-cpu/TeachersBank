@@ -112,6 +112,30 @@ export const syncData = async (req: Request, res: Response) => {
               auditDetails = `Generated digital transaction receipt ID: ${data.id}`;
             }
             break;
+
+          case 'settings':
+            const { loanDurationRules, ...settingsData } = data;
+            // Serialize loanDurationRules JSON to contactDetails
+            if (loanDurationRules) {
+              settingsData.contactDetails = JSON.stringify(loanDurationRules);
+            }
+            
+            const existingSettings = await prisma.settings.findFirst();
+            if (existingSettings) {
+              await prisma.settings.update({
+                where: { id: existingSettings.id },
+                data: settingsData
+              });
+            } else {
+              await prisma.settings.create({
+                data: {
+                  ...settingsData,
+                  id: 'global-settings'
+                }
+              });
+            }
+            auditDetails = `Successfully saved updated global system and loan configurations`;
+            break;
             
           default:
             throw new Error(`Unknown table: ${table}`);
@@ -156,12 +180,22 @@ export const syncData = async (req: Request, res: Response) => {
 
     // After processing mutations, we fetch the latest state from the database
     // to send back to the frontend for reconciliation.
+    const rawSettings = await prisma.settings.findFirst();
+    const cleanSettings = rawSettings ? { ...rawSettings } as any : null;
+    if (cleanSettings && cleanSettings.contactDetails) {
+      try {
+        cleanSettings.loanDurationRules = JSON.parse(cleanSettings.contactDetails);
+      } catch (e) {
+        console.error('Failed to parse contactDetails as loanDurationRules:', e);
+      }
+    }
+
     const serverState = {
       members: await prisma.member.findMany(),
       loans: await prisma.loan.findMany(),
       repayments: await prisma.repayment.findMany(),
       receipts: await prisma.receipt.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
-      settings: await prisma.settings.findFirst()
+      settings: cleanSettings
     };
 
     res.json({
