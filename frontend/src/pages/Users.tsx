@@ -19,7 +19,7 @@ const Users = () => {
   const toast = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'MEMBER' });
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'MEMBER', nationalId: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [resettingUser, setResettingUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState('');
@@ -71,14 +71,24 @@ const Users = () => {
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const cleanNid = newUser.nationalId.trim().toUpperCase();
+    if (cleanNid && !/^[A-Z0-9]{8}$/.test(cleanNid)) {
+      toast.error('National ID must be exactly 8 alphanumeric characters in uppercase.');
+      return;
+    }
+
     try {
+      const finalName = cleanNid ? `${toTitleCase(newUser.name)}|NID:${cleanNid}` : toTitleCase(newUser.name);
       const payload = {
-        ...newUser,
-        name: toTitleCase(newUser.name)
+        email: newUser.email,
+        password: newUser.password,
+        role: newUser.role,
+        name: finalName
       };
       await api.post('/auth/register', payload);
       setIsModalOpen(false);
-      setNewUser({ name: '', email: '', password: '', role: 'MEMBER' });
+      setNewUser({ name: '', email: '', password: '', role: 'MEMBER', nationalId: '' });
       setShowPassword(false);
       toast.success('User added successfully');
       fetchData(); // Refresh list
@@ -189,8 +199,22 @@ const Users = () => {
             </div>
 
             <div>
-              <h3 className="font-black text-xl leading-tight">{u.name}</h3>
-              <p className="text-sm text-muted-foreground font-medium">{u.email}</p>
+              {(() => {
+                const hasNid = u.name.includes('|NID:');
+                const displayName = hasNid ? u.name.split('|NID:')[0] : u.name;
+                const nationalId = hasNid ? u.name.split('|NID:')[1] : '';
+                return (
+                  <>
+                    <h3 className="font-black text-xl leading-tight">{displayName}</h3>
+                    <p className="text-sm text-muted-foreground font-medium">{u.email}</p>
+                    {nationalId && (
+                      <span className="text-[10px] font-black bg-primary/10 text-primary px-2.5 py-0.5 rounded-full inline-block mt-2 tracking-wider">
+                        NID: {nationalId}
+                      </span>
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             <div className="space-y-3 pt-4 border-t border-border/50">
@@ -233,6 +257,10 @@ const Users = () => {
                  <div className="space-y-2">
                   <label htmlFor="newUserName" className="text-xs font-black text-muted-foreground ml-1">Full Name</label>
                   <input id="newUserName" type="text" title="Full Name" placeholder="Full Name" required value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" autoComplete="name" />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="newUserNationalId" className="text-xs font-black text-muted-foreground ml-1">National ID (Optional)</label>
+                  <input id="newUserNationalId" type="text" placeholder="e.g. ABC12345" value={newUser.nationalId} onChange={e => setNewUser({...newUser, nationalId: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="newUserEmail" className="text-xs font-black text-muted-foreground ml-1">Email</label>

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
 import prisma from '../prisma';
 
 export const syncData = async (req: Request, res: Response) => {
@@ -35,6 +36,31 @@ export const syncData = async (req: Request, res: Response) => {
             
             if (action === 'CREATE') {
               cleanMemberData.recordedBy = userId;
+              
+              // 1. Create a corresponding system User so they appear in users lists and can log in
+              let userRecord = await prisma.user.findUnique({
+                where: { email: data.email || `${data.memberNumber.toLowerCase()}@teachersbank.com` }
+              });
+              
+              if (!userRecord) {
+                const hashedPassword = await bcrypt.hash(data.password || 'member123', 10);
+                userRecord = await prisma.user.create({
+                  data: {
+                    email: data.email || `${data.memberNumber.toLowerCase()}@teachersbank.com`,
+                    password: hashedPassword,
+                    name: data.fullname,
+                    role: 'MEMBER'
+                  }
+                });
+              }
+              
+              // 2. Map user relation ID
+              cleanMemberData.userId = userRecord.id;
+              
+              // 3. Clear transient/frontend fields not in schema
+              delete cleanMemberData.email;
+              delete cleanMemberData.password;
+              
               await prisma.member.create({ data: cleanMemberData });
               auditDetails = `Successfully registered new cooperative member: ${data.fullname}`;
             }

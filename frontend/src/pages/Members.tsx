@@ -28,11 +28,12 @@ const Members = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newMember, setNewMember] = useState({ 
     fullname: '', 
-    memberNumber: '', 
     phone: '',
-    phone2: '',
     gender: 'MALE',
-    address: ''
+    address: '',
+    email: '',
+    password: '',
+    nationalId: ''
   });
 
   const canAddMember = user?.role === 'SECRETARY';
@@ -68,24 +69,39 @@ const Members = () => {
       return;
     }
 
-    if (newMember.phone2) {
-      const digitsOnly2 = newMember.phone2.replace(/\D/g, '');
-      if (digitsOnly2.length < 10 || digitsOnly2.length > 13) {
-        toast.error('Secondary phone number must contain between 10 and 13 digits only.');
-        return;
-      }
+    // Validate optional National ID: exactly 8 characters in uppercase
+    const cleanNid = newMember.nationalId.trim().toUpperCase();
+    if (cleanNid && !/^[A-Z0-9]{8}$/.test(cleanNid)) {
+      toast.error('National ID must be exactly 8 alphanumeric characters in uppercase.');
+      return;
     }
+
+    // Validate required email & password
+    if (!newMember.email || !newMember.email.includes('@')) {
+      toast.error('Please enter a valid email address.');
+      return;
+    }
+    if (!newMember.password || newMember.password.length < 6) {
+      toast.error('Password must be at least 6 characters long.');
+      return;
+    }
+
+    // Generate auto-assigned Member Number
+    const generatedMemberNo = `MBR-${Math.floor(100000 + Math.random() * 900000)}`;
 
     const member: Member = {
       id: Date.now().toString(),
       fullname: toTitleCase(newMember.fullname),
-      memberNumber: newMember.memberNumber,
+      memberNumber: generatedMemberNo,
       phone: newMember.phone,
-      phone2: newMember.phone2,
+      phone2: cleanNid || undefined, // store optional National ID in phone2
       gender: newMember.gender,
       address: newMember.address,
-      joinDate: new Date().toISOString().split('T')[0]
-    };
+      joinDate: new Date().toISOString().split('T')[0],
+      // Transient properties parsed by the sync route to register their User account
+      email: newMember.email,
+      password: newMember.password
+    } as any;
     
     const updated = [...members, member];
     setMembers(updated);
@@ -93,12 +109,15 @@ const Members = () => {
     
     if (!isOnline) {
       await addToSyncQueue('CREATE', 'members', member);
+    } else {
+      await addToSyncQueue('CREATE', 'members', member);
     }
     
+    toast.success(`Member registered successfully with ID: ${generatedMemberNo}`);
     setIsModalOpen(false);
     setNewMember({ 
-      fullname: '', memberNumber: '', phone: '', phone2: '', 
-      gender: 'MALE', address: ''
+      fullname: '', phone: '', gender: 'MALE', address: '', 
+      email: '', password: '', nationalId: ''
     });
   };
 
@@ -177,7 +196,7 @@ const Members = () => {
                 <div className="p-1.5 rounded-lg bg-secondary/50"><Phone className="w-4 h-4" /></div>
                 <div className="flex flex-col">
                   <span className="font-bold text-foreground leading-tight">{member.phone}</span>
-                  {member.phone2 && <span className="text-[10px] opacity-70 font-medium">Alt: {member.phone2}</span>}
+                  {member.phone2 && <span className="text-[10px] opacity-75 font-black text-primary tracking-wider uppercase">NID: {member.phone2}</span>}
                 </div>
               </div>
               {member.address && (
@@ -247,18 +266,6 @@ const Members = () => {
 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="member-id">Member ID</label>
-                    <input 
-                      id="member-id"
-                      type="text" 
-                      required
-                      value={newMember.memberNumber}
-                      onChange={e => setNewMember({...newMember, memberNumber: e.target.value})}
-                      className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-black"
-                      placeholder="M001"
-                    />
-                  </div>
-                  <div className="space-y-2">
                     <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="address">Address</label>
                     <input 
                       id="address"
@@ -267,6 +274,17 @@ const Members = () => {
                       onChange={e => setNewMember({...newMember, address: e.target.value})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-medium"
                       placeholder="City, Area"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="national-id">National ID (Optional)</label>
+                    <input 
+                      id="national-id"
+                      type="text" 
+                      value={newMember.nationalId}
+                      onChange={e => setNewMember({...newMember, nationalId: e.target.value})}
+                      className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                      placeholder="8 characters"
                     />
                   </div>
                 </div>
@@ -285,16 +303,30 @@ const Members = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-muted-foreground ml-1" htmlFor="phone-2">Secondary Phone</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="member-email">Email Address</label>
                     <input 
-                      id="phone-2"
-                      type="tel" 
-                      value={newMember.phone2}
-                      onChange={e => setNewMember({...newMember, phone2: e.target.value})}
+                      id="member-email"
+                      type="email" 
+                      required
+                      value={newMember.email}
+                      onChange={e => setNewMember({...newMember, email: e.target.value})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
-                      placeholder="+265..."
+                      placeholder="member@teachersbank.com"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="member-password">Account Password</label>
+                  <input 
+                    id="member-password"
+                    type="password" 
+                    required
+                    value={newMember.password}
+                    onChange={e => setNewMember({...newMember, password: e.target.value})}
+                    className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                    placeholder="Min 6 characters"
+                  />
                 </div>
 
                 <div className="flex gap-4 pt-6">
