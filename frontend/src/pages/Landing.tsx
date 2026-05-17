@@ -96,7 +96,7 @@ const Landing = () => {
           </h1>
           
           <p className="text-lg text-muted-foreground font-medium max-w-2xl leading-relaxed">
-            {t('landing.hero_desc')}
+            A secure digital platform built to facilitate transparent operations, efficient workflow management, and reliable organizational record tracking.
           </p>
 
           <div className="pt-8 flex flex-col md:flex-row items-center justify-center gap-6 w-full max-w-2xl px-4">
@@ -320,13 +320,11 @@ const Landing = () => {
       </AnimatePresence>
 
       {/* Footer */}
-      <footer className="border-t border-border/40 glass py-6 px-6 lg:px-16 text-center text-sm font-bold text-muted-foreground flex flex-col sm:flex-row items-center justify-between gap-4">
+      <footer className="border-t border-border/40 glass py-6 px-6 lg:px-16 text-center text-sm font-bold text-muted-foreground flex items-center justify-center gap-4 w-full">
         <div>
-          © {new Date().getFullYear()} {settings.organizationName}. All Rights Reserved.
-        </div>
-        <div className="flex items-center gap-1 text-primary">
-          <span>System Developer:</span>
-          <span className="font-black underline tracking-tight">Indelible</span>
+          © <a href="tel:2026" className="hover:underline text-primary">2026</a> Indelible. All rights reserved.
+          <br />
+          Support: <a href="http://indelible.support" className="hover:underline text-primary">indelible.support</a>@<a href="http://gmail.com" className="hover:underline text-primary">gmail.com</a>
         </div>
       </footer>
     </div>
