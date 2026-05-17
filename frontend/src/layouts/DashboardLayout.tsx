@@ -191,12 +191,14 @@ const DashboardLayout = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowSignoutConfirm(false)}
           >
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               className="glass max-w-sm w-full p-8 rounded-[2rem] text-center space-y-6 shadow-2xl border border-white/20"
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="mx-auto w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
                 <LogOut className="w-6 h-6" />
@@ -214,8 +216,8 @@ const DashboardLayout = () => {
                 </button>
                 <button 
                   onClick={async () => {
-                    const { logout } = useAuth(); // or directly use the destructured logout
                     await logout();
+                    setShowSignoutConfirm(false);
                     navigate('/');
                   }}
                   className="flex-1 py-3 bg-destructive hover:bg-destructive/90 text-white font-bold rounded-xl transition-all shadow-lg shadow-destructive/20"
