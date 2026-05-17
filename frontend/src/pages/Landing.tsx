@@ -46,13 +46,13 @@ const Landing = () => {
     <div className={`min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20 ${!showLearnMore ? 'h-screen overflow-hidden' : ''}`}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40 px-6 lg:px-16 h-20 flex items-center justify-between">
-        <div className="flex items-center gap-3 max-w-[60%] md:max-w-none">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <img 
             src="/icon-192x192.png" 
             alt="Logo" 
             className="w-10 h-10 rounded-full object-cover shadow-md shrink-0"
           />
-          <span className="text-lg md:text-2xl font-black text-primary tracking-tight text-center md:text-left leading-tight line-clamp-2">{settings.systemName}</span>
+          <span className="text-lg md:text-2xl font-black text-primary tracking-tight text-center md:text-left leading-tight break-words whitespace-normal">{settings.systemName}</span>
         </div>
 
         <div className="flex items-center gap-6">
