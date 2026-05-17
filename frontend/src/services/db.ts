@@ -2,7 +2,7 @@ import { openDB } from 'idb';
 import type { DBSchema, IDBPDatabase } from 'idb';
 import { syncApi } from './api';
 
-interface TBTSDB extends DBSchema {
+interface TEBAMSDB extends DBSchema {
   settings: {
     key: string;
     value: any;
@@ -44,10 +44,10 @@ interface TBTSDB extends DBSchema {
   };
 }
 
-let dbPromise: Promise<IDBPDatabase<TBTSDB>>;
+let dbPromise: Promise<IDBPDatabase<TEBAMSDB>>;
 
 export const initDB = () => {
-  dbPromise = openDB<TBTSDB>('tbts-database', 1, {
+  dbPromise = openDB<TEBAMSDB>('tbts-database', 1, {
     upgrade(db) {
       db.createObjectStore('settings');
       db.createObjectStore('users', { keyPath: 'id' });

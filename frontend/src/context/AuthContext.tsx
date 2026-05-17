@@ -66,12 +66,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (rememberMe) {
       await setSetting('auth_token', newToken);
       await setSetting('auth_user', newUser);
+      localStorage.setItem('auth_token', newToken);
       localStorage.setItem('remember_me', 'true');
       localStorage.setItem('remembered_email', newUser.email);
     } else {
       sessionStorage.setItem('auth_token', newToken);
       sessionStorage.setItem('auth_user', JSON.stringify(newUser));
       localStorage.setItem('remember_me', 'false');
+      localStorage.removeItem('auth_token');
       // If we don't remember, we can delete the saved token from IndexedDB so it's not loaded next time
       await setSetting('auth_token', null);
       await setSetting('auth_user', null);

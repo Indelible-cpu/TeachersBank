@@ -50,7 +50,6 @@ const Login = () => {
       const { token, user } = response.data;
 
       await login(token, user, rememberMe);
-      localStorage.setItem('auth_token', token); // Also store in localStorage for the axios interceptor
       
       navigate('/dashboard');
     } catch (err: any) {
