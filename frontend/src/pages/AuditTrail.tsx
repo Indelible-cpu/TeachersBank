@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, User, Shield, Clock, Info, CheckCircle, XCircle } from 'lucide-react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 interface AuditLog {
   id: string;
@@ -15,6 +16,7 @@ interface AuditLog {
 }
 
 const AuditTrail = () => {
+  const { user: currentUser } = useAuth();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('ALL');
@@ -44,8 +46,11 @@ const AuditTrail = () => {
                           (filter === 'FAIL' && log.status !== 'SUCCESS') ||
                           action.includes(filter);
                           
-    return matchesSearch && matchesFilter;
   });
+
+  if (currentUser?.role !== 'ADMIN') {
+    return <div className="p-8 text-center font-bold">Access Denied</div>;
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
