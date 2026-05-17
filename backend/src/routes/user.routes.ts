@@ -3,6 +3,8 @@ import prisma from '../prisma';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { trackActivity } from '../middleware/audit.middleware';
 
+import bcrypt from 'bcryptjs';
+
 const router = Router();
 
 // Get all users (Admin only)
@@ -25,7 +27,7 @@ router.patch('/:id', authenticate, authorize(['ADMIN']), trackActivity('UPDATE_U
     const { role, isActive } = req.body;
 
     const user = await prisma.user.update({
-      where: { id },
+      where: { id: id as string },
       data: { 
         role: role,
         isActive: isActive !== undefined ? isActive : undefined
@@ -35,6 +37,29 @@ router.patch('/:id', authenticate, authorize(['ADMIN']), trackActivity('UPDATE_U
     res.json(user);
   } catch (error) {
     res.status(400).json({ error: 'Failed to update user' });
+  }
+});
+
+// Reset password of a user (Admin only)
+router.post('/:id/reset-password', authenticate, authorize(['ADMIN']), trackActivity('RESET_USER_PASSWORD'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password || password.trim().length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.update({
+      where: { id: id as string },
+      data: { password: hashedPassword }
+    });
+
+    res.json({ message: `Password reset successfully for ${user.name}` });
+  } catch (error) {
+    res.status(400).json({ error: 'Failed to reset password' });
   }
 });
 

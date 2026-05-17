@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Phone, Calendar, UserRound, Lock, User as UserIcon, MapPin, ShieldCheck } from 'lucide-react';
+import { Search, Plus, Phone, Calendar, Lock, User as UserIcon, MapPin, ShieldCheck } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/useToast';
 import { getSetting, setSetting, addToSyncQueue } from '../services/db';
 
 interface Member {
   id: string;
   fullname: string;
-  alternativeNames?: string;
   memberNumber: string;
   phone: string;
   phone2?: string;
@@ -22,6 +22,7 @@ const Members = () => {
   const { t } = useTranslation();
   const { isOnline } = useSettings();
   const { user } = useAuth();
+  const toast = useToast();
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,8 +32,7 @@ const Members = () => {
     phone: '',
     phone2: '',
     gender: 'MALE',
-    address: '',
-    alternativeNames: ''
+    address: ''
   });
 
   const canAddMember = user?.role === 'SECRETARY';
@@ -48,19 +48,42 @@ const Members = () => {
     return () => { isMounted = false; };
   }, []);
 
+  const toTitleCase = (str: string) => {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canAddMember) return;
 
+    // Validate phone number: must be between 10 and 13 digits only
+    const digitsOnly1 = newMember.phone.replace(/\D/g, '');
+    if (digitsOnly1.length < 10 || digitsOnly1.length > 13) {
+      toast.error('Primary phone number must contain between 10 and 13 digits only.');
+      return;
+    }
+
+    if (newMember.phone2) {
+      const digitsOnly2 = newMember.phone2.replace(/\D/g, '');
+      if (digitsOnly2.length < 10 || digitsOnly2.length > 13) {
+        toast.error('Secondary phone number must contain between 10 and 13 digits only.');
+        return;
+      }
+    }
+
     const member: Member = {
       id: Date.now().toString(),
-      fullname: newMember.fullname,
+      fullname: toTitleCase(newMember.fullname),
       memberNumber: newMember.memberNumber,
       phone: newMember.phone,
       phone2: newMember.phone2,
       gender: newMember.gender,
       address: newMember.address,
-      alternativeNames: newMember.alternativeNames,
       joinDate: new Date().toISOString().split('T')[0]
     };
     
@@ -75,14 +98,13 @@ const Members = () => {
     setIsModalOpen(false);
     setNewMember({ 
       fullname: '', memberNumber: '', phone: '', phone2: '', 
-      gender: 'MALE', address: '', alternativeNames: '' 
+      gender: 'MALE', address: ''
     });
   };
 
   const filteredMembers = members.filter(m => 
     m.fullname.toLowerCase().includes(search.toLowerCase()) || 
-    m.memberNumber.toLowerCase().includes(search.toLowerCase()) ||
-    (m.alternativeNames && m.alternativeNames.toLowerCase().includes(search.toLowerCase()))
+    m.memberNumber.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -148,12 +170,7 @@ const Members = () => {
               </div>
             </div>
 
-            {member.alternativeNames && (
-              <div className="flex items-start gap-2 text-xs bg-secondary/30 p-3 rounded-xl border border-white/5">
-                <UserRound className="w-4 h-4 shrink-0 text-muted-foreground" />
-                <span className="text-muted-foreground italic font-medium">Identity: {member.alternativeNames}</span>
-              </div>
-            )}
+
             
             <div className="grid grid-cols-1 gap-3 pt-4 border-t border-border/50 text-sm text-muted-foreground">
               <div className="flex items-center gap-3">
@@ -226,17 +243,7 @@ const Members = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1" htmlFor="alt-names">Alternative Names</label>
-                  <input 
-                    id="alt-names"
-                    type="text" 
-                    value={newMember.alternativeNames}
-                    onChange={e => setNewMember({...newMember, alternativeNames: e.target.value})}
-                    className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-medium"
-                    placeholder="Nicknames, Business Names (Comma separated)"
-                  />
-                </div>
+
 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">

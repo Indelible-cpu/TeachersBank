@@ -21,6 +21,9 @@ const Users = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'MEMBER' });
   const [showPassword, setShowPassword] = useState(false);
+  const [resettingUser, setResettingUser] = useState<User | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [showResetPassword, setShowResetPassword] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -57,10 +60,23 @@ const Users = () => {
     }
   };
 
+  const toTitleCase = (str: string) => {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/auth/register', newUser);
+      const payload = {
+        ...newUser,
+        name: toTitleCase(newUser.name)
+      };
+      await api.post('/auth/register', payload);
       setIsModalOpen(false);
       setNewUser({ name: '', email: '', password: '', role: 'MEMBER' });
       setShowPassword(false);
@@ -69,6 +85,25 @@ const Users = () => {
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: string } } };
       toast.error(err.response?.data?.error || 'Failed to add user');
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resettingUser) return;
+    if (newPassword.trim().length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+    try {
+      await api.post(`/users/${resettingUser.id}/reset-password`, { password: newPassword });
+      toast.success(`Password reset successfully for ${resettingUser.name}`);
+      setResettingUser(null);
+      setNewPassword('');
+      setShowResetPassword(false);
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } };
+      toast.error(err.response?.data?.error || 'Failed to reset password');
     }
   };
 
@@ -131,6 +166,16 @@ const Users = () => {
                   className={`text-[10px] font-semibold px-3 py-1 rounded-full capitalize tracking-widest border transition-all ${u.isActive ? 'bg-emerald-500/5 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/5 text-rose-500 border-rose-500/20'}`}
                 >
                   {u.isActive ? 'Active' : 'Suspended'}
+                </button>
+                <button 
+                  onClick={() => {
+                    setResettingUser(u);
+                    setNewPassword('');
+                    setShowResetPassword(false);
+                  }}
+                  className="text-[10px] font-semibold px-3 py-1 rounded-full capitalize tracking-widest border transition-all bg-primary/10 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground"
+                >
+                  Reset Password
                 </button>
                 {u.id !== currentUser?.id && (
                   <button 
@@ -228,6 +273,58 @@ const Users = () => {
                 <div className="flex gap-4 pt-6">
                   <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black uppercase tracking-widest">Cancel</button>
                   <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black uppercase tracking-widest">Add User</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Reset Password Modal */}
+        {resettingUser && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+            onClick={() => setResettingUser(null)}
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg bg-background rounded-[2.5rem] p-8 shadow-2xl border border-white/5"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-black tracking-tight">Reset Password</h2>
+                <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-primary/10 text-primary uppercase tracking-widest">{resettingUser.name}</span>
+              </div>
+
+              <form onSubmit={handleResetPassword} className="space-y-6">
+                <div className="space-y-2">
+                  <label htmlFor="resetUserPassword" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">New Password</label>
+                  <div className="relative">
+                    <input 
+                      id="resetUserPassword" 
+                      type={showResetPassword ? 'text' : 'password'} 
+                      title="New Password" 
+                      placeholder="••••••••" 
+                      required 
+                      value={newPassword} 
+                      onChange={e => setNewPassword(e.target.value)} 
+                      className="w-full pl-5 pr-12 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold font-mono" 
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowResetPassword(!showResetPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground"
+                    >
+                      {showResetPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button type="button" onClick={() => setResettingUser(null)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black uppercase tracking-widest hover:bg-secondary/80 transition-all">Cancel</button>
+                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black uppercase tracking-widest hover:shadow-xl hover:shadow-primary/20 transition-all">Reset Password</button>
                 </div>
               </form>
             </motion.div>
