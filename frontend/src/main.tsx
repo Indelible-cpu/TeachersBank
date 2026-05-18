@@ -15,7 +15,7 @@ initDB();
 
 // Clear legacy service workers and caches once (forces browser upgrade from TBTS/TEBAMS to TeachersBank)
 if ('serviceWorker' in navigator) {
-  const pwaCleared = localStorage.getItem('pwa_legacy_cleared_v3');
+  const pwaCleared = localStorage.getItem('pwa_legacy_cleared_v4');
   if (!pwaCleared) {
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       if (registrations.length > 0) {
@@ -29,10 +29,15 @@ if ('serviceWorker' in navigator) {
             }
           });
         }
-        localStorage.setItem('pwa_legacy_cleared_v3', 'true');
+        // Delete legacy IndexedDB database to completely purge stale cached settings/dashboard entities
+        indexedDB.deleteDatabase('tebams-database');
+        
+        localStorage.setItem('pwa_legacy_cleared_v4', 'true');
         window.location.reload();
       } else {
-        localStorage.setItem('pwa_legacy_cleared_v3', 'true');
+        // Even if no service worker registered, make sure database is purged if transition is needed
+        indexedDB.deleteDatabase('tebams-database');
+        localStorage.setItem('pwa_legacy_cleared_v4', 'true');
       }
     });
   }
