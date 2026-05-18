@@ -36,7 +36,7 @@ export default defineConfig({
         ]
       },
       workbox: {
-        cacheId: 'tebams-v1',
+        cacheId: 'teachersbank-v2',
         skipWaiting: true,
         clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
@@ -45,7 +45,7 @@ export default defineConfig({
             urlPattern: /^\/icon-.*\.png$/,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'app-icons-v2',
+              cacheName: 'app-icons-v3',
               expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 }
             }
           },
