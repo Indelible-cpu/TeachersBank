@@ -47,7 +47,7 @@ interface TEBAMSDB extends DBSchema {
 let dbPromise: Promise<IDBPDatabase<TEBAMSDB>>;
 
 export const initDB = () => {
-  dbPromise = openDB<TEBAMSDB>('tbts-database', 1, {
+  dbPromise = openDB<TEBAMSDB>('tebams-database', 1, {
     upgrade(db) {
       db.createObjectStore('settings');
       db.createObjectStore('users', { keyPath: 'id' });

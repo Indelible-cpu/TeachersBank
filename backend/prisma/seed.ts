@@ -10,8 +10,8 @@ async function main() {
     update: {},
     create: {
       id: 'global-settings',
-      organizationName: 'Teachers Bank Tracking System',
-      systemName: 'TBTS',
+      organizationName: 'Teachers Bank Management System',
+      systemName: 'TEBAMS',
       defaultLanguage: 'en',
       interestPercentage: 10,
       maturityMonths: 12,
