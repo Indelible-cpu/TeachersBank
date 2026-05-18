@@ -5,30 +5,42 @@ import { syncApi } from './api';
 interface TEBAMSDB extends DBSchema {
   settings: {
     key: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any;
   };
   users: {
     key: string;
-    value: any;
+    value: {
+      id: string;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      user: any;
+      token: string;
+      hash: string;
+    };
   };
   members: {
     key: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any[];
   };
   contributions: {
     key: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any[];
   };
   loans: {
     key: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any[];
   };
   repayments: {
     key: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any[];
   };
   receipts: {
     key: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any[];
   };
   sync_queue: {
@@ -37,6 +49,8 @@ interface TEBAMSDB extends DBSchema {
       id?: number;
       action: 'CREATE' | 'UPDATE' | 'DELETE';
       entity: string;
+      table?: string;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: any;
       timestamp: number;
     };
@@ -66,16 +80,19 @@ export const initDB = () => {
   });
 };
 
-export const getSetting = async (key: string) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getSetting = async (key: string): Promise<any> => {
   const db = await dbPromise;
   return db.get('settings', key);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const setSetting = async (key: string, value: any) => {
   const db = await dbPromise;
   return db.put('settings', value, key);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const addToSyncQueue = async (action: 'CREATE' | 'UPDATE' | 'DELETE', entity: string, data: any) => {
   const db = await dbPromise;
   await db.add('sync_queue', {
@@ -104,11 +121,17 @@ export const clearSyncQueue = async () => {
 };
 
 export const performSync = async () => {
+  // Only sync if the user is authenticated (prevents 401 console errors on initial load)
+  const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+  if (!token) {
+    return false;
+  }
+
   try {
     const queue = await getSyncQueue();
 
     // Map 'entity' field to 'table' to match backend sync schema expectations
-    const mappedQueue = queue.map((item: any) => ({
+    const mappedQueue = queue.map((item) => ({
       action: item.action,
       table: item.entity || item.table,
       data: item.data
@@ -145,6 +168,7 @@ async function hashPassword(message: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const cacheOfflineCredentials = async (email: string, passwordPlain: string, user: any, token: string) => {
   const db = await dbPromise;
   const hash = await hashPassword(email.toLowerCase() + ':' + passwordPlain);
