@@ -86,7 +86,7 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-4 items-start md:items-center">
             {/* Left: Brand */}
             <div className="flex flex-col items-center text-center md:items-start md:text-left gap-2">
-              <span className="text-2xl font-black text-foreground tracking-tight">Indelible Technologies</span>
+              <span className="text-lg font-black text-foreground tracking-tight">Indelible Technologies</span>
               <p className="text-sm font-semibold text-muted-foreground opacity-80">Secure • Reliable • Built for scale</p>
             </div>
 
