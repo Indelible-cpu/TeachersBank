@@ -48,11 +48,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       try {
         const localSettings = await getSetting('global_settings');
         if (localSettings && isMounted) {
-          // Merge with defaultSettings to prevent undefined properties and force TeachersBank branding
           const merged = {
             ...defaultSettings,
-            ...localSettings,
-            systemName: 'TeachersBank'
+            ...localSettings
           };
           setSettingsState(merged);
         }

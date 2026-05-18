@@ -104,7 +104,7 @@ const Login = () => {
               <img src="/icon-192x192.png" alt="Logo" className="w-full h-full rounded-full object-cover" />
             </div>
             <h1 className="text-3xl font-bold tracking-tight mb-2">{settings.systemName}</h1>
-            <p className="text-muted-foreground">{t('login.subtitle')} {settings.organizationName}</p>
+            <p className="text-muted-foreground">{t('login.subtitle')}</p>
           </div>
 
           {!isOnline && (

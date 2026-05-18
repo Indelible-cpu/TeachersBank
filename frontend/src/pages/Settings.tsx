@@ -27,6 +27,10 @@ const Settings = () => {
       if (photo) setProfilePhoto(photo);
     })();
   }, [user?.id]);
+
+  React.useEffect(() => {
+    setFormData(settings);
+  }, [settings]);
   
   // Password change state
   const [passwordData, setPasswordData] = useState({
