@@ -132,7 +132,7 @@
     "faq_q1": "Kodi Teachers Bank Management System (TEBAMS) ndi chiyani?",
     "faq_a1": "TEBAMS ndi nsanja yotetezeka yotsimikizira zachuma yomwe idapangidwira makamaka kuyang'anira zosonkhanitsa za mamembala, ndalama zadzidzidzi, komanso ngongole za gulu. Imateteza kuwonekera komanso udindo mwachilungamo.",
     "faq_q2": "Kodi dongosolo la anthu awiri limagwira bwanji ntchito?",
-    "faq_a2": "Kuti chuma chitetezeke, TEBAMS imagwiritsa ntchito anthu awiri. Mlembi amalembetsa mamembala ndi zochitika zonse (zosonkhanitsa, zobweza, ngongole) monga ZODIKIRA. Msungichuma kenako amaunika ndikuvomereza kapena kukana.",
+    "faq_a2": "Koti chuma chitetezeke, TEBAMS imagwiritsa ntchito anthu awiri. Mlembi amalembetsa mamembala ndi zochitika zonse (zosonkhanitsa, zobweza, ngongole) monga ZODIKIRA. Msungichuma kenako amaunika ndikuvomereza kapena kukana.",
     "faq_q3": "Kodi chiwongolero cha ngongole chimawerengedwa bwanji?",
     "faq_a3": "Kusiyana ndi mabanki wamba komwe chiwongolero chimatengera ndalama zomwe wabwereka, TEBAMS imawerengera chiwongolero kutengera magawo omwe wasunga kale. Izi zimalimbikitsa kusunga ndalama kuposa kutenga ngongole.",
     "faq_q4": "Kodi mamembala wamba ali ndi ufulu wotani pa sisitimuyi?",
@@ -154,5 +154,66 @@
   },
   "loan_configs": {
     "title": "Ndondomeko za Ngongole"
+  },
+  "common": {
+    "back": "Bwererani",
+    "all_rights_reserved": "Ufulu wonse ndi otetezedwa."
+  },
+  "privacy": {
+    "subtitle": "M'mene timatetezera deta yanu, kuonetsetsa kuti mukutsatira malamulo, komanso kusunga chinsinsi chenicheni.",
+    "legal_title": "Kudzipereka pa Kusamalira Deta",
+    "legal_p1": "Tadzipereka kuonetsetsa kuti zambiri zanu ndi zotetezeka. Kuti tipewe kulowa kapena kuululidwa kosaloledwa, takhazikitsa njira zoyenera zakuthupi, zamagetsi ndi zowongolera kuti ziteteze zambiri zomwe timasonkhanitsa.",
+    "legal_p2": "Deta yonse yaumwini imakonzedwa molingana ndi malamulo a chitetezo cha deta. Deta sagawidwa ndi anthu ena popanda chilolezo chotsimikizika, kupatula ngati mukufunidwa ndi lamulo.",
+    "legal_p3": "Muli ndi ufulu wopempha mwayi wopeza deta yaumwini yomwe tili nayo yokhudza inu, kupempha kukonzedwa kwa deta yolakwika, ndi kupempha kufufutidwa kwa deta yanu malinga ndi malamulo.",
+    "legal_p4": "Pa nkhawa iliyonse yokhudzana ndi chinsinsi, chonde titumizireni imelo pa "
+  },
+  "faq": {
+    "subtitle": "Chilichonse chomwe mukuyenera kudziwa chokhudza momwe sisitimuyi imagwirira ntchito."
+  },
+  "terms": {
+    "tag": "Zalamulo",
+    "title": "Zofunika pa Ntchito",
+    "subtitle": "Chonde werengani zofunikazi mosamala musanagwiritse ntchito nsanjayi.",
+    "last_updated": "Zasinthidwa komaliza: 2026",
+    "sec1_title": "1. Kuvomereza Zofunika",
+    "sec1_body": "Polowa kapena kugwiritsa ntchito sisitimuyi, mukutsimikizira kuti mwawerenga, mwasanthula, ndipo mukuvomereza kumvera Zofunika pa Ntchitozi. Ngati simukuvomereza zofunikazi, musagwiritse ntchito nsanjayi.",
+    "sec2_title": "2. Kulowa m'Sisitimu & Kuyenerera",
+    "sec2_body": "Kulowa m'sisitimuyi kuli ndi malire kwa ogwira ntchito ovomerezeka a gulu la cooperative. Maakaunti ogwiritsa ntchito amaperekedwa ndi woyang'anira sisitimu. Kugawana zinsinsi za akaunti ndikoletsedwa kotheratu.",
+    "sec3_title": "3. Maudindo & Udindo",
+    "sec3_body": "Udindo uliwonse wa ogwiritsa ntchito (Admin, Treasurer, Secretary, Member) uli ndi zilolezo komanso udindo kumene akuyembekezeka kuchita zinthu zomwe amaloledwa ndi udindo wawo okha. Kwayesayesa kosaloledwa kulowa m'malo otsekedwa kulembedwa ndikuwunikidwa.",
+    "sec4_title": "4. Dongosolo la Anthu Awiri",
+    "sec4_body": "Zochitika zonse za zachuma zomwe zalembedwa m'sisitimu zimagwira ntchito pansi pa dongosolo la anthu awiri. Zochitika zomwe zalembedwa ndi Mlembi ziyenera kutsimikiziridwa paokha ndi Asungichuma. Palibe amene angavomereze zolowa zake.",
+    "sec5_title": "5. Kulondola kwa Deta",
+    "sec5_body": "Ogwiritsa ntchito onse ali ndi udindo wonetsetsa kuti deta yomwe amalowetsa ili yolondola. Kulowetsa dala zolemba zabodza za zachuma ndi kuphwanya kwakukulu kwa Zofunikazi ndipo kungachititse kuti akaunti yanu itsekedwe nthawi yomweyo komanso kutengedwa mbali zalamulo.",
+    "sec6_title": "6. Mbiri ya Zosintha",
+    "sec6_body": "Zochitika zonse za sisitimu zimalembedwa m'mbiri yosasinthika ya Audit Trail. Chopikachi chikuphatikizapo chidziwitso cha wogwiritsa ntchito, tsiku ndi nthawi, mtundu wa zochitika, ndi zotsatira zake. Mbiriyi imapezeka kwa woyang'anira sisitimu yekha.",
+    "sec7_title": "7. Chinsinsi",
+    "sec7_body": "Deta yonse ya zachuma yomwe ikupezeka m'sisitimuyi ndi yachinsinsi kwambiri. Ogwiritsa ntchito sayenera kuulula, kugawana, kapena kupanga mbiri iliyonse ya zachuma ya gulu kapena membala kunja kwa njira zovomerezeka.",
+    "sec8_title": "8. Kuthetsa Akaunti",
+    "sec8_body": "Woyang'anira sisitimu ali ndi ufulu woyimitsa kapena kuthetsa akaunti iliyonse yomwe yapezeka kuti ikuphwanya Zofunika pa Ntchitozi, popanda chidziwitso cham'mbuyo.",
+    "sec9_title": "9. Kusintha Zofunika",
+    "sec9_body": "Zofunika pa Ntchitozi zitha kusinthidwa nthawi ndi nthawi. Kupitiliza kugwiritsa ntchito sisitimu pambuyo pakusintha kulikonse kukuwonetsa kuvomereza kwanu zofunika zatsopanozo.",
+    "sec10_title": "10. Lumikizanani Nafe",
+    "sec10_body_1": "Pa mafunso alionse okhudza Zofunikazi, lumikizanani ndi gulu lothandizira pa ",
+    "sec10_body_2": ", kapena kudzera pa ",
+    "sec10_body_3": " ndi "
+  },
+  "dashboard_stats": {
+    "verified_capital": "Chuma chotsimikizika",
+    "active_loan_book": "Buku la ngongole zomwe zilipo",
+    "accumulated_interest": "Chiwongolero chomwe chasonkhanitsidwa",
+    "in_transit": "Zodikirira kutsimikiziridwa",
+    "welcome_back": "Takulandirani kachiwiri, ",
+    "command_center_ready": ". Your financial command center is ready.",
+    "attention_treasurer": "Chenjezo kwa Msungichuma",
+    "awaiting_verification": "zinthu zomwe zikudikira kutsimikiziridwa",
+    "performance_overview": "Kuunika momwe ntchito ikuyendera",
+    "recent_verifications": "Zotsimikizika zaposachedwapa",
+    "no_recent_activity": "Palibe zochitika zaposachedwapa",
+    "system_verified": "Zotsimikizika ndi Sisitimu",
+    "loan_repayment": "Kubwezera Ngongole",
+    "loan_disbursement": "Kupereka Ngongole",
+    "emergency_contrib": "Ndalama Zadzidzidzi Zosonkhanitsa",
+    "share_contrib": "Gawo la Mwezi Losonkha"
   }
 }

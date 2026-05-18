@@ -154,5 +154,66 @@
   },
   "loan_configs": {
     "title": "Loan Configs"
+  },
+  "common": {
+    "back": "Back",
+    "all_rights_reserved": "All rights reserved."
+  },
+  "privacy": {
+    "subtitle": "How we protect your data, ensure compliance, and maintain absolute confidentiality.",
+    "legal_title": "Data Handling Commitment",
+    "legal_p1": "We are committed to ensuring that your information is secure. In order to prevent unauthorised access or disclosure, we have put in place suitable physical, electronic and managerial procedures to safeguard and secure the information we collect.",
+    "legal_p2": "All personal data is processed in accordance with applicable data protection regulations. Data is never shared with third parties without explicit consent, except where required by law.",
+    "legal_p3": "You have the right to request access to the personal data we hold about you, request correction of inaccurate data, and request deletion of your data subject to legal obligations.",
+    "legal_p4": "For any privacy-related concerns, please contact us at "
+  },
+  "faq": {
+    "subtitle": "Everything you need to know about how the system works."
+  },
+  "terms": {
+    "tag": "Legal",
+    "title": "Terms of Service",
+    "subtitle": "Please read these terms carefully before using the platform.",
+    "last_updated": "Last updated: 2026",
+    "sec1_title": "1. Acceptance of Terms",
+    "sec1_body": "By accessing or using this system, you confirm that you have read, understood, and agree to be bound by these Terms of Service. If you do not agree to these terms, you must not use this platform.",
+    "sec2_title": "2. System Access & Eligibility",
+    "sec2_body": "Access to this system is restricted to authorized personnel of the cooperative organization. User accounts are assigned by the system administrator. Sharing account credentials is strictly prohibited.",
+    "sec3_title": "3. Roles & Responsibilities",
+    "sec3_body": "Each user role (Admin, Treasurer, Secretary, Member) carries defined permissions and responsibilities. Users are expected to perform only the actions permitted by their assigned role. Unauthorized attempts to access restricted modules will be logged and reviewed.",
+    "sec4_title": "4. Dual-Control Workflow",
+    "sec4_body": "All financial transactions recorded in the system operate under a dual-control workflow. Transactions initiated by a Secretary must be independently verified and confirmed by a Treasurer. Neither party may approve their own entries.",
+    "sec5_title": "5. Data Accuracy",
+    "sec5_body": "All users are responsible for ensuring the accuracy of the data they input. Deliberate entry of false financial records is a serious breach of these Terms and may result in immediate account suspension and legal action.",
+    "sec6_title": "6. Audit Trail",
+    "sec6_body": "All system actions are recorded in an immutable Audit Trail. This log includes the user identity, timestamp, action type, and outcome. This trail is accessible exclusively to the system administrator.",
+    "sec7_title": "7. Confidentiality",
+    "sec7_body": "All financial data accessed through this system is strictly confidential. Users must not disclose, share, or reproduce any organizational or member financial information outside of authorized official channels.",
+    "sec8_title": "8. Termination",
+    "sec8_body": "The system administrator reserves the right to suspend or terminate any user account found to be in violation of these Terms of Service, without prior notice.",
+    "sec9_title": "9. Amendments",
+    "sec9_body": "These Terms of Service may be updated from time to time. Continued use of the system following any such changes constitutes your acceptance of the new terms.",
+    "sec10_title": "10. Contact",
+    "sec10_body_1": "For any questions regarding these Terms, contact the system support team at ",
+    "sec10_body_2": ", or via ",
+    "sec10_body_3": " and "
+  },
+  "dashboard_stats": {
+    "verified_capital": "Verified capital",
+    "active_loan_book": "Active loan book",
+    "accumulated_interest": "Accumulated interest",
+    "in_transit": "In transit",
+    "welcome_back": "Welcome back, ",
+    "command_center_ready": ". Your financial command center is ready.",
+    "attention_treasurer": "Attention Treasurer",
+    "awaiting_verification": "items awaiting verification",
+    "performance_overview": "Performance overview",
+    "recent_verifications": "Recent verifications",
+    "no_recent_activity": "No recent activity",
+    "system_verified": "System Verified",
+    "loan_repayment": "Loan Repayment",
+    "loan_disbursement": "Loan Disbursement",
+    "emergency_contrib": "Emergency Contribution",
+    "share_contrib": "Share Contribution"
   }
 }

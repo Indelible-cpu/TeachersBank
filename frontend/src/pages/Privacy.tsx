@@ -43,7 +43,7 @@ const Privacy = () => {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40 px-6 lg:px-16 min-h-[5rem] py-3 flex items-center gap-4">
         <Link to="/" className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back
+          <ArrowLeft className="w-4 h-4" /> {t('common.back')}
         </Link>
         <span className="text-lg font-black text-primary tracking-tight">{settings.systemName}</span>
       </header>
@@ -57,7 +57,7 @@ const Privacy = () => {
           </div>
           <h1 className="text-5xl font-black tracking-tight">{t('landing.sec_stor_priv_title')}</h1>
           <p className="text-muted-foreground font-medium max-w-2xl mx-auto text-lg">
-            How we protect your data, ensure compliance, and maintain absolute confidentiality.
+            {t('privacy.subtitle')}
           </p>
         </motion.div>
 
@@ -88,18 +88,18 @@ const Privacy = () => {
           transition={{ delay: 0.4 }}
           className="glass p-10 rounded-[2.5rem] border border-border/20 space-y-6 max-w-4xl mx-auto"
         >
-          <h2 className="text-2xl font-black">Data Handling Commitment</h2>
+          <h2 className="text-2xl font-black">{t('privacy.legal_title')}</h2>
           <div className="space-y-4 text-sm text-muted-foreground font-medium leading-relaxed">
-            <p>We are committed to ensuring that your information is secure. In order to prevent unauthorised access or disclosure, we have put in place suitable physical, electronic and managerial procedures to safeguard and secure the information we collect.</p>
-            <p>All personal data is processed in accordance with applicable data protection regulations. Data is never shared with third parties without explicit consent, except where required by law.</p>
-            <p>You have the right to request access to the personal data we hold about you, request correction of inaccurate data, and request deletion of your data subject to legal obligations.</p>
-            <p>For any privacy-related concerns, please contact us at <a href="mailto:indelible.support@gmail.com" className="text-blue-500 hover:underline">indelible.support@gmail.com</a>.</p>
+            <p>{t('privacy.legal_p1')}</p>
+            <p>{t('privacy.legal_p2')}</p>
+            <p>{t('privacy.legal_p3')}</p>
+            <p>{t('privacy.legal_p4')}<a href="mailto:indelible.support@gmail.com" className="text-blue-500 hover:underline">indelible.support@gmail.com</a>.</p>
           </div>
         </motion.div>
       </main>
 
       <footer className="border-t border-border/10 py-6 px-6 text-center text-xs text-muted-foreground font-semibold opacity-60">
-        © 2026 Indelible Technologies. All rights reserved.
+        © 2026 Indelible Technologies. {t('common.all_rights_reserved')}
       </footer>
     </div>
   );

@@ -81,8 +81,8 @@ const Dashboard = () => {
       confirmedContribs.forEach(c => {
         activities.push({
           id: c.id || Math.random().toString(),
-          title: `${c.type === 'EMERGENCY' ? 'Emergency' : 'Share'} Contribution`,
-          subtitle: `System Verified`,
+          title: c.type === 'EMERGENCY' ? t('dashboard_stats.emergency_contrib') : t('dashboard_stats.share_contrib'),
+          subtitle: t('dashboard_stats.system_verified'),
           amount: c.amount || 0,
           timestamp: c.timestamp || new Date(0).toISOString(),
           isPositive: true
@@ -93,8 +93,8 @@ const Dashboard = () => {
       confirmedRepayments.forEach(r => {
         activities.push({
           id: r.id || Math.random().toString(),
-          title: `Loan Repayment`,
-          subtitle: `System Verified`,
+          title: t('dashboard_stats.loan_repayment'),
+          subtitle: t('dashboard_stats.system_verified'),
           amount: r.amount || 0,
           timestamp: r.timestamp || new Date(0).toISOString(),
           isPositive: true
@@ -105,8 +105,8 @@ const Dashboard = () => {
       approvedLoans.forEach((l: any) => {
         activities.push({
           id: l.id || Math.random().toString(),
-          title: `Loan Disbursement`,
-          subtitle: `System Verified`,
+          title: t('dashboard_stats.loan_disbursement'),
+          subtitle: t('dashboard_stats.system_verified'),
           amount: l.principal || 0,
           timestamp: l.timestamp || new Date(0).toISOString(),
           isPositive: false
@@ -120,10 +120,10 @@ const Dashboard = () => {
   }, []);
 
   const stats = [
-    { title: 'Verified capital', value: `${settings.currency} ${data.contributions.toLocaleString()}`, icon: Wallet, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-    { title: 'Active loan book', value: `${settings.currency} ${data.loans.toLocaleString()}`, icon: CreditCard, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { title: 'Accumulated interest', value: `${settings.currency} ${data.accumulatedInterest.toLocaleString()}`, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-    { title: 'In transit', value: `${settings.currency} ${data.pendingAmount.toLocaleString()}`, icon: HandCoins, color: 'text-amber-500', bg: 'bg-amber-500/10' }
+    { title: t('dashboard_stats.verified_capital'), value: `${settings.currency} ${data.contributions.toLocaleString()}`, icon: Wallet, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { title: t('dashboard_stats.active_loan_book'), value: `${settings.currency} ${data.loans.toLocaleString()}`, icon: CreditCard, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { title: t('dashboard_stats.accumulated_interest'), value: `${settings.currency} ${data.accumulatedInterest.toLocaleString()}`, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { title: t('dashboard_stats.in_transit'), value: `${settings.currency} ${data.pendingAmount.toLocaleString()}`, icon: HandCoins, color: 'text-amber-500', bg: 'bg-amber-500/10' }
   ];
 
   return (
@@ -131,7 +131,7 @@ const Dashboard = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div className="space-y-1">
           <h1 className="text-4xl font-bold tracking-tight">{t('dashboard.title')}</h1>
-          <p className="text-muted-foreground font-medium italic">Welcome back, {user?.name}. Your financial command center is ready.</p>
+          <p className="text-muted-foreground font-medium italic">{t('dashboard_stats.welcome_back')}{user?.name}{t('dashboard_stats.command_center_ready')}</p>
         </div>
         
         {canConfirm && data.pendingVerification > 0 && (
@@ -142,8 +142,8 @@ const Dashboard = () => {
           >
             <ShieldAlert className="w-6 h-6 animate-pulse" />
             <div>
-              <p className="text-[10px] font-semibold tracking-widest leading-none mb-1 text-amber-100">Attention Treasurer</p>
-              <p className="text-sm font-bold">{data.pendingVerification} items awaiting verification</p>
+              <p className="text-[10px] font-semibold tracking-widest leading-none mb-1 text-amber-100">{t('dashboard_stats.attention_treasurer')}</p>
+              <p className="text-sm font-bold">{data.pendingVerification} {t('dashboard_stats.awaiting_verification')}</p>
             </div>
           </motion.div>
         )}
@@ -173,7 +173,7 @@ const Dashboard = () => {
         <div className="glass p-10 rounded-[3rem] space-y-8 bg-gradient-to-br from-primary/5 to-transparent border border-primary/10">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-bold tracking-tight flex items-center gap-3">
-              <TrendingUp className="text-primary" /> Performance overview
+              <TrendingUp className="text-primary" /> {t('dashboard_stats.performance_overview')}
             </h3>
           </div>
           <div className="h-48 flex items-end gap-4 px-4">
@@ -205,7 +205,7 @@ const Dashboard = () => {
 
         <div className="glass p-10 rounded-[3rem] space-y-8">
           <h3 className="text-xl font-bold tracking-tight flex items-center gap-3">
-            <CheckCircle2 className="text-emerald-500" /> Recent verifications
+            <CheckCircle2 className="text-emerald-500" /> {t('dashboard_stats.recent_verifications')}
           </h3>
           <div className="space-y-4">
              {recentActivities.length > 0 ? recentActivities.map(activity => (
@@ -225,7 +225,7 @@ const Dashboard = () => {
                </div>
              )) : (
                <div className="flex items-center justify-center h-24 border-2 border-dashed border-border/50 rounded-3xl">
-                 <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40">No recent activity</p>
+                 <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40">{t('dashboard_stats.no_recent_activity')}</p>
                </div>
              )}
           </div>

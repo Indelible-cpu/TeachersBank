@@ -26,7 +26,7 @@ const FAQ = () => {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40 px-6 lg:px-16 min-h-[5rem] py-3 flex items-center gap-4">
         <Link to="/" className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back
+          <ArrowLeft className="w-4 h-4" /> {t('common.back')}
         </Link>
         <span className="text-lg font-black text-primary tracking-tight">{settings.systemName}</span>
       </header>
@@ -40,7 +40,7 @@ const FAQ = () => {
           </div>
           <h1 className="text-5xl font-black tracking-tight">{t('landing.faq_title')}</h1>
           <p className="text-muted-foreground font-medium text-lg max-w-xl mx-auto">
-            Everything you need to know about how the system works.
+            {t('faq.subtitle')}
           </p>
         </motion.div>
 
@@ -87,7 +87,7 @@ const FAQ = () => {
       </main>
 
       <footer className="border-t border-border/10 py-6 px-6 text-center text-xs text-muted-foreground font-semibold opacity-60">
-        © 2026 Indelible Technologies. All rights reserved.
+        © 2026 Indelible Technologies. {t('common.all_rights_reserved')}
       </footer>
     </div>
   );
