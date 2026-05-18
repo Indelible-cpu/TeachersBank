@@ -56,6 +56,21 @@ export const register = async (req: Request, res: Response) => {
       }
     });
 
+    // If registered user is Staff (ADMIN, TREASURER, SECRETARY), also create matching Member account!
+    if (user.role === 'ADMIN' || user.role === 'TREASURER' || user.role === 'SECRETARY') {
+      const generatedMemberNo = `MB-${Math.floor(100000 + Math.random() * 900000)}`;
+      await prisma.member.create({
+        data: {
+          userId: user.id,
+          memberNumber: generatedMemberNo,
+          fullname: name.split('|NID:')[0],
+          phone: '+265888888888',
+          gender: 'MALE',
+          joinDate: new Date()
+        }
+      });
+    }
+
     res.status(201).json({ message: 'User created', userId: user.id });
   } catch (error) {
     res.status(400).json({ error: 'User already exists or invalid data' });
