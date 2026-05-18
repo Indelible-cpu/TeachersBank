@@ -94,3 +94,17 @@
 .custom-scrollbar:hover::-webkit-scrollbar-thumb {
   background-color: hsl(var(--primary) / 0.5);
 }
+
+/* Custom platform animations */
+@keyframes infinite-loading {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-infinite-loading {
+  animation: infinite-loading 1.5s infinite linear;
+}
