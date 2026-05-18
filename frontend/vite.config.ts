@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'icon-192x192.png', 'icon-512x512.png'],
       manifest: {
-        name: 'TEBAMS',
-        short_name: 'TEBAMS',
+        name: 'TeachersBank',
+        short_name: 'TeachersBank',
         description: 'Professional financial contribution and tracking platform',
         theme_color: '#0f172a',
         background_color: '#ffffff',

@@ -5,7 +5,7 @@ import type { Settings } from '../types/settings';
 import { SettingsContext } from './SettingsContextBase';
 
 const defaultSettings: Settings = {
-  systemName: 'TEBAMS',
+  systemName: 'TeachersBank',
   organizationName: 'Teachers Bank Management System',
   receiptFooter: 'Thank you for your contribution',
   defaultLanguage: 'en',

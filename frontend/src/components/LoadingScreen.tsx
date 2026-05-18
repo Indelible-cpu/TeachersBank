@@ -16,7 +16,7 @@ const LoadingScreen = () => {
 
         {/* Text cues */}
         <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-1 tracking-tight">
-          TEBAMS
+          TeachersBank
         </h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
           Loading platform assets...
