@@ -163,21 +163,39 @@ export const syncData = async (req: Request, res: Response) => {
 
           case 'settings':
             const { loanDurationRules, ...settingsData } = data;
-            // Serialize loanDurationRules JSON to contactDetails
+            
+            // Strip out frontend-only/incompatible keys to prevent prisma validation errors
+            const cleanSettingsPayload: any = {};
+            const allowedFields = [
+              'organizationName',
+              'systemName',
+              'logo',
+              'receiptFooter',
+              'defaultLanguage',
+              'interestPercentage',
+              'maturityMonths'
+            ];
+            
+            allowedFields.forEach(field => {
+              if (settingsData[field] !== undefined) {
+                cleanSettingsPayload[field] = settingsData[field];
+              }
+            });
+            
             if (loanDurationRules) {
-              settingsData.contactDetails = JSON.stringify(loanDurationRules);
+              cleanSettingsPayload.contactDetails = JSON.stringify(loanDurationRules);
             }
             
             const existingSettings = await prisma.settings.findFirst();
             if (existingSettings) {
               await prisma.settings.update({
                 where: { id: existingSettings.id },
-                data: settingsData
+                data: cleanSettingsPayload
               });
             } else {
               await prisma.settings.create({
                 data: {
-                  ...settingsData,
+                  ...cleanSettingsPayload,
                   id: 'global-settings'
                 }
               });

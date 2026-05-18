@@ -7,11 +7,13 @@ import { useTheme } from 'next-themes';
 import { authApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting } from '../services/db';
+import { useToast } from '../context/useToast';
 
 const Settings = () => {
   const { settings, updateSettings, isOnline } = useSettings();
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
+  const toast = useToast();
 
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
@@ -54,8 +56,14 @@ const Settings = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    await updateSettings(formData);
-    setTimeout(() => setIsSaving(false), 500);
+    try {
+      await updateSettings(formData);
+      toast.success('System settings saved successfully!');
+    } catch (err) {
+      toast.error('Failed to save settings');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -147,7 +147,13 @@ export const performSync = async () => {
       if (serverState.loans) await setSetting('loans', serverState.loans);
       if (serverState.repayments) await setSetting('repayments', serverState.repayments);
       if (serverState.receipts) await setSetting('receipts', serverState.receipts);
-      if (serverState.settings) await setSetting('global_settings', serverState.settings);
+      if (serverState.settings) {
+        const currentLocal = await getSetting('global_settings') || {};
+        await setSetting('global_settings', {
+          ...currentLocal,
+          ...serverState.settings
+        });
+      }
       if (serverState.staffCount !== undefined) await setSetting('staffCount', serverState.staffCount);
       
       // Clear queue on success
