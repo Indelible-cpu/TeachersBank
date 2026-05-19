@@ -147,6 +147,24 @@ export const syncData = async (req: Request, res: Response) => {
                 auditDetails = `Logged emergency contribution: Amount ${data.amount} for member ID: ${data.memberId}`;
               }
             }
+            if (action === 'UPDATE') {
+              const updateData = { ...cleanContribData };
+              delete updateData.id;
+              
+              if (data.type === 'SHARE') {
+                await prisma.shareContribution.update({
+                  where: { id: data.id },
+                  data: updateData
+                });
+                auditDetails = `Updated share contribution status for ID: ${data.id} to ${data.status}`;
+              } else {
+                await prisma.emergencyContribution.update({
+                  where: { id: data.id },
+                  data: updateData
+                });
+                auditDetails = `Updated emergency contribution status for ID: ${data.id} to ${data.status}`;
+              }
+            }
             break;
 
           case 'receipts':

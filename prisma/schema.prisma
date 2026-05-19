@@ -9,8 +9,8 @@ datasource db {
 
 model Settings {
   id                    String   @id @default(uuid())
-  organizationName      String   @default("Teachers Bank Tracking System")
-  systemName            String   @default("TBTS")
+  organizationName      String   @default("Teachers Bank Management System")
+  systemName            String   @default("TEBAMS")
   logo                  String?
   receiptFooter         String?
   contactDetails        String?

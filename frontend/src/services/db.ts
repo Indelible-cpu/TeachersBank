@@ -148,12 +148,10 @@ export const pullFromServer = async (): Promise<boolean> => {
     const response = await syncApi.sync([]);  // Empty queue = pure pull
     if (response.data?.serverState) {
       await applyServerState(response.data.serverState);
-      console.log('[TBTS] Pull-sync complete — local DB updated from Supabase');
       return true;
     }
     return false;
   } catch (error) {
-    console.error('[TBTS] Pull-sync failed:', error);
     return false;
   }
 };
