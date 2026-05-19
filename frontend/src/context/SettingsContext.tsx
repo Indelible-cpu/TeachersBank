@@ -82,16 +82,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     const updated = { ...settings, ...newSettings };
     setSettingsState(updated);
     await setSetting('global_settings', updated);
-
-    if (isOnline) {
-      try {
-        // await axios.put('/api/settings', updated);
-      } catch {
-        await addToSyncQueue('UPDATE', 'settings', updated);
-      }
-    } else {
-      await addToSyncQueue('UPDATE', 'settings', updated);
-    }
+    await addToSyncQueue('UPDATE', 'settings', updated);
   };
 
   return (
