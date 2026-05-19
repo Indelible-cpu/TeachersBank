@@ -55,8 +55,8 @@ const DashboardLayout = () => {
   return (
     <div className="min-h-screen bg-background flex text-foreground">
       {/* Sidebar - Desktop/Mobile */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass border-r transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out overflow-hidden select-none`}>
-        <div className="p-6 flex items-center gap-3 border-b border-border/50">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass border-r transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col select-none`}>
+        <div className="p-6 flex items-center gap-3 border-b border-border/50 flex-shrink-0">
           <Link to="/dashboard" className="flex items-center gap-3" onClick={closeSidebar}>
             <img 
               src="/icon-192x192.png" 
@@ -71,7 +71,7 @@ const DashboardLayout = () => {
         
 
 
-        <nav className="flex flex-col gap-1 px-4 overflow-hidden">
+        <nav className="flex-1 flex flex-col gap-1 px-4 py-4 overflow-y-auto min-h-0 scrollbar-none">
           {navItems.map((item) => {
             const isActive = location.pathname === item.to;
             return (
@@ -88,7 +88,7 @@ const DashboardLayout = () => {
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-border/50 bg-background/80 backdrop-blur-md">
+        <div className="p-3 border-t border-border/50 bg-background/80 backdrop-blur-md flex-shrink-0">
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-primary/10 transition-colors text-xs font-bold"
