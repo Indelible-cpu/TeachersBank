@@ -8,6 +8,14 @@ const Terms = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
 
+  const handleFacebookClick = (e: React.MouseEvent) => {
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    if (isAndroid) {
+      e.preventDefault();
+      window.location.href = "intent://facebook.com/JEFInvestment#Intent;package=com.facebook.lite;scheme=https;S.browser_fallback_url=https%3A%2F%2Fwww.facebook.com%2FJEFInvestment;end";
+    }
+  };
+
   const sections = [
     {
       title: t('terms.sec1_title'),
@@ -58,7 +66,7 @@ const Terms = () => {
             WhatsApp
           </a>
           {t('terms.sec10_body_3')}
-          <a href="https://www.facebook.com/JEFInvestment" target="_blank" rel="noopener noreferrer" className="text-[#1877F2] hover:underline font-bold">
+          <a href="https://www.facebook.com/JEFInvestment" target="_blank" rel="noopener noreferrer" onClick={handleFacebookClick} className="text-[#1877F2] hover:underline font-bold">
             Facebook
           </a>.
         </>

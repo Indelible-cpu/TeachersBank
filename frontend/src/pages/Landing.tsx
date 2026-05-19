@@ -17,6 +17,14 @@ const Landing = () => {
     i18n.changeLanguage(i18n.language.startsWith('en') ? 'ny' : 'en');
   };
 
+  const handleFacebookClick = (e: React.MouseEvent) => {
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    if (isAndroid) {
+      e.preventDefault();
+      window.location.href = "intent://facebook.com/JEFInvestment#Intent;package=com.facebook.lite;scheme=https;S.browser_fallback_url=https%3A%2F%2Fwww.facebook.com%2FJEFInvestment;end";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20">
       {/* Header */}
@@ -127,6 +135,7 @@ const Landing = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook"
+                  onClick={handleFacebookClick}
                   className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1877F2]/10 hover:bg-[#1877F2]/20 text-[#1877F2] transition-all duration-200 hover:scale-110"
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
