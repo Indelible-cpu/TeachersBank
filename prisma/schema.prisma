@@ -164,6 +164,11 @@ model Loan {
   dueDate        DateTime
   recordedBy     String
   
+  shareInterest  Float?
+  memberShares   Float?
+  confirmedBy    String?
+  confirmedAt    DateTime?
+  
   repayments     Repayment[]
   receipts       Receipt[]
   

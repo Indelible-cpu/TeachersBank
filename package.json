@@ -24,6 +24,6 @@
   },
   "scripts": {
     "build": "npm install --prefix frontend && npm run build --prefix frontend && mkdir -p public && cp -r frontend/dist/* public/",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate && prisma db push --accept-data-loss"
   }
 }
