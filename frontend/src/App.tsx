@@ -6,25 +6,37 @@ import DashboardLayout from './layouts/DashboardLayout';
 import InstallPrompt from './components/InstallPrompt';
 import LoadingScreen from './components/LoadingScreen';
 
+const safeLazy = (importFn: () => Promise<any>) => {
+  return lazy(async () => {
+    try {
+      return await importFn();
+    } catch (error) {
+      console.error("Failed to load chunk, performing a full reload to fetch latest assets:", error);
+      window.location.reload();
+      return new Promise(() => {}); // Keep loading state active during reload
+    }
+  });
+};
+
 // Lazy-loaded public pages for instant initial paint
-const Login = lazy(() => import('./pages/Login'));
-const About = lazy(() => import('./pages/About'));
-const Privacy = lazy(() => import('./pages/Privacy'));
-const Terms = lazy(() => import('./pages/Terms'));
-const FAQ = lazy(() => import('./pages/FAQ'));
+const Login = safeLazy(() => import('./pages/Login'));
+const About = safeLazy(() => import('./pages/About'));
+const Privacy = safeLazy(() => import('./pages/Privacy'));
+const Terms = safeLazy(() => import('./pages/Terms'));
+const FAQ = safeLazy(() => import('./pages/FAQ'));
 
 // Lazy-loaded administrative/dashboard modules (isolates large libraries like jsPDF and html2canvas)
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Settings = lazy(() => import('./pages/Settings'));
-const Members = lazy(() => import('./pages/Members'));
-const Contributions = lazy(() => import('./pages/Contributions'));
-const Loans = lazy(() => import('./pages/Loans'));
-const Repayments = lazy(() => import('./pages/Repayments'));
-const Receipts = lazy(() => import('./pages/Receipts'));
-const Reports = lazy(() => import('./pages/Reports'));
-const Users = lazy(() => import('./pages/Users'));
-const AuditTrail = lazy(() => import('./pages/AuditTrail'));
-const LoanConfigurations = lazy(() => import('./pages/LoanConfigurations'));
+const Dashboard = safeLazy(() => import('./pages/Dashboard'));
+const Settings = safeLazy(() => import('./pages/Settings'));
+const Members = safeLazy(() => import('./pages/Members'));
+const Contributions = safeLazy(() => import('./pages/Contributions'));
+const Loans = safeLazy(() => import('./pages/Loans'));
+const Repayments = safeLazy(() => import('./pages/Repayments'));
+const Receipts = safeLazy(() => import('./pages/Receipts'));
+const Reports = safeLazy(() => import('./pages/Reports'));
+const Users = safeLazy(() => import('./pages/Users'));
+const AuditTrail = safeLazy(() => import('./pages/AuditTrail'));
+const LoanConfigurations = safeLazy(() => import('./pages/LoanConfigurations'));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
