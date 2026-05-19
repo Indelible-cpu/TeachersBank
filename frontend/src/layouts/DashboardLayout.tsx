@@ -56,7 +56,7 @@ const DashboardLayout = () => {
     <div className="min-h-screen bg-background flex text-foreground">
       {/* Sidebar - Desktop/Mobile */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass border-r transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out overflow-hidden select-none`}>
-        <div className="p-6 flex items-center gap-3 border-b border-border/50">
+        <div className="p-6 lg:py-3.5 lg:px-6 flex items-center gap-3 border-b border-border/50">
           <Link to="/dashboard" className="flex items-center gap-3" onClick={closeSidebar}>
             <img 
               src="/icon-192x192.png" 
@@ -78,7 +78,7 @@ const DashboardLayout = () => {
               <Link 
                 key={item.to}
                 to={item.to} 
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${isActive ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]' : 'hover:bg-primary/10'}`}
+                className={`flex items-center gap-3 px-4 py-3 lg:py-2.5 rounded-xl transition-all font-medium ${isActive ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]' : 'hover:bg-primary/10'}`}
                 onClick={closeSidebar}
               >
                 <item.icon className={`w-5 h-5 ${isActive ? 'text-primary-foreground' : 'text-primary'}`} />
@@ -88,7 +88,7 @@ const DashboardLayout = () => {
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border/50 bg-background/80 backdrop-blur-md space-y-3">
+        <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-3 border-t border-border/50 bg-background/80 backdrop-blur-md space-y-3 lg:space-y-2">
           <div className="flex lg:hidden items-center gap-3 p-3 bg-primary/5 rounded-2xl border border-primary/10">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black">
               {profilePhoto ? (
