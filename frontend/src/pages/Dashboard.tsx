@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Wallet, CreditCard, ShieldAlert, CheckCircle2, TrendingUp, HandCoins } from 'lucide-react';
-import { getSetting } from '../services/db';
+import { getSetting, pullFromServer } from '../services/db';
 import { useSettings } from '../context/useSettings';
 
 interface DashboardStats {
@@ -57,102 +57,90 @@ const Dashboard = () => {
 
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
 
+  const loadData = async () => {
+    const contribs = (await getSetting('contributions') || []) as DBRecord[];
+    const loansList = (await getSetting('loans') || []) as Array<{ principal: number; expectedReturn: number; balance: number; status?: string; id?: string; timestamp?: string; confirmedBy?: string }>;
+    const membersList = await getSetting('members') || [];
+    const repaymentsList = (await getSetting('repayments') || []) as DBRecord[];
+    const staffCount = await getSetting('staffCount') || 0;
+
+    const confirmedShares = contribs.filter((c) => c.status === 'CONFIRMED' && c.type === 'SHARE');
+    const confirmedEmergency = contribs.filter((c) => c.status === 'CONFIRMED' && c.type === 'EMERGENCY');
+    const confirmedContribs = contribs.filter((c) => c.status === 'CONFIRMED');
+    const pendingContribs = contribs.filter((c) => c.status === 'PENDING');
+    const pendingRepayments = repaymentsList.filter((r) => r.status === 'PENDING');
+    const accumulatedInterest = loansList.reduce((acc, l) => acc + ((l.expectedReturn || 0) - (l.principal || 0)), 0);
+
+    const last6Months = Array.from({length: 6}, (_, i) => {
+      const d = new Date();
+      d.setMonth(d.getMonth() - (5 - i));
+      return { month: d.getMonth() + 1, year: d.getFullYear(), label: d.toLocaleString('default', { month: 'short' }) };
+    });
+    const chartAmounts = last6Months.map(m =>
+      confirmedContribs.filter(c => {
+        if (c.timestamp) { const date = new Date(c.timestamp); return date.getMonth() + 1 === m.month && date.getFullYear() === m.year; }
+        return false;
+      }).reduce((acc, c) => acc + (c.amount || 0), 0)
+    );
+    const maxAmount = Math.max(...chartAmounts, 1);
+    const chartData = chartAmounts.map((amount, i) => ({ label: last6Months[i].label, height: Math.max(5, Math.round((amount / maxAmount) * 100)), amount }));
+
+    setData({
+      contributions: confirmedShares.reduce((acc, c) => acc + (c.amount || 0), 0),
+      emergencyContributions: confirmedEmergency.reduce((acc, c) => acc + (c.amount || 0), 0),
+      loans: loansList.reduce((acc, l) => acc + (l.balance || 0), 0),
+      members: membersList.length,
+      pendingVerification: pendingContribs.length + pendingRepayments.length,
+      pendingAmount: pendingContribs.reduce((acc, c) => acc + (c.amount || 0), 0) + pendingRepayments.reduce((acc, r) => acc + (r.amount || 0), 0),
+      accumulatedInterest,
+      staffCount,
+      chartData
+    });
+
+    const activities: Activity[] = [];
+    confirmedContribs.forEach(c => activities.push({
+      id: c.id || Math.random().toString(),
+      title: c.type === 'EMERGENCY' ? t('dashboard_stats.emergency_contrib') : t('dashboard_stats.share_contrib'),
+      subtitle: c.confirmedBy ? `Verified by ${c.confirmedBy}` : t('dashboard_stats.system_verified'),
+      amount: c.amount || 0, timestamp: c.timestamp || new Date(0).toISOString(), isPositive: true
+    }));
+    const confirmedRepayments = repaymentsList.filter((r) => r.status === 'CONFIRMED');
+    confirmedRepayments.forEach(r => activities.push({
+      id: r.id || Math.random().toString(),
+      title: t('dashboard_stats.loan_repayment'),
+      subtitle: r.confirmedBy ? `Verified by ${r.confirmedBy}` : t('dashboard_stats.system_verified'),
+      amount: r.amount || 0, timestamp: r.timestamp || new Date(0).toISOString(), isPositive: true
+    }));
+    const approvedLoans = loansList.filter((l) => l.status === 'APPROVED');
+    approvedLoans.forEach((l) => activities.push({
+      id: l.id || Math.random().toString(),
+      title: t('dashboard_stats.loan_disbursement'),
+      subtitle: l.confirmedBy ? `Approved by ${l.confirmedBy}` : t('dashboard_stats.system_verified'),
+      amount: l.principal || 0, timestamp: l.timestamp || new Date(0).toISOString(), isPositive: false
+    }));
+    activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    setRecentActivities(activities.slice(0, 3));
+  };
+
   useEffect(() => {
-    (async () => {
-      const contribs = (await getSetting('contributions') || []) as DBRecord[];
-      const loansList = (await getSetting('loans') || []) as Array<{ principal: number; expectedReturn: number; balance: number; status?: string; id?: string; timestamp?: string; confirmedBy?: string }>;
-      const membersList = await getSetting('members') || [];
-      const repaymentsList = (await getSetting('repayments') || []) as DBRecord[];
-      const staffCount = await getSetting('staffCount') || 0;
+    // 1. Immediately load from local IndexedDB (instant render)
+    loadData();
 
-      const confirmedShares = contribs.filter((c) => c.status === 'CONFIRMED' && c.type === 'SHARE');
-      const confirmedEmergency = contribs.filter((c) => c.status === 'CONFIRMED' && c.type === 'EMERGENCY');
-      const pendingContribs = contribs.filter((c) => c.status === 'PENDING');
-      const pendingRepayments = repaymentsList.filter((r) => r.status === 'PENDING');
+    // 2. Pull fresh data from Supabase, then reload local display
+    if (navigator.onLine) {
+      pullFromServer().then(() => loadData()).catch(console.warn);
+    }
 
-      const accumulatedInterest = loansList.reduce((acc, l) => acc + ((l.expectedReturn || 0) - (l.principal || 0)), 0);
+    // 3. Auto-refresh every 30 seconds so any device stays live
+    const interval = setInterval(() => {
+      loadData();
+      if (navigator.onLine) {
+        pullFromServer().then(() => loadData()).catch(console.warn);
+      }
+    }, 30000);
 
-      const confirmedContribs = contribs.filter((c) => c.status === 'CONFIRMED');
-
-      const last6Months = Array.from({length: 6}, (_, i) => {
-        const d = new Date();
-        d.setMonth(d.getMonth() - (5 - i));
-        return {
-          month: d.getMonth() + 1,
-          year: d.getFullYear(),
-          label: d.toLocaleString('default', { month: 'short' })
-        };
-      });
-
-      const chartAmounts = last6Months.map(m => {
-        return confirmedContribs.filter(c => {
-          if (c.timestamp) {
-            const date = new Date(c.timestamp);
-            return date.getMonth() + 1 === m.month && date.getFullYear() === m.year;
-          }
-          return false;
-        }).reduce((acc, c) => acc + (c.amount || 0), 0);
-      });
-      const maxAmount = Math.max(...chartAmounts, 1);
-      const chartData = chartAmounts.map((amount, i) => ({
-        label: last6Months[i].label,
-        height: Math.max(5, Math.round((amount / maxAmount) * 100)),
-        amount
-      }));
-
-      setData({
-        contributions: confirmedShares.reduce((acc, c) => acc + (c.amount || 0), 0),
-        emergencyContributions: confirmedEmergency.reduce((acc, c) => acc + (c.amount || 0), 0),
-        loans: loansList.reduce((acc, l) => acc + (l.balance || 0), 0),
-        members: membersList.length,
-        pendingVerification: pendingContribs.length + pendingRepayments.length,
-        pendingAmount: pendingContribs.reduce((acc, c) => acc + (c.amount || 0), 0) + pendingRepayments.reduce((acc, r) => acc + (r.amount || 0), 0),
-        accumulatedInterest,
-        staffCount,
-        chartData
-      });
-
-      const activities: Activity[] = [];
-      
-      confirmedContribs.forEach(c => {
-        activities.push({
-          id: c.id || Math.random().toString(),
-          title: c.type === 'EMERGENCY' ? t('dashboard_stats.emergency_contrib') : t('dashboard_stats.share_contrib'),
-          subtitle: c.confirmedBy ? `Verified by ${c.confirmedBy}` : t('dashboard_stats.system_verified'),
-          amount: c.amount || 0,
-          timestamp: c.timestamp || new Date(0).toISOString(),
-          isPositive: true
-        });
-      });
-
-      const confirmedRepayments = repaymentsList.filter((r) => r.status === 'CONFIRMED');
-      confirmedRepayments.forEach(r => {
-        activities.push({
-          id: r.id || Math.random().toString(),
-          title: t('dashboard_stats.loan_repayment'),
-          subtitle: r.confirmedBy ? `Verified by ${r.confirmedBy}` : t('dashboard_stats.system_verified'),
-          amount: r.amount || 0,
-          timestamp: r.timestamp || new Date(0).toISOString(),
-          isPositive: true
-        });
-      });
-
-      const approvedLoans = loansList.filter((l) => l.status === 'APPROVED');
-      approvedLoans.forEach((l) => {
-        activities.push({
-          id: l.id || Math.random().toString(),
-          title: t('dashboard_stats.loan_disbursement'),
-          subtitle: l.confirmedBy ? `Approved by ${l.confirmedBy}` : t('dashboard_stats.system_verified'),
-          amount: l.principal || 0,
-          timestamp: l.timestamp || new Date(0).toISOString(),
-          isPositive: false
-        });
-      });
-
-      activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setRecentActivities(activities.slice(0, 3)); // Keep top 3
-
-    })();
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t]);
 
   const stats = [

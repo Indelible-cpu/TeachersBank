@@ -120,6 +120,44 @@ export const clearSyncQueue = async () => {
   await tx.done;
 };
 
+// Apply server state to local IndexedDB — the single source of reconciliation truth
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const applyServerState = async (serverState: any) => {
+  if (serverState.members) await setSetting('members', serverState.members);
+  if (serverState.loans) await setSetting('loans', serverState.loans);
+  if (serverState.repayments) await setSetting('repayments', serverState.repayments);
+  if (serverState.contributions) await setSetting('contributions', serverState.contributions);
+  if (serverState.receipts) await setSetting('receipts', serverState.receipts);
+  if (serverState.settings) {
+    const currentLocal = await getSetting('global_settings') || {};
+    await setSetting('global_settings', { ...currentLocal, ...serverState.settings });
+  }
+  if (serverState.staffCount !== undefined) await setSetting('staffCount', serverState.staffCount);
+};
+
+/**
+ * Called on every login — sends an EMPTY queue to the server.
+ * The server always replies with the full serverState, so the device
+ * immediately gets the latest truth from Supabase, even if it has
+ * nothing to push. This is the key cross-device sync mechanism.
+ */
+export const pullFromServer = async (): Promise<boolean> => {
+  const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+  if (!token || !navigator.onLine) return false;
+  try {
+    const response = await syncApi.sync([]);  // Empty queue = pure pull
+    if (response.data?.serverState) {
+      await applyServerState(response.data.serverState);
+      console.log('[TBTS] Pull-sync complete — local DB updated from Supabase');
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('[TBTS] Pull-sync failed:', error);
+    return false;
+  }
+};
+
 export const performSync = async () => {
   // Only sync if the user is authenticated (prevents 401 console errors on initial load)
   const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
@@ -140,23 +178,7 @@ export const performSync = async () => {
     const response = await syncApi.sync(mappedQueue);
     
     if (response.data && response.data.serverState) {
-      const { serverState } = response.data;
-      
-      // Update local active cache with server truth in the 'settings' store
-      if (serverState.members) await setSetting('members', serverState.members);
-      if (serverState.loans) await setSetting('loans', serverState.loans);
-      if (serverState.repayments) await setSetting('repayments', serverState.repayments);
-      if (serverState.contributions) await setSetting('contributions', serverState.contributions);
-      if (serverState.receipts) await setSetting('receipts', serverState.receipts);
-      if (serverState.settings) {
-        const currentLocal = await getSetting('global_settings') || {};
-        await setSetting('global_settings', {
-          ...currentLocal,
-          ...serverState.settings
-        });
-      }
-      if (serverState.staffCount !== undefined) await setSetting('staffCount', serverState.staffCount);
-      
+      await applyServerState(response.data.serverState);
       // Clear queue on success
       await clearSyncQueue();
       return true;

@@ -6,7 +6,7 @@ import { Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { authApi } from '../services/api';
-import { verifyOfflineCredentials, cacheOfflineCredentials } from '../services/db';
+import { verifyOfflineCredentials, cacheOfflineCredentials, pullFromServer, performSync } from '../services/db';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -56,8 +56,14 @@ const Login = () => {
           
           // Cache credentials locally for offline fallback
           await cacheOfflineCredentials(email, password, user, token);
-
           await login(token, user, rememberMe);
+
+          // CRITICAL: Pull latest data from Supabase before navigating.
+          // This ensures dashboard is populated even on a fresh device.
+          pullFromServer().catch(e => console.warn('Post-login pull failed:', e));
+          // Also flush any local pending queue
+          performSync().catch(e => console.warn('Post-login push failed:', e));
+
           navigate('/dashboard');
           return;
         } catch (networkErr: any) {
@@ -75,6 +81,9 @@ const Login = () => {
       if (cachedSession) {
         const { user, token } = cachedSession;
         await login(token, user, rememberMe);
+        // Still try to pull/push in background even on offline fallback
+        pullFromServer().catch(e => console.warn('Offline-mode pull failed:', e));
+        performSync().catch(e => console.warn('Offline-mode push failed:', e));
         navigate('/dashboard');
       } else {
         if (!isOnline) {
