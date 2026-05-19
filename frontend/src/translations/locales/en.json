@@ -214,6 +214,7 @@
     "loan_repayment": "Loan Repayment",
     "loan_disbursement": "Loan Disbursement",
     "emergency_contrib": "Emergency Contribution",
-    "share_contrib": "Share Contribution"
+    "share_contrib": "Share Contribution",
+    "verified_emergency": "Verified emergency"
   }
 }

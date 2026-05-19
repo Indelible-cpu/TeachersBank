@@ -8,12 +8,14 @@ import { useSettings } from '../context/useSettings';
 
 interface DashboardStats {
   contributions: number;
+  emergencyContributions: number;
   loans: number;
   members: number;
   pendingVerification: number;
   pendingAmount: number;
   accumulatedInterest: number;
   staffCount: number;
+  chartData: { label: string; height: number; amount: number }[];
 }
 
 interface DBRecord {
@@ -43,12 +45,14 @@ const Dashboard = () => {
   
   const [data, setData] = useState<DashboardStats>({
     contributions: 0,
+    emergencyContributions: 0,
     loans: 0,
     members: 0,
     pendingVerification: 0,
     pendingAmount: 0,
     accumulatedInterest: 0,
-    staffCount: 0
+    staffCount: 0,
+    chartData: []
   });
 
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
@@ -61,24 +65,56 @@ const Dashboard = () => {
       const repaymentsList = (await getSetting('repayments') || []) as DBRecord[];
       const staffCount = await getSetting('staffCount') || 0;
 
-      const confirmedContribs = contribs.filter((c) => c.status === 'CONFIRMED');
+      const confirmedShares = contribs.filter((c) => c.status === 'CONFIRMED' && c.type === 'SHARE');
+      const confirmedEmergency = contribs.filter((c) => c.status === 'CONFIRMED' && c.type === 'EMERGENCY');
       const pendingContribs = contribs.filter((c) => c.status === 'PENDING');
       const pendingRepayments = repaymentsList.filter((r) => r.status === 'PENDING');
 
       const accumulatedInterest = loansList.reduce((acc, l) => acc + ((l.expectedReturn || 0) - (l.principal || 0)), 0);
 
+      const confirmedContribs = contribs.filter((c) => c.status === 'CONFIRMED');
+
+      const last6Months = Array.from({length: 6}, (_, i) => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - (5 - i));
+        return {
+          month: d.getMonth() + 1,
+          year: d.getFullYear(),
+          label: d.toLocaleString('default', { month: 'short' })
+        };
+      });
+
+      const chartAmounts = last6Months.map(m => {
+        return confirmedContribs.filter(c => {
+          if (c.timestamp) {
+            const date = new Date(c.timestamp);
+            return date.getMonth() + 1 === m.month && date.getFullYear() === m.year;
+          }
+          return false;
+        }).reduce((acc, c) => acc + (c.amount || 0), 0);
+      });
+      const maxAmount = Math.max(...chartAmounts, 1);
+      const chartData = chartAmounts.map((amount, i) => ({
+        label: last6Months[i].label,
+        height: Math.max(5, Math.round((amount / maxAmount) * 100)),
+        amount
+      }));
+
       setData({
-        contributions: confirmedContribs.reduce((acc, c) => acc + (c.amount || 0), 0),
+        contributions: confirmedShares.reduce((acc, c) => acc + (c.amount || 0), 0),
+        emergencyContributions: confirmedEmergency.reduce((acc, c) => acc + (c.amount || 0), 0),
         loans: loansList.reduce((acc, l) => acc + (l.balance || 0), 0),
         members: membersList.length,
         pendingVerification: pendingContribs.length + pendingRepayments.length,
         pendingAmount: pendingContribs.reduce((acc, c) => acc + (c.amount || 0), 0) + pendingRepayments.reduce((acc, r) => acc + (r.amount || 0), 0),
         accumulatedInterest,
-        staffCount
+        staffCount,
+        chartData
       });
 
       const activities: Activity[] = [];
       
+      const confirmedContribs = contribs.filter((c) => c.status === 'CONFIRMED');
       confirmedContribs.forEach(c => {
         activities.push({
           id: c.id || Math.random().toString(),
@@ -122,6 +158,7 @@ const Dashboard = () => {
 
   const stats = [
     { title: t('dashboard_stats.verified_capital'), value: `${settings.currency} ${data.contributions.toLocaleString()}`, icon: Wallet, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { title: t('dashboard_stats.verified_emergency'), value: `${settings.currency} ${data.emergencyContributions.toLocaleString()}`, icon: ShieldAlert, color: 'text-rose-500', bg: 'bg-rose-500/10' },
     { title: t('dashboard_stats.active_loan_book'), value: `${settings.currency} ${data.loans.toLocaleString()}`, icon: CreditCard, color: 'text-blue-500', bg: 'bg-blue-500/10' },
     { title: t('dashboard_stats.accumulated_interest'), value: `${settings.currency} ${data.accumulatedInterest.toLocaleString()}`, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
     { title: t('dashboard_stats.in_transit'), value: `${settings.currency} ${data.pendingAmount.toLocaleString()}`, icon: HandCoins, color: 'text-amber-500', bg: 'bg-amber-500/10' }
@@ -150,7 +187,7 @@ const Dashboard = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
         {stats.map((stat, i) => (
           <motion.div
             key={i}
@@ -179,28 +216,31 @@ const Dashboard = () => {
           </div>
           <div className="h-48 flex items-end gap-4 px-4">
              {/* Monthly performance bars */}
-             {[60, 45, 80, 55, 90, 75].map((h, i) => (
+             {data.chartData.map((d, i) => (
                <div 
                  key={i} 
                  className="flex-1 bg-primary/20 rounded-t-xl relative group transition-all"
+                 title={`${d.label}: ${settings.currency} ${d.amount.toLocaleString()}`}
                >
                  <motion.div 
                     initial={{ height: 0 }}
-                    animate={{ height: `${h}%` }}
+                    animate={{ height: `${d.height}%` }}
                     transition={{ duration: 1, delay: i * 0.1, ease: "easeOut" }}
                     className="absolute bottom-0 left-0 right-0 bg-primary/40 rounded-t-xl" 
                  />
                  <motion.div 
                     initial={{ opacity: 0 }}
                     whileHover={{ opacity: 1 }}
-                    animate={{ height: `${h}%` }}
+                    animate={{ height: `${d.height}%` }}
                     className="absolute bottom-0 left-0 right-0 bg-primary rounded-t-xl"
                  />
                </div>
              ))}
           </div>
           <div className="flex justify-between text-[10px] font-bold text-muted-foreground capitalize tracking-widest px-2">
-            <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+            {data.chartData.map((d, i) => (
+              <span key={i}>{d.label}</span>
+            ))}
           </div>
         </div>
 
