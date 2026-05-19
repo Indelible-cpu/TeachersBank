@@ -56,7 +56,7 @@ const DashboardLayout = () => {
     <div className="min-h-screen bg-background flex text-foreground">
       {/* Sidebar - Desktop/Mobile */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass border-r transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out overflow-hidden select-none`}>
-        <div className="p-6 lg:py-3.5 lg:px-6 flex items-center gap-3 border-b border-border/50">
+        <div className="p-6 flex items-center gap-3 border-b border-border/50">
           <Link to="/dashboard" className="flex items-center gap-3" onClick={closeSidebar}>
             <img 
               src="/icon-192x192.png" 
@@ -78,7 +78,7 @@ const DashboardLayout = () => {
               <Link 
                 key={item.to}
                 to={item.to} 
-                className={`flex items-center gap-3 px-4 py-3 lg:py-2.5 rounded-xl transition-all font-medium ${isActive ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]' : 'hover:bg-primary/10'}`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${isActive ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]' : 'hover:bg-primary/10'}`}
                 onClick={closeSidebar}
               >
                 <item.icon className={`w-5 h-5 ${isActive ? 'text-primary-foreground' : 'text-primary'}`} />
@@ -88,9 +88,9 @@ const DashboardLayout = () => {
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-3 border-t border-border/50 bg-background/80 backdrop-blur-md space-y-3 lg:space-y-2">
-          <div className="flex lg:hidden items-center gap-3 p-3 bg-primary/5 rounded-2xl border border-primary/10">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black">
+        <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-border/50 bg-background/80 backdrop-blur-md space-y-2">
+          <div className="flex items-center gap-3 p-2 bg-primary/5 rounded-xl border border-primary/10">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black text-xs">
               {profilePhoto ? (
                 <img src={profilePhoto} alt="Profile" className="w-full h-full rounded-full object-cover" />
               ) : (
@@ -98,8 +98,8 @@ const DashboardLayout = () => {
               )}
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-bold truncate leading-tight">{user?.name}</p>
-              <span className="text-[9px] font-bold capitalize tracking-wider px-1.5 py-0.5 rounded bg-primary text-primary-foreground inline-block mt-0.5">
+              <p className="text-xs font-bold truncate leading-tight">{user?.name}</p>
+              <span className="text-[8px] font-bold capitalize tracking-wider px-1 py-0.25 rounded bg-primary text-primary-foreground inline-block mt-0.5">
                 {user?.role?.toLowerCase()}
               </span>
             </div>
@@ -107,14 +107,14 @@ const DashboardLayout = () => {
 
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-primary/10 transition-colors text-sm font-bold"
+            className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl hover:bg-primary/10 transition-colors text-xs font-bold"
           >
-            <span className="flex items-center gap-3">
-              {theme === 'dark' ? <Moon className="w-5 h-5 text-primary" /> : <Sun className="w-5 h-5 text-primary" />}
+            <span className="flex items-center gap-2">
+              {theme === 'dark' ? <Moon className="w-4 h-4 text-primary" /> : <Sun className="w-4 h-4 text-primary" />}
               {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
             </span>
-            <div className={`w-10 h-6 rounded-full p-1 transition-colors ${theme === 'dark' ? 'bg-primary' : 'bg-secondary'}`}>
-              <div className={`w-4 h-4 rounded-full bg-white transition-transform ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`} />
+            <div className={`w-8 h-5 rounded-full p-0.5 transition-colors ${theme === 'dark' ? 'bg-primary' : 'bg-secondary'}`}>
+              <div className={`w-3.5 h-3.5 rounded-full bg-white transition-transform ${theme === 'dark' ? 'translate-x-3' : 'translate-x-0'}`} />
             </div>
           </button>
         </div>
