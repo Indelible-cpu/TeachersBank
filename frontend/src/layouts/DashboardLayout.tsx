@@ -89,7 +89,7 @@ const DashboardLayout = () => {
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border/50 bg-background/80 backdrop-blur-md space-y-3">
-          <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-2xl border border-primary/10">
+          <div className="flex lg:hidden items-center gap-3 p-3 bg-primary/5 rounded-2xl border border-primary/10">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black">
               {profilePhoto ? (
                 <img src={profilePhoto} alt="Profile" className="w-full h-full rounded-full object-cover" />
