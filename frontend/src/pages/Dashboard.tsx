@@ -114,7 +114,6 @@ const Dashboard = () => {
 
       const activities: Activity[] = [];
       
-      const confirmedContribs = contribs.filter((c) => c.status === 'CONFIRMED');
       confirmedContribs.forEach(c => {
         activities.push({
           id: c.id || Math.random().toString(),
