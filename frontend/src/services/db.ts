@@ -151,7 +151,7 @@ export const pullFromServer = async (): Promise<boolean> => {
       return true;
     }
     return false;
-  } catch (error) {
+  } catch {
     return false;
   }
 };
