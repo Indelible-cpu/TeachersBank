@@ -20,6 +20,8 @@ interface Loan {
   timestamp: string;
   shareInterest?: number;    // Interest accumulated from member's share pool (for disbursement reports)
   memberShares?: number;     // Total confirmed shares at time of loan issuance
+  confirmedBy?: string;
+  confirmedAt?: string;
 }
 
 const Loans = () => {
@@ -193,7 +195,7 @@ const Loans = () => {
 
   const handleApproveLoan = async (loanId: string) => {
     if (isReadOnly || !canConfirm) return;
-    const updated = loans.map(l => l.id === loanId ? { ...l, status: 'APPROVED' as const } : l);
+    const updated = loans.map(l => l.id === loanId ? { ...l, status: 'APPROVED' as const, confirmedBy: user?.name, confirmedAt: new Date().toISOString() } : l);
     setLoans(updated);
     await setSetting('loans', updated);
     

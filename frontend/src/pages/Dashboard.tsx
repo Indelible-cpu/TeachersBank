@@ -24,6 +24,7 @@ interface DBRecord {
   status?: string;
   timestamp?: string;
   type?: string;
+  confirmedBy?: string;
 }
 
 interface Activity {
@@ -55,7 +56,7 @@ const Dashboard = () => {
   useEffect(() => {
     (async () => {
       const contribs = (await getSetting('contributions') || []) as DBRecord[];
-      const loansList = (await getSetting('loans') || []) as Array<{ principal: number; expectedReturn: number; balance: number }>;
+      const loansList = (await getSetting('loans') || []) as Array<{ principal: number; expectedReturn: number; balance: number; status?: string; id?: string; timestamp?: string; confirmedBy?: string }>;
       const membersList = await getSetting('members') || [];
       const repaymentsList = (await getSetting('repayments') || []) as DBRecord[];
       const staffCount = await getSetting('staffCount') || 0;
@@ -82,7 +83,7 @@ const Dashboard = () => {
         activities.push({
           id: c.id || Math.random().toString(),
           title: c.type === 'EMERGENCY' ? t('dashboard_stats.emergency_contrib') : t('dashboard_stats.share_contrib'),
-          subtitle: t('dashboard_stats.system_verified'),
+          subtitle: c.confirmedBy ? `Verified by ${c.confirmedBy}` : t('dashboard_stats.system_verified'),
           amount: c.amount || 0,
           timestamp: c.timestamp || new Date(0).toISOString(),
           isPositive: true
@@ -94,19 +95,19 @@ const Dashboard = () => {
         activities.push({
           id: r.id || Math.random().toString(),
           title: t('dashboard_stats.loan_repayment'),
-          subtitle: t('dashboard_stats.system_verified'),
+          subtitle: r.confirmedBy ? `Verified by ${r.confirmedBy}` : t('dashboard_stats.system_verified'),
           amount: r.amount || 0,
           timestamp: r.timestamp || new Date(0).toISOString(),
           isPositive: true
         });
       });
 
-      const approvedLoans = loansList.filter((l: any) => l.status === 'APPROVED');
-      approvedLoans.forEach((l: any) => {
+      const approvedLoans = loansList.filter((l) => l.status === 'APPROVED');
+      approvedLoans.forEach((l) => {
         activities.push({
           id: l.id || Math.random().toString(),
           title: t('dashboard_stats.loan_disbursement'),
-          subtitle: t('dashboard_stats.system_verified'),
+          subtitle: l.confirmedBy ? `Approved by ${l.confirmedBy}` : t('dashboard_stats.system_verified'),
           amount: l.principal || 0,
           timestamp: l.timestamp || new Date(0).toISOString(),
           isPositive: false
