@@ -180,8 +180,8 @@ const Contributions = () => {
     setContributions(updated);
     await setSetting('contributions', updated);
     
-    if (!isOnline) {
-      for (const rec of newRecords) await addToSyncQueue('CREATE', 'contributions', rec);
+    for (const rec of newRecords) {
+      await addToSyncQueue('CREATE', 'contributions', rec);
     }
     
     setIsModalOpen(false);
@@ -195,16 +195,26 @@ const Contributions = () => {
     );
     setContributions(updated);
     await setSetting('contributions', updated);
-    // API Sync logic...
+    
+    const contrib = updated.find(c => c.id === id);
+    if (contrib) {
+      await addToSyncQueue('UPDATE', 'contributions', contrib);
+    }
   };
 
   const handleVerifyAll = async () => {
     if (!canConfirm) return;
+    const pendingContribs = contributions.filter(c => c.status === 'PENDING');
     const updated = contributions.map(c => 
       c.status === 'PENDING' ? { ...c, status: 'CONFIRMED' as const, confirmedAt: new Date().toISOString(), confirmedBy: user?.name } : c
     );
     setContributions(updated);
     await setSetting('contributions', updated);
+
+    for (const c of pendingContribs) {
+      const confirmed = { ...c, status: 'CONFIRMED' as const, confirmedAt: new Date().toISOString(), confirmedBy: user?.name };
+      await addToSyncQueue('UPDATE', 'contributions', confirmed);
+    }
   };
 
   const pendingCount = contributions.filter(c => c.status === 'PENDING').length;
