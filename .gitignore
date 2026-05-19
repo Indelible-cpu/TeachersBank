@@ -5,3 +5,8 @@ build
 .DS_Store
 *.log
 .vercel
+api/**/*.js
+api/**/*.js.map
+backend/**/*.js
+backend/**/*.js.map
+

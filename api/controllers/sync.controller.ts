@@ -175,8 +175,14 @@ export const syncData = async (req: Request, res: Response) => {
             ];
             
             allowedFields.forEach(field => {
-              if (settingsData[field] !== undefined) {
-                cleanSettingsPayload[field] = settingsData[field];
+              if (settingsData[field] !== undefined && settingsData[field] !== null) {
+                if (field === 'interestPercentage') {
+                  cleanSettingsPayload[field] = parseFloat(settingsData[field]);
+                } else if (field === 'maturityMonths') {
+                  cleanSettingsPayload[field] = parseInt(settingsData[field], 10);
+                } else {
+                  cleanSettingsPayload[field] = settingsData[field];
+                }
               }
             });
             
