@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loadAuth();
   }, []);
 
-  const loadAuth = async () => {
+  async function loadAuth() {
     try {
       let storedToken = sessionStorage.getItem('auth_token');
       let storedUser: User | null = null;
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   const login = async (newToken: string, newUser: User, rememberMe = false) => {
     setToken(newToken);
@@ -119,6 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
