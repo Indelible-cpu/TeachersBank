@@ -29,7 +29,7 @@ const Loans = () => {
   const toast = useToast();
   const [loans, setLoans] = useState<Loan[]>([]);
   const [members, setMembers] = useState<Record<string, unknown>[]>([]);
-  const [contributions, setContributions] = useState<any[]>([]);
+  const [contributions, setContributions] = useState<Array<{ memberId: string; type: string; status: string; amount: number | string }>>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rejectingLoanId, setRejectingLoanId] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<'history' | 'verify'>('history');
