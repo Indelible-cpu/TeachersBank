@@ -88,7 +88,24 @@ const DashboardLayout = () => {
           })}
         </nav>
 
-        <div className="p-3 border-t border-border/50 bg-background/80 backdrop-blur-md flex-shrink-0">
+        <div className="p-3 border-t border-border/50 bg-background/80 backdrop-blur-md flex-shrink-0 space-y-2">
+          {/* Mobile Profile Card */}
+          <div className="flex lg:hidden items-center gap-3 p-2 bg-primary/5 rounded-xl border border-primary/10">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black text-xs">
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="Profile" className="w-full h-full rounded-full object-cover" />
+              ) : (
+                user?.name?.charAt(0)
+              )}
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-xs font-bold truncate leading-tight">{user?.name}</p>
+              <span className="text-[8px] font-bold capitalize tracking-wider px-1 py-0.25 rounded bg-primary text-primary-foreground inline-block mt-0.5">
+                {user?.role?.toLowerCase()}
+              </span>
+            </div>
+          </div>
+
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-primary/10 transition-colors text-xs font-bold"
