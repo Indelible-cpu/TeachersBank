@@ -96,8 +96,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // TREASURER has confirmation power
   const canConfirm = user?.role === 'TREASURER';
   
-  // SECRETARY and TREASURER can record finance
-  const canWriteFinance = user?.role === 'SECRETARY' || user?.role === 'TREASURER';
+  // SECRETARY can record finance
+  const canWriteFinance = user?.role === 'SECRETARY';
 
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
