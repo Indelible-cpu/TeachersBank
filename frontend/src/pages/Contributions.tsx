@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Wallet, HeartPulse, History, CheckCircle2, ShieldCheck, ShieldAlert, Clock, HandCoins } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
-import { getSetting, setSetting, addToSyncQueue } from '../services/db';
+import { getSetting, setSetting, addToSyncQueue, performSync } from '../services/db';
 import { useToast } from '../context/useToast';
 
 interface Member {
@@ -81,9 +81,34 @@ const Contributions = () => {
       if (cachedContribs && isMounted) {
         setContributions(cachedContribs);
       }
+
+      // Background sync to fetch fresh members from the server
+      if (navigator.onLine) {
+        try {
+          const synced = await performSync();
+          if (synced && isMounted) {
+            const freshMembers = await getSetting('members');
+            if (freshMembers) setMembers(freshMembers);
+            const freshContribs = await getSetting('contributions');
+            if (freshContribs) setContributions(freshContribs);
+          }
+        } catch (err) {
+          console.error('Failed to sync contributions', err);
+        }
+      }
     })();
     return () => { isMounted = false; };
   }, []);
+
+  // Fail-safe reactive loader when modal is opened
+  useEffect(() => {
+    if (isModalOpen) {
+      (async () => {
+        const cachedMembers = await getSetting('members');
+        if (cachedMembers) setMembers(cachedMembers);
+      })();
+    }
+  }, [isModalOpen]);
 
   const handleMemberChange = (id: string) => {
     const member = members.find(m => m.id === id);

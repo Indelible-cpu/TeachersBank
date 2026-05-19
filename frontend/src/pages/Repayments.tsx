@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Receipt, HandCoins, AlertCircle, ShieldCheck, CheckCircle2, History, ShieldAlert } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
-import { getSetting, setSetting, addToSyncQueue } from '../services/db';
+import { getSetting, setSetting, addToSyncQueue, performSync } from '../services/db';
 
 interface Repayment {
   id: string;
@@ -43,9 +43,38 @@ const Repayments = () => {
       if (cachedRepayments && isMounted) {
         setRepayments(cachedRepayments);
       }
+
+      // Background sync to fetch fresh loans from the server
+      if (navigator.onLine) {
+        try {
+          const synced = await performSync();
+          if (synced && isMounted) {
+            const freshLoans = await getSetting('loans');
+            if (freshLoans) {
+              setActiveLoans(freshLoans.filter((l: { balance: number }) => l.balance > 0));
+            }
+            const freshRepayments = await getSetting('repayments');
+            if (freshRepayments) setRepayments(freshRepayments);
+          }
+        } catch (err) {
+          console.error('Failed to sync repayments', err);
+        }
+      }
     })();
     return () => { isMounted = false; };
   }, []);
+
+  // Fail-safe reactive loader when modal is opened
+  useEffect(() => {
+    if (isModalOpen) {
+      (async () => {
+        const cachedLoans = await getSetting('loans');
+        if (cachedLoans) {
+          setActiveLoans(cachedLoans.filter((l: { balance: number }) => l.balance > 0));
+        }
+      })();
+    }
+  }, [isModalOpen]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

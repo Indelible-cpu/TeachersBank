@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, CreditCard, Banknote, Calendar, ShieldAlert, XCircle } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
-import { getSetting, setSetting, addToSyncQueue } from '../services/db';
+import { getSetting, setSetting, addToSyncQueue, performSync } from '../services/db';
 import { useToast } from '../context/useToast';
 
 interface Loan {
@@ -93,9 +93,38 @@ const Loans = () => {
       if (cachedContribs && isMounted) {
         setContributions(cachedContribs);
       }
+
+      // Background sync to fetch fresh members from the server
+      if (navigator.onLine) {
+        try {
+          const synced = await performSync();
+          if (synced && isMounted) {
+            const freshMembers = await getSetting('members');
+            if (freshMembers) setMembers(freshMembers);
+            const freshLoans = await getSetting('loans');
+            if (freshLoans) setLoans(freshLoans);
+            const freshContribs = await getSetting('contributions');
+            if (freshContribs) setContributions(freshContribs);
+          }
+        } catch (err) {
+          console.error('Failed to sync loans', err);
+        }
+      }
     })();
     return () => { isMounted = false; };
   }, []);
+
+  // Fail-safe reactive loader when modal is opened
+  useEffect(() => {
+    if (isModalOpen) {
+      (async () => {
+        const cachedMembers = await getSetting('members');
+        if (cachedMembers) setMembers(cachedMembers);
+        const cachedContribs = await getSetting('contributions') || [];
+        if (cachedContribs) setContributions(cachedContribs);
+      })();
+    }
+  }, [isModalOpen]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
