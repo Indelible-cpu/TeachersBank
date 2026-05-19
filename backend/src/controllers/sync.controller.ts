@@ -262,6 +262,33 @@ export const syncData = async (req: Request, res: Response) => {
       }
     }
 
+    // Ensure all Users have a corresponding Member record
+    const allUsers = await prisma.user.findMany({ include: { member: true } });
+    for (const u of allUsers) {
+      if (!u.member) {
+        // Generate a unique member number
+        const randomDigits = Math.floor(100000 + Math.random() * 900000);
+        const memberNo = `MBR-${randomDigits}`;
+        try {
+          await prisma.member.create({
+            data: {
+              userId: u.id,
+              memberNumber: memberNo,
+              fullname: u.name || 'Cooperative Member',
+              phone: '',
+              phone2: '',
+              gender: 'MALE',
+              address: '',
+              joinDate: new Date()
+            }
+          });
+          console.log(`Auto-created cooperative member record for user: ${u.email} (${memberNo})`);
+        } catch (err: any) {
+          console.error(`Failed to auto-create member for ${u.email}:`, err.message);
+        }
+      }
+    }
+
     const serverState = {
       members: await prisma.member.findMany(),
       loans: await prisma.loan.findMany(),
