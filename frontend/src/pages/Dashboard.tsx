@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Wallet, CreditCard, ShieldAlert, CheckCircle2, TrendingUp, HandCoins, Users as UsersIcon } from 'lucide-react';
+import { Wallet, CreditCard, ShieldAlert, CheckCircle2, TrendingUp, HandCoins } from 'lucide-react';
 import { getSetting } from '../services/db';
 import { useSettings } from '../context/useSettings';
 
@@ -118,7 +118,7 @@ const Dashboard = () => {
       setRecentActivities(activities.slice(0, 3)); // Keep top 3
 
     })();
-  }, []);
+  }, [t]);
 
   const stats = [
     { title: t('dashboard_stats.verified_capital'), value: `${settings.currency} ${data.contributions.toLocaleString()}`, icon: Wallet, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
