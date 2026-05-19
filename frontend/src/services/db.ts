@@ -146,6 +146,7 @@ export const performSync = async () => {
       if (serverState.members) await setSetting('members', serverState.members);
       if (serverState.loans) await setSetting('loans', serverState.loans);
       if (serverState.repayments) await setSetting('repayments', serverState.repayments);
+      if (serverState.contributions) await setSetting('contributions', serverState.contributions);
       if (serverState.receipts) await setSetting('receipts', serverState.receipts);
       if (serverState.settings) {
         const currentLocal = await getSetting('global_settings') || {};

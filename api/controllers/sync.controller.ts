@@ -260,10 +260,18 @@ export const syncData = async (req: Request, res: Response) => {
       }
     }
 
+    const shareContribs = await prisma.shareContribution.findMany();
+    const emergencyContribs = await prisma.emergencyContribution.findMany();
+    const allContributions = [
+      ...shareContribs.map(c => ({ ...c, type: 'SHARE' })),
+      ...emergencyContribs.map(c => ({ ...c, type: 'EMERGENCY' }))
+    ];
+
     const serverState = {
       members: await prisma.member.findMany(),
       loans: await prisma.loan.findMany(),
       repayments: await prisma.repayment.findMany(),
+      contributions: allContributions,
       receipts: await prisma.receipt.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
       settings: cleanSettings,
       staffCount: await prisma.user.count({
