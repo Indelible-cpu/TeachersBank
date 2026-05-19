@@ -57,7 +57,12 @@ const Settings = () => {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await updateSettings(formData);
+      const sanitized = {
+        ...formData,
+        interestPercentage: Number(formData.interestPercentage) || 0,
+        maturityMonths: Number(formData.maturityMonths) || 0
+      };
+      await updateSettings(sanitized);
       toast.success('System settings saved successfully!');
     } catch (err) {
       toast.error('Failed to save settings');
@@ -283,8 +288,11 @@ const Settings = () => {
                 id="interestPercentage"
                 type="number"
                 name="interestPercentage"
-                value={formData.interestPercentage}
-                onChange={(e) => setFormData({ ...formData, interestPercentage: parseFloat(e.target.value) })}
+                value={formData.interestPercentage === undefined || formData.interestPercentage === null || Number.isNaN(formData.interestPercentage) ? '' : formData.interestPercentage}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({ ...formData, interestPercentage: val === '' ? '' : parseFloat(val) } as any);
+                }}
                 className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
               />
             </div>
@@ -295,8 +303,11 @@ const Settings = () => {
                 id="maturityMonths"
                 type="number"
                 name="maturityMonths"
-                value={formData.maturityMonths}
-                onChange={(e) => setFormData({ ...formData, maturityMonths: parseInt(e.target.value) })}
+                value={formData.maturityMonths === undefined || formData.maturityMonths === null || Number.isNaN(formData.maturityMonths) ? '' : formData.maturityMonths}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({ ...formData, maturityMonths: val === '' ? '' : parseInt(val, 10) } as any);
+                }}
                 className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
               />
             </div>
