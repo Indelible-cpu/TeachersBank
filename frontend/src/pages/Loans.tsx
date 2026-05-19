@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, CreditCard, Banknote, Calendar, ShieldAlert, XCircle } from 'lucide-react';
+import { Plus, CreditCard, Banknote, Calendar, ShieldAlert, XCircle, History, ShieldCheck } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting, addToSyncQueue, performSync } from '../services/db';
@@ -32,6 +32,7 @@ const Loans = () => {
   const [contributions, setContributions] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rejectingLoanId, setRejectingLoanId] = useState<string | null>(null);
+  const [activeView, setActiveView] = useState<'history' | 'verify'>('history');
   
   const rules = settings.loanDurationRules || [
     { id: '1', minAmount: 5000, maxAmount: 50000, durationMonths: 3 },
@@ -212,6 +213,9 @@ const Loans = () => {
     return <div className="p-8 text-center font-black text-rose-500 text-lg">Access Denied: Administrators do not have access to the Loan Management page.</div>;
   }
 
+  const pendingCount = loans.filter(l => l.status === 'PENDING').length;
+  const filteredLoans = activeView === 'verify' ? loans.filter(l => l.status === 'PENDING') : loans;
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
@@ -229,12 +233,32 @@ const Loans = () => {
             {t('loans.create_loan')}
           </button>
         )}
+      </div>
 
-
+      <div className="flex p-1.5 glass rounded-2xl w-fit">
+        <button 
+          onClick={() => setActiveView('history')}
+          className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold text-xs transition-all ${activeView === 'history' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
+        >
+          <History className="w-4 h-4" /> All Loans
+        </button>
+        {canConfirm && (
+          <button 
+            onClick={() => setActiveView('verify')}
+            className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold text-xs transition-all relative ${activeView === 'verify' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
+          >
+            <ShieldCheck className="w-4 h-4" /> Verification queue
+            {pendingCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white rounded-full flex items-center justify-center text-[10px] font-black border-2 border-background">
+                {pendingCount}
+              </span>
+            )}
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {loans.map((loan) => (
+        {filteredLoans.map((loan) => (
           <motion.div 
             key={loan.id}
             initial={{ opacity: 0, y: 20 }}
