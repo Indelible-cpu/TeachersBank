@@ -102,7 +102,7 @@
     "hero_tag": "Empowering Educators' Cooperatives",
     "hero_title_1": "Securing Futures,",
     "hero_title_2": "Transparently.",
-    "hero_desc": "Welcome to the official cooperative management portal. We facilitate collaborative financial pools, low-interest credit unions, and secure auditing utilizing a dual-control workflow structure.",
+    "hero_desc": "Welcome to the official cooperative management platform. We facilitate collaborative financial pools, low-interest credit unions, and secure auditing utilizing a dual-control workflow structure.",
     "btn_learn_more": "Learn More",
     "btn_show_less": "Show Less",
     "live_status": "TEBAMS Live Pool Status",
@@ -142,7 +142,7 @@
     "faq_q6": "How secure is my financial data in this system?",
     "faq_a6": "TEBAMS employs multiple layers of security, including role-based routing barriers, cryptographic hashing of passwords, and secure session management. Crucially, the dual-control model ensures no single individual can record and approve transactions alone, blocking internal fraud.",
     "faq_q7": "Who is eligible to use the system?",
-    "faq_a7": "TEBAMS is specifically designed for teachers' savings cooperatives, credit unions, and educator-led financial pools. Registered educators, school coordinators, secretaries, treasurers, and cooperative administrators are fully eligible to access their respective secure portals.",
+    "faq_a7": "TEBAMS is specifically designed for teachers' savings cooperatives, credit unions, and educator-led financial pools. Registered educators, school coordinators, secretaries, treasurers, and cooperative administrators are fully eligible to access their respective secure platforms.",
     "faq_q8": "What is the step-by-step workflow per system role?",
     "faq_a8": "The workflow is role-based: 1) Admin configures cooperative terms, dynamic currencies, and manages system users. 2) Secretary registers members, logs contributions, records loan requests, and repayments (marked as pending). 3) Treasurer verifies pending transactions, approves loans, and confirms cash payouts. 4) Member audits personal share logs, active loans, and downloads real-time PDF receipts."
   },
