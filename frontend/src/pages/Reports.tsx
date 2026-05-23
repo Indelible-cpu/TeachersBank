@@ -134,9 +134,6 @@ const Reports = () => {
       } else {
         // Fallback to download if Web Share API doesn't support files
         html2pdf().set(pdfOptions).from(reportRef.current).save();
-        if (platform === 'whatsapp') {
-          toast.info('Report downloaded. Please attach it directly in WhatsApp.');
-          window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' (Please find attached PDF)')}`, '_blank');
         } else {
           toast.info('File sharing not supported on this browser. Downloading PDF instead.');
         }
@@ -170,12 +167,7 @@ const Reports = () => {
             <button onClick={() => handleShare()} className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20">
               <Share2 className="w-4 h-4" /> Share
             </button>
-            <button 
-              onClick={() => handleShare('whatsapp')} 
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#25D366] text-white font-bold rounded-xl hover:bg-[#128C7E] transition-all shadow-lg shadow-[#25D366]/20"
-            >
-              <MessageCircle className="w-4 h-4" /> WhatsApp
-            </button>
+
           </div>
         </div>
 
@@ -214,7 +206,7 @@ const Reports = () => {
           <img src="/icon-192x192.png" alt="Logo" className="h-20 mb-6 object-contain" />
           <h1 className="text-4xl font-bold text-primary tracking-tight mb-2">{settings.organizationName || 'Teachers Bank'}</h1>
           
-          <div className="flex flex-wrap justify-center gap-4 text-[10px] font-semibold capitalize tracking-widest text-gray-400">
+          <div className="flex flex-wrap justify-center gap-4 text-[10px] font-semibold capitalize tracking-widest text-gray-600">
             <span>Period: {selectedMonth}</span>
             <span className="w-1.5 h-1.5 bg-gray-200 rounded-full my-auto"></span>
             <span>Generated: {new Date().toLocaleDateString()}</span>
@@ -264,10 +256,10 @@ const Reports = () => {
               <tbody className="divide-y divide-gray-100">
                 {filteredContributions.map((c, i) => (
                   <tr key={i} className="text-xs font-bold">
-                    <td className="py-4 text-gray-400">{new Date(c.timestamp).toLocaleDateString()}</td>
+                    <td className="py-4 text-gray-600">{new Date(c.timestamp).toLocaleDateString()}</td>
                     {reportType === 'FULL' && <td className="py-4">{c.memberName}</td>}
                     <td className="py-4 uppercase tracking-tighter text-[10px]">{c.type}</td>
-                    <td className="py-4 text-gray-400">{c.monthName} {c.year}</td>
+                    <td className="py-4 text-gray-600">{c.monthName} {c.year}</td>
                     <td className="py-4 text-right font-black">{c.amount.toLocaleString()}</td>
                   </tr>
                 ))}

@@ -318,17 +318,7 @@ const Settings = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="receiptFooter" className="text-sm font-medium">{t('settings.receipt_footer')}</label>
-              <input
-                id="receiptFooter"
-                type="text"
-                name="receiptFooter"
-                value={formData.receiptFooter}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
-              />
-            </div>
+
 
             <div className="space-y-2">
               <label htmlFor="themeSelect" className="text-sm font-medium">Theme</label>

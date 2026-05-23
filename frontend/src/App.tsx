@@ -32,7 +32,7 @@ const Members = safeLazy(() => import('./pages/Members'));
 const Contributions = safeLazy(() => import('./pages/Contributions'));
 const Loans = safeLazy(() => import('./pages/Loans'));
 const Repayments = safeLazy(() => import('./pages/Repayments'));
-const Receipts = safeLazy(() => import('./pages/Receipts'));
+
 const Reports = safeLazy(() => import('./pages/Reports'));
 const Users = safeLazy(() => import('./pages/Users'));
 const AuditTrail = safeLazy(() => import('./pages/AuditTrail'));
@@ -69,7 +69,7 @@ function App() {
             <Route path="contributions" element={<Contributions />} />
             <Route path="loans" element={<Loans />} />
             <Route path="repayments" element={<Repayments />} />
-            <Route path="receipts" element={<Receipts />} />
+
             <Route path="reports" element={<Reports />} />
             <Route path="users" element={<Users />} />
             <Route path="loan-configurations" element={<LoanConfigurations />} />

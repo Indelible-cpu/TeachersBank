@@ -15,7 +15,7 @@ interface DashboardStats {
   pendingAmount: number;
   accumulatedInterest: number;
   staffCount: number;
-  receiptsCount: number;
+
   chartData: { label: string; height: number; amount: number }[];
 }
 
@@ -53,7 +53,7 @@ const Dashboard = () => {
     pendingAmount: 0,
     accumulatedInterest: 0,
     staffCount: 0,
-    receiptsCount: 0,
+
     chartData: []
   });
 
@@ -64,7 +64,7 @@ const Dashboard = () => {
     const loansList = (await getSetting('loans') || []) as Array<{ principal: number; expectedReturn: number; balance: number; status?: string; id?: string; timestamp?: string; confirmedBy?: string }>;
     const membersList = await getSetting('members') || [];
     const repaymentsList = (await getSetting('repayments') || []) as DBRecord[];
-    const receiptsList = await getSetting('receipts') || [];
+
     const staffCount = await getSetting('staffCount') || 0;
 
     const confirmedShares = contribs.filter((c) => c.status === 'CONFIRMED' && c.type === 'SHARE');
@@ -97,7 +97,7 @@ const Dashboard = () => {
       pendingAmount: pendingContribs.reduce((acc, c) => acc + (Number(c.amount) || 0), 0) + pendingRepayments.reduce((acc, r) => acc + (Number(r.amount) || 0), 0),
       accumulatedInterest,
       staffCount,
-      receiptsCount: receiptsList.length,
+
       chartData
     });
 
@@ -153,7 +153,7 @@ const Dashboard = () => {
     { title: t('dashboard_stats.active_loan_book'), value: `${settings.currency} ${data.loans.toLocaleString()}`, icon: CreditCard, color: 'text-blue-500', bg: 'bg-blue-500/10' },
     { title: t('dashboard_stats.accumulated_interest'), value: `${settings.currency} ${data.accumulatedInterest.toLocaleString()}`, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
     { title: t('dashboard_stats.in_transit'), value: `${settings.currency} ${data.pendingAmount.toLocaleString()}`, icon: HandCoins, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-    { title: 'Receipts Issued', value: data.receiptsCount.toLocaleString(), icon: Receipt, color: 'text-indigo-500', bg: 'bg-indigo-500/10' }
+
   ];
 
   return (
