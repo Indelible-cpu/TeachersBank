@@ -2,6 +2,52 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../prisma';
 
+export const masterReset = async (req: Request, res: Response) => {
+  try {
+    const { reason, password } = req.body;
+    const user = (req as any).user;
+    
+    if (user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Only administrators can perform a master reset.' });
+    }
+    
+    if (!reason || !password) {
+      return res.status(400).json({ error: 'A valid reason and your password are required.' });
+    }
+
+    const adminRecord = await prisma.user.findUnique({ where: { id: user.id } });
+    if (!adminRecord) return res.status(404).json({ error: 'Admin user not found' });
+
+    const isValid = await bcrypt.compare(password, adminRecord.password);
+    if (!isValid) return res.status(401).json({ error: 'Invalid password. Reset aborted.' });
+
+    // Wipe tables (financials + members)
+    await prisma.receipt.deleteMany();
+    await prisma.repayment.deleteMany();
+    await prisma.loan.deleteMany();
+    await prisma.shareContribution.deleteMany();
+    await prisma.emergencyContribution.deleteMany();
+    await prisma.member.deleteMany();
+    await prisma.auditLog.deleteMany();
+
+    // Log the action itself
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        userRole: user.role,
+        action: 'MASTER_RESET',
+        details: `Master reset performed. Reason: ${reason}`,
+        status: 'SUCCESS'
+      }
+    });
+
+    res.json({ message: 'Master reset completed successfully.' });
+  } catch (error: any) {
+    console.error('Master Reset Error:', error);
+    res.status(500).json({ error: 'Internal Server Error during master reset' });
+  }
+};
+
 export const syncData = async (req: Request, res: Response) => {
   try {
     const { queue } = req.body; // Array of offline actions

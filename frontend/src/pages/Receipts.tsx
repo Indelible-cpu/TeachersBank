@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Receipt as ReceiptIcon, Printer, Share2, X, Download } from 'lucide-react';
+import { Receipt as ReceiptIcon, Printer, Share2, X, Download, MessageCircle } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import { useRef } from 'react';
 import { useSettings } from '../context/useSettings';
@@ -26,13 +26,16 @@ const Receipts = () => {
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
   const receiptRef = useRef<HTMLDivElement>(null);
 
-  const generatePDFOptions = (receiptNumber: string) => ({
-    margin: 5,
-    filename: `Receipt_${receiptNumber}.pdf`,
-    image: { type: 'jpeg' as const, quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm' as const, format: 'a5' as const, orientation: 'landscape' as const }
-  });
+  const generatePDFOptions = (receiptNumber: string, memberName: string) => {
+    const safeMemberName = memberName.replace(/[^a-zA-Z0-9_-]/g, '_');
+    return {
+      margin: 5,
+      filename: `Receipt_${safeMemberName}_${receiptNumber}.pdf`,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm' as const, format: 'a5' as const, orientation: 'landscape' as const }
+    };
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -49,34 +52,42 @@ const Receipts = () => {
     window.print();
   };
 
-  const handleDownloadPDF = () => {
-    if (!receiptRef.current || !selectedReceipt) return;
-    html2pdf().set(generatePDFOptions(selectedReceipt.receiptNumber)).from(receiptRef.current).save();
+  const handleDownloadPDF = (receipt: ReceiptData) => {
+    if (!receiptRef.current) return;
+    html2pdf().set(generatePDFOptions(receipt.receiptNumber, receipt.memberName)).from(receiptRef.current).save();
   };
 
-  const handleShare = async (receipt: ReceiptData, format: 'pdf' | 'image' = 'pdf') => {
+  const handleShare = async (receipt: ReceiptData, format: 'pdf' | 'image' = 'pdf', platform?: 'whatsapp') => {
     if (!receiptRef.current) return;
     
     try {
       let file: File;
+      const safeMemberName = receipt.memberName.replace(/[^a-zA-Z0-9_-]/g, '_');
       if (format === 'pdf') {
-        const pdfBlob = await html2pdf().set(generatePDFOptions(receipt.receiptNumber)).from(receiptRef.current).output('blob');
-        file = new File([pdfBlob], `Receipt_${receipt.receiptNumber}.pdf`, { type: 'application/pdf' });
+        const pdfBlob = await html2pdf().set(generatePDFOptions(receipt.receiptNumber, receipt.memberName)).from(receiptRef.current).output('blob');
+        file = new File([pdfBlob], `Receipt_${safeMemberName}_${receipt.receiptNumber}.pdf`, { type: 'application/pdf' });
       } else {
         const canvas = await (await import('html2canvas')).default(receiptRef.current);
         const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), 'image/png'));
-        file = new File([blob], `Receipt_${receipt.receiptNumber}.png`, { type: 'image/png' });
+        file = new File([blob], `Receipt_${safeMemberName}_${receipt.receiptNumber}.png`, { type: 'image/png' });
       }
       
+      const shareText = `Official Receipt for ${receipt.memberName} - MWK ${receipt.amount.toLocaleString()} from ${settings.organizationName || 'Teachers Bank'}`;
+
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
           title: 'Official Receipt',
-          text: `Receipt for ${receipt.memberName} - MWK ${receipt.amount.toLocaleString()}`
+          text: shareText
         });
       } else {
-        handleDownloadPDF();
-        toast.info('File sharing not supported. Document downloaded instead.');
+        handleDownloadPDF(receipt);
+        if (platform === 'whatsapp') {
+          toast.info('Receipt downloaded. Please attach it directly in WhatsApp.');
+          window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' (Please find attached PDF)')}`, '_blank');
+        } else {
+          toast.info('File sharing not supported. Document downloaded instead.');
+        }
       }
     } catch (error) {
       console.error('Error sharing receipt', error);
@@ -192,7 +203,7 @@ const Receipts = () => {
                 </p>
               </div>
 
-              <div className="mt-10 grid grid-cols-3 gap-4 print:hidden">
+              <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4 print:hidden">
                 <button 
                   onClick={handlePrint}
                   className="flex flex-col items-center gap-2 py-4 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold rounded-3xl transition-all"
@@ -209,12 +220,20 @@ const Receipts = () => {
                   <span className="text-[10px] capitalize">Share PDF</span>
                 </button>
                 <button 
-                  title="Share Image"
+                  title="Share via Device"
                   onClick={() => handleShare(selectedReceipt, 'image')}
-                  className="flex flex-col items-center gap-2 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-3xl transition-all shadow-xl shadow-green-500/20"
+                  className="flex flex-col items-center gap-2 py-4 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold rounded-3xl transition-all"
                 >
                   <Share2 className="w-5 h-5" />
-                  <span className="text-[10px] capitalize">Share Image</span>
+                  <span className="text-[10px] capitalize">Share</span>
+                </button>
+                <button 
+                  title="WhatsApp"
+                  onClick={() => handleShare(selectedReceipt, 'pdf', 'whatsapp')}
+                  className="flex flex-col items-center gap-2 py-4 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold rounded-3xl transition-all shadow-xl shadow-[#25D366]/20"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  <span className="text-[10px] capitalize">WhatsApp</span>
                 </button>
               </div>
             </motion.div>

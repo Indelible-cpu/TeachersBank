@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Save, AlertCircle, Lock, Eye, EyeOff, ShieldCheck, Camera, Trash2 } from 'lucide-react';
-import { useTheme } from 'next-themes';
-import { authApi, webauthnApi } from '../services/api';
+import { Save, AlertCircle, Lock, Eye, EyeOff, ShieldCheck, Camera, Trash2, Fingerprint } from 'lucide-react';
+import { authApi, syncApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { getSetting, setSetting } from '../services/db';
+import { getSetting, setSetting, pullFromServer } from '../services/db';
 import { useToast } from '../context/useToast';
 import { startRegistration } from '@simplewebauthn/browser';
+import { useTheme } from 'next-themes';
 
 const Settings = () => {
   const { settings, updateSettings, isOnline } = useSettings();
@@ -23,7 +23,9 @@ const Settings = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [showRemoveOption, setShowRemoveOption] = useState(false);
-  const [isSettingUpBiometric, setIsSettingUpBiometric] = useState(false);
+  const [showMasterReset, setShowMasterReset] = useState(false);
+  const [resetData, setResetData] = useState({ reason: '', password: '' });
+  const [isResetting, setIsResetting] = useState(false);
 
   React.useEffect(() => {
     (async () => {
@@ -127,31 +129,66 @@ const Settings = () => {
     }
   };
 
-  const handleBiometricSetup = async () => {
-    setIsSettingUpBiometric(true);
+  const togglePasswordVisibility = (field: 'current' | 'new' | 'confirm') => {
+    setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
+  };
+
+  const [isRegisteringBiometric, setIsRegisteringBiometric] = useState(false);
+  const handleRegisterBiometric = async () => {
+    if (!isOnline) {
+      toast.error('You must be online to set up biometric sign-in');
+      return;
+    }
+    setIsRegisteringBiometric(true);
     try {
-      const resp = await webauthnApi.generateRegistrationOptions();
+      const resp = await authApi.generateRegOptions();
       const options = resp.data;
       
-      const attResp = await startRegistration(options);
+      const attResp = await startRegistration({ optionsJSON: options });
       
-      await webauthnApi.verifyRegistration(attResp);
+      await authApi.verifyRegResponse(attResp);
       
-      toast.success('Biometric sign-in enabled successfully!');
+      toast.success('Biometric login set up successfully!');
     } catch (err: any) {
       console.error(err);
       if (err.name === 'NotAllowedError') {
-        toast.error('Biometric setup cancelled or not allowed');
+        toast.error('Registration cancelled or not allowed');
+      } else if (err.response?.data?.error) {
+        toast.error(err.response.data.error);
       } else {
-        toast.error('Failed to set up biometric sign-in');
+        toast.error('Failed to set up biometric login');
       }
     } finally {
-      setIsSettingUpBiometric(false);
+      setIsRegisteringBiometric(false);
     }
   };
 
-  const togglePasswordVisibility = (field: 'current' | 'new' | 'confirm') => {
-    setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
+  const handleMasterReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetData.reason || !resetData.password) {
+      toast.error('Reason and password are required.');
+      return;
+    }
+    
+    setIsResetting(true);
+    try {
+      await syncApi.masterReset(resetData);
+      
+      // Pull fresh data (which is now mostly empty) to update local IndexedDB
+      await pullFromServer();
+      
+      toast.success('Master Reset completed successfully.');
+      setShowMasterReset(false);
+      setResetData({ reason: '', password: '' });
+      
+      // Optionally reload the window so the dashboard reflects empty state immediately
+      window.location.href = '/dashboard';
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.error || 'Master Reset failed.');
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   return (
@@ -362,6 +399,26 @@ const Settings = () => {
             </button>
           </div>
         </form>
+
+        <div className="mt-8 pt-8 border-t border-destructive/20">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 bg-destructive/5 border border-destructive/20 rounded-2xl">
+            <div>
+              <h3 className="text-lg font-bold text-destructive flex items-center gap-2">
+                <AlertCircle className="w-5 h-5" />
+                Master Reset
+              </h3>
+              <p className="text-sm text-destructive/80 mt-1 max-w-lg">
+                Permanently deletes all members, contributions, loans, and financial records. User accounts and system settings will remain intact.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowMasterReset(true)}
+              className="flex-shrink-0 px-6 py-3 bg-destructive text-white font-bold rounded-xl hover:bg-destructive/90 transition-all shadow-lg shadow-destructive/20"
+            >
+              Master Reset
+            </button>
+          </div>
+        </div>
       </motion.div>
       )}
 
@@ -391,21 +448,6 @@ const Settings = () => {
             {passwordSuccess}
           </div>
         )}
-
-        <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-xl border border-border/50 mb-6">
-          <div className="flex flex-col gap-1">
-            <h3 className="text-sm font-bold flex items-center gap-2">Biometric Sign-in</h3>
-            <p className="text-[10px] text-muted-foreground">Sign in with Fingerprint, Face ID, or Windows Hello.</p>
-          </div>
-          <button
-            type="button"
-            onClick={handleBiometricSetup}
-            disabled={isSettingUpBiometric || !isOnline}
-            className="px-4 py-2 bg-primary/10 text-primary rounded-xl font-bold text-xs hover:bg-primary/20 transition-all disabled:opacity-50"
-          >
-            {isSettingUpBiometric ? 'Setting up...' : 'Set up Biometric'}
-          </button>
-        </div>
 
         <form onSubmit={handlePasswordChange} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -491,6 +533,108 @@ const Settings = () => {
           </div>
         </form>
       </motion.div>
+
+      {/* Biometric Login Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass rounded-2xl p-6 md:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+      >
+        <div>
+          <h2 className="text-xl font-semibold flex items-center gap-3 mb-2">
+            <Fingerprint className="w-6 h-6 text-primary" />
+            Biometric Sign-in
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Set up Fingerprint, Face ID, or Windows Hello to sign in instantly without a password.
+          </p>
+        </div>
+        <button
+          onClick={handleRegisterBiometric}
+          disabled={isRegisteringBiometric || !isOnline}
+          className="flex-shrink-0 flex items-center gap-2 px-6 py-3 bg-secondary text-foreground font-medium rounded-xl hover:bg-secondary/80 active:scale-[0.98] transition-all disabled:opacity-50"
+        >
+          <Fingerprint className="w-5 h-5" />
+          {isRegisteringBiometric ? 'Setting up...' : 'Set up Biometric'}
+        </button>
+      </motion.div>
+
+      {/* Master Reset Modal */}
+      <AnimatePresence>
+        {showMasterReset && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => !isResetting && setShowMasterReset(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="glass max-w-md w-full p-8 rounded-[2rem] space-y-6 shadow-2xl border border-destructive/20"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-4 text-destructive border-b border-destructive/20 pb-4">
+                <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black">Confirm Master Reset</h3>
+                  <p className="text-xs font-bold uppercase tracking-widest text-destructive/80">Danger Zone</p>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-destructive/10 text-destructive text-sm font-medium rounded-xl">
+                This action is irreversible. All financial records and member profiles will be permanently erased.
+              </div>
+
+              <form onSubmit={handleMasterReset} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Reason for Reset</label>
+                  <textarea
+                    value={resetData.reason}
+                    onChange={(e) => setResetData({ ...resetData, reason: e.target.value })}
+                    className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-destructive outline-none transition-all resize-none h-24"
+                    placeholder="e.g. End of financial year, starting fresh..."
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Admin Password</label>
+                  <input
+                    type="password"
+                    value={resetData.password}
+                    onChange={(e) => setResetData({ ...resetData, password: e.target.value })}
+                    className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-destructive outline-none transition-all"
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
+                
+                <div className="flex gap-4 pt-4">
+                  <button 
+                    type="button"
+                    onClick={() => setShowMasterReset(false)}
+                    disabled={isResetting}
+                    className="flex-1 py-3 bg-secondary hover:bg-secondary/80 font-bold rounded-xl transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={isResetting || !resetData.reason || !resetData.password}
+                    className="flex-1 py-3 bg-destructive hover:bg-destructive/90 text-white font-bold rounded-xl transition-all shadow-lg shadow-destructive/20 disabled:opacity-50"
+                  >
+                    {isResetting ? 'Resetting...' : 'Confirm Reset'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

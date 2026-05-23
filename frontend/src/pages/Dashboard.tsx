@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Wallet, CreditCard, ShieldAlert, CheckCircle2, TrendingUp, HandCoins } from 'lucide-react';
+import { Wallet, CreditCard, ShieldAlert, CheckCircle2, TrendingUp, HandCoins, Receipt } from 'lucide-react';
 import { getSetting, pullFromServer } from '../services/db';
 import { useSettings } from '../context/useSettings';
 
@@ -15,6 +15,7 @@ interface DashboardStats {
   pendingAmount: number;
   accumulatedInterest: number;
   staffCount: number;
+  receiptsCount: number;
   chartData: { label: string; height: number; amount: number }[];
 }
 
@@ -52,6 +53,7 @@ const Dashboard = () => {
     pendingAmount: 0,
     accumulatedInterest: 0,
     staffCount: 0,
+    receiptsCount: 0,
     chartData: []
   });
 
@@ -62,6 +64,7 @@ const Dashboard = () => {
     const loansList = (await getSetting('loans') || []) as Array<{ principal: number; expectedReturn: number; balance: number; status?: string; id?: string; timestamp?: string; confirmedBy?: string }>;
     const membersList = await getSetting('members') || [];
     const repaymentsList = (await getSetting('repayments') || []) as DBRecord[];
+    const receiptsList = await getSetting('receipts') || [];
     const staffCount = await getSetting('staffCount') || 0;
 
     const confirmedShares = contribs.filter((c) => c.status === 'CONFIRMED' && c.type === 'SHARE');
@@ -80,20 +83,21 @@ const Dashboard = () => {
       confirmedContribs.filter(c => {
         if (c.timestamp) { const date = new Date(c.timestamp); return date.getMonth() + 1 === m.month && date.getFullYear() === m.year; }
         return false;
-      }).reduce((acc, c) => acc + (c.amount || 0), 0)
+      }).reduce((acc, c) => acc + (Number(c.amount) || 0), 0)
     );
     const maxAmount = Math.max(...chartAmounts, 1);
     const chartData = chartAmounts.map((amount, i) => ({ label: last6Months[i].label, height: Math.max(5, Math.round((amount / maxAmount) * 100)), amount }));
 
     setData({
-      contributions: confirmedShares.reduce((acc, c) => acc + (c.amount || 0), 0),
-      emergencyContributions: confirmedEmergency.reduce((acc, c) => acc + (c.amount || 0), 0),
-      loans: loansList.reduce((acc, l) => acc + (l.balance || 0), 0),
+      contributions: confirmedShares.reduce((acc, c) => acc + (Number(c.amount) || 0), 0),
+      emergencyContributions: confirmedEmergency.reduce((acc, c) => acc + (Number(c.amount) || 0), 0),
+      loans: loansList.reduce((acc, l) => acc + (Number(l.balance) || 0), 0),
       members: membersList.length,
       pendingVerification: pendingContribs.length + pendingRepayments.length,
-      pendingAmount: pendingContribs.reduce((acc, c) => acc + (c.amount || 0), 0) + pendingRepayments.reduce((acc, r) => acc + (r.amount || 0), 0),
+      pendingAmount: pendingContribs.reduce((acc, c) => acc + (Number(c.amount) || 0), 0) + pendingRepayments.reduce((acc, r) => acc + (Number(r.amount) || 0), 0),
       accumulatedInterest,
       staffCount,
+      receiptsCount: receiptsList.length,
       chartData
     });
 
@@ -102,21 +106,21 @@ const Dashboard = () => {
       id: c.id || Math.random().toString(),
       title: c.type === 'EMERGENCY' ? t('dashboard_stats.emergency_contrib') : t('dashboard_stats.share_contrib'),
       subtitle: c.confirmedBy ? `Verified by ${c.confirmedBy}` : t('dashboard_stats.system_verified'),
-      amount: c.amount || 0, timestamp: c.timestamp || new Date(0).toISOString(), isPositive: true
+      amount: Number(c.amount) || 0, timestamp: c.timestamp || new Date(0).toISOString(), isPositive: true
     }));
     const confirmedRepayments = repaymentsList.filter((r) => r.status === 'CONFIRMED');
     confirmedRepayments.forEach(r => activities.push({
       id: r.id || Math.random().toString(),
       title: t('dashboard_stats.loan_repayment'),
       subtitle: r.confirmedBy ? `Verified by ${r.confirmedBy}` : t('dashboard_stats.system_verified'),
-      amount: r.amount || 0, timestamp: r.timestamp || new Date(0).toISOString(), isPositive: true
+      amount: Number(r.amount) || 0, timestamp: r.timestamp || new Date(0).toISOString(), isPositive: true
     }));
     const approvedLoans = loansList.filter((l) => l.status === 'APPROVED');
     approvedLoans.forEach((l) => activities.push({
       id: l.id || Math.random().toString(),
       title: t('dashboard_stats.loan_disbursement'),
       subtitle: l.confirmedBy ? `Approved by ${l.confirmedBy}` : t('dashboard_stats.system_verified'),
-      amount: l.principal || 0, timestamp: l.timestamp || new Date(0).toISOString(), isPositive: false
+      amount: Number(l.principal) || 0, timestamp: l.timestamp || new Date(0).toISOString(), isPositive: false
     }));
     activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     setRecentActivities(activities.slice(0, 3));
@@ -148,7 +152,8 @@ const Dashboard = () => {
     { title: t('dashboard_stats.verified_emergency'), value: `${settings.currency} ${data.emergencyContributions.toLocaleString()}`, icon: ShieldAlert, color: 'text-rose-500', bg: 'bg-rose-500/10' },
     { title: t('dashboard_stats.active_loan_book'), value: `${settings.currency} ${data.loans.toLocaleString()}`, icon: CreditCard, color: 'text-blue-500', bg: 'bg-blue-500/10' },
     { title: t('dashboard_stats.accumulated_interest'), value: `${settings.currency} ${data.accumulatedInterest.toLocaleString()}`, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-    { title: t('dashboard_stats.in_transit'), value: `${settings.currency} ${data.pendingAmount.toLocaleString()}`, icon: HandCoins, color: 'text-amber-500', bg: 'bg-amber-500/10' }
+    { title: t('dashboard_stats.in_transit'), value: `${settings.currency} ${data.pendingAmount.toLocaleString()}`, icon: HandCoins, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { title: 'Receipts Issued', value: data.receiptsCount.toLocaleString(), icon: Receipt, color: 'text-indigo-500', bg: 'bg-indigo-500/10' }
   ];
 
   return (
@@ -159,7 +164,7 @@ const Dashboard = () => {
           <p className="text-muted-foreground font-medium italic">{t('dashboard_stats.welcome_back')}{user?.name}{t('dashboard_stats.command_center_ready')}</p>
         </div>
         
-        {canConfirm && data.pendingVerification > 0 && (
+        {(canConfirm || user?.role === 'SECRETARY') && data.pendingVerification > 0 && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -167,14 +172,18 @@ const Dashboard = () => {
           >
             <ShieldAlert className="w-6 h-6 animate-pulse" />
             <div>
-              <p className="text-[10px] font-semibold tracking-widest leading-none mb-1 text-amber-100">{t('dashboard_stats.attention_treasurer')}</p>
-              <p className="text-sm font-bold">{data.pendingVerification} {t('dashboard_stats.awaiting_verification')}</p>
+              <p className="text-[10px] font-semibold tracking-widest leading-none mb-1 text-amber-100">
+                {user?.role === 'TREASURER' ? t('dashboard_stats.attention_treasurer') : 'Attention Secretary'}
+              </p>
+              <p className="text-sm font-bold">
+                {data.pendingVerification} {user?.role === 'TREASURER' ? t('dashboard_stats.awaiting_verification') : 'Pending Records'}
+              </p>
             </div>
           </motion.div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-8">
         {stats.map((stat, i) => (
           <motion.div
             key={i}

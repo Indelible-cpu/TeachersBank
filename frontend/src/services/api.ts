@@ -22,17 +22,16 @@ export const authApi = {
   login: (credentials: any) => api.post('/auth/login', credentials),
   register: (data: any) => api.post('/auth/register', data),
   changePassword: (data: any) => api.post('/auth/change-password', data),
-};
-
-export const webauthnApi = {
-  generateRegistrationOptions: () => api.get('/auth/webauthn/register/options'),
-  verifyRegistration: (response: any) => api.post('/auth/webauthn/register/verify', response),
-  generateAuthenticationOptions: (email: string) => api.post('/auth/webauthn/login/options', { email }),
-  verifyAuthentication: (email: string, response: any) => api.post('/auth/webauthn/login/verify', { email, response }),
+  // WebAuthn Biometrics
+  generateRegOptions: () => api.post('/auth/webauthn/register/options'),
+  verifyRegResponse: (data: any) => api.post('/auth/webauthn/register/verify', data),
+  generateAuthOptions: (data: { email: string }) => api.post('/auth/webauthn/login/options', data),
+  verifyAuthResponse: (data: { email: string, response: any }) => api.post('/auth/webauthn/login/verify', data),
 };
 
 export const syncApi = {
   sync: (queue: any[]) => api.post('/sync', { queue }),
+  masterReset: (data: { reason: string, password: string }) => api.post('/sync/master-reset', data)
 };
 
 export default api;

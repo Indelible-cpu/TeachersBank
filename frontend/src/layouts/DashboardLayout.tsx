@@ -18,6 +18,7 @@ const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [showSignoutConfirm, setShowSignoutConfirm] = useState(false);
+  const [pendingStats, setPendingStats] = useState({ contributions: 0, repayments: 0, loans: 0, members: 0 });
 
   useEffect(() => {
     (async () => {
@@ -26,6 +27,23 @@ const DashboardLayout = () => {
         if (photo) setProfilePhoto(photo as string);
       }
     })();
+
+    const fetchPending = async () => {
+      const contribs = await getSetting('contributions') || [];
+      const repayments = await getSetting('repayments') || [];
+      const loans = await getSetting('loans') || [];
+      
+      setPendingStats({
+        contributions: contribs.filter((c: any) => c.status === 'PENDING').length,
+        repayments: repayments.filter((r: any) => r.status === 'PENDING').length,
+        loans: loans.filter((l: any) => l.status === 'PENDING').length,
+        members: 0
+      });
+    };
+    
+    fetchPending();
+    const interval = setInterval(fetchPending, 10000);
+    return () => clearInterval(interval);
   }, [user?.id]);
 
   const handleLogout = async () => {
@@ -38,10 +56,10 @@ const DashboardLayout = () => {
 
   const navItems = [
     { to: '/dashboard', label: t('dashboard.title'), icon: Home, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
-    { to: '/dashboard/members', label: t('members.title'), icon: Users, roles: ['TREASURER', 'SECRETARY'] },
-    { to: '/dashboard/contributions', label: t('contributions.title'), icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
-    { to: '/dashboard/loans', label: t('loans.title'), icon: CreditCard, roles: ['TREASURER', 'SECRETARY'] },
-    { to: '/dashboard/repayments', label: t('repayments.title'), icon: Receipt, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/members', label: t('members.title'), icon: Users, roles: ['TREASURER', 'SECRETARY'], badge: pendingStats.members },
+    { to: '/dashboard/contributions', label: t('contributions.title'), icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'], badge: pendingStats.contributions },
+    { to: '/dashboard/loans', label: t('loans.title'), icon: CreditCard, roles: ['TREASURER', 'SECRETARY'], badge: pendingStats.loans },
+    { to: '/dashboard/repayments', label: t('repayments.title'), icon: Receipt, roles: ['ADMIN', 'TREASURER', 'SECRETARY'], badge: pendingStats.repayments },
     { to: '/dashboard/receipts', label: t('receipts.title'), icon: Receipt, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
     { to: '/dashboard/reports', label: t('reports.title'), icon: FileText, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
     { to: '/dashboard/audit-trail', label: t('audit.title'), icon: HistoryIcon, roles: ['ADMIN'] },
@@ -78,11 +96,18 @@ const DashboardLayout = () => {
               <Link 
                 key={item.to}
                 to={item.to} 
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${isActive ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]' : 'hover:bg-primary/10'}`}
+                className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-medium ${isActive ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]' : 'hover:bg-primary/10'}`}
                 onClick={closeSidebar}
               >
-                <item.icon className={`w-5 h-5 ${isActive ? 'text-primary-foreground' : 'text-primary'}`} />
-                {item.label}
+                <div className="flex items-center gap-3">
+                  <item.icon className={`w-5 h-5 ${isActive ? 'text-primary-foreground' : 'text-primary'}`} />
+                  {item.label}
+                </div>
+                {item.badge !== undefined && item.badge > 0 ? (
+                  <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-white bg-rose-500 rounded-full shadow-md animate-pulse">
+                    {item.badge}
+                  </span>
+                ) : null}
               </Link>
             );
           })}

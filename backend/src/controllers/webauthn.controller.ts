@@ -1,18 +1,23 @@
 import { Request, Response } from 'express';
-import { generateRegistrationOptions, verifyRegistrationResponse, generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server';
-import prisma from '../prisma';
+import {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+} from '@simplewebauthn/server';
 import jwt from 'jsonwebtoken';
+import prisma from '../prisma';
 
-const rpName = 'Teachers Bank';
+const rpName = 'TeachersBank';
 const rpID = process.env.RP_ID || 'localhost';
-const origin = process.env.CLIENT_URL || 'http://localhost:5173';
+const origin = process.env.CLIENT_URL || `http://${rpID}:5173`;
 
-export const generateRegistrationOptionsHandler = async (req: Request, res: Response) => {
+export const generateRegOptions = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { authenticators: true }
+      include: { authenticators: true },
     });
 
     if (!user) {
@@ -22,43 +27,47 @@ export const generateRegistrationOptionsHandler = async (req: Request, res: Resp
     const options = await generateRegistrationOptions({
       rpName,
       rpID,
-      userID: Buffer.from(user.id),
+      userID: Buffer.from(user.id, 'utf8'),
       userName: user.email,
       attestationType: 'none',
-      excludeCredentials: user.authenticators.map(auth => ({
-        id: Buffer.from(auth.credentialID, 'base64url'),
+      excludeCredentials: user.authenticators.map((auth) => ({
+        id: Buffer.from(auth.credentialID),
         type: 'public-key',
-        transports: auth.transports ? (auth.transports.split(',') as any[]) : undefined,
+        transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
       })),
       authenticatorSelection: {
+        residentKey: 'preferred',
         userVerification: 'preferred',
       },
     });
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { currentChallenge: options.challenge }
+      data: { currentChallenge: options.challenge },
     });
 
     res.json(options);
   } catch (error: any) {
+    console.error('Registration options error:', error);
     res.status(500).json({ error: error.message });
   }
 };
 
-export const verifyRegistrationResponseHandler = async (req: Request, res: Response) => {
+export const verifyRegResponse = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    const body = req.body;
+
     const user = await prisma.user.findUnique({
-      where: { id: userId }
+      where: { id: userId },
     });
-    
+
     if (!user || !user.currentChallenge) {
-      return res.status(400).json({ error: 'No challenge found for user' });
+      return res.status(400).json({ error: 'User or challenge not found' });
     }
 
     const verification = await verifyRegistrationResponse({
-      response: req.body,
+      response: body,
       expectedChallenge: user.currentChallenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
@@ -69,19 +78,20 @@ export const verifyRegistrationResponseHandler = async (req: Request, res: Respo
 
       await prisma.authenticator.create({
         data: {
-          credentialID: Buffer.from(credentialID).toString('base64url'),
+          credentialID: Buffer.from(credentialID),
           credentialPublicKey: Buffer.from(credentialPublicKey),
           counter: BigInt(counter),
           credentialDeviceType,
           credentialBackedUp,
+          transports: body.response.transports ? body.response.transports.join(',') : '',
           userId: user.id,
-          transports: req.body.response.transports ? req.body.response.transports.join(',') : '',
-        }
+        },
       });
 
+      // Clear the challenge
       await prisma.user.update({
         where: { id: user.id },
-        data: { currentChallenge: null }
+        data: { currentChallenge: null },
       });
 
       res.json({ verified: true });
@@ -89,54 +99,53 @@ export const verifyRegistrationResponseHandler = async (req: Request, res: Respo
       res.status(400).json({ error: 'Verification failed' });
     }
   } catch (error: any) {
+    console.error('Verify registration error:', error);
     res.status(500).json({ error: error.message });
   }
 };
 
-export const generateAuthenticationOptionsHandler = async (req: Request, res: Response) => {
+export const generateAuthOptions = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
-    }
 
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { authenticators: true }
+      include: { authenticators: true },
     });
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    if (!user || user.authenticators.length === 0) {
+      return res.status(404).json({ error: 'User not found or no biometric registered' });
     }
 
     const options = await generateAuthenticationOptions({
       rpID,
-      allowCredentials: user.authenticators.map(auth => ({
-        id: Buffer.from(auth.credentialID, 'base64url'),
+      allowCredentials: user.authenticators.map((auth) => ({
+        id: Buffer.from(auth.credentialID),
         type: 'public-key',
-        transports: auth.transports ? (auth.transports.split(',') as any[]) : undefined,
+        transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
       })),
       userVerification: 'preferred',
     });
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { currentChallenge: options.challenge }
+      data: { currentChallenge: options.challenge },
     });
 
     res.json(options);
   } catch (error: any) {
+    console.error('Auth options error:', error);
     res.status(500).json({ error: error.message });
   }
 };
 
-export const verifyAuthenticationResponseHandler = async (req: Request, res: Response) => {
+export const verifyAuthResponse = async (req: Request, res: Response) => {
   try {
     const { email, response } = req.body;
-    
+
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { authenticators: true, member: true }
+      include: { authenticators: true, member: true },
     });
 
     if (!user || !user.currentChallenge) {
@@ -144,11 +153,11 @@ export const verifyAuthenticationResponseHandler = async (req: Request, res: Res
     }
 
     const authenticator = user.authenticators.find(
-      auth => auth.credentialID === response.id
+      (auth) => Buffer.from(auth.credentialID).toString('base64url') === response.id
     );
 
     if (!authenticator) {
-      return res.status(400).json({ error: 'Authenticator not found for user' });
+      return res.status(400).json({ error: 'Authenticator not registered with this user' });
     }
 
     const verification = await verifyAuthenticationResponse({
@@ -157,23 +166,27 @@ export const verifyAuthenticationResponseHandler = async (req: Request, res: Res
       expectedOrigin: origin,
       expectedRPID: rpID,
       authenticator: {
-        credentialID: Buffer.from(authenticator.credentialID, 'base64url'),
-        credentialPublicKey: authenticator.credentialPublicKey,
+        credentialID: new Uint8Array(authenticator.credentialID),
+        credentialPublicKey: new Uint8Array(authenticator.credentialPublicKey),
         counter: Number(authenticator.counter),
+        transports: authenticator.transports ? (authenticator.transports.split(',') as any[]) : [],
       },
     });
 
     if (verification.verified && verification.authenticationInfo) {
+      // Update counter
       await prisma.authenticator.update({
-        where: { credentialID: authenticator.credentialID },
-        data: { counter: BigInt(verification.authenticationInfo.newCounter) }
+        where: { id: authenticator.id },
+        data: { counter: BigInt(verification.authenticationInfo.newCounter) },
       });
 
+      // Clear the challenge
       await prisma.user.update({
         where: { id: user.id },
-        data: { currentChallenge: null }
+        data: { currentChallenge: null },
       });
 
+      // Issue JWT Token
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role },
         process.env.JWT_SECRET || 'secret',
@@ -181,19 +194,21 @@ export const verifyAuthenticationResponseHandler = async (req: Request, res: Res
       );
 
       res.json({
+        verified: true,
         token,
         user: {
           id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
-          memberId: user.member?.id
-        }
+          memberId: user.member?.id,
+        },
       });
     } else {
       res.status(400).json({ error: 'Verification failed' });
     }
   } catch (error: any) {
+    console.error('Verify auth error:', error);
     res.status(500).json({ error: error.message });
   }
 };

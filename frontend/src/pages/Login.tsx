@@ -2,13 +2,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
-import { Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, AlertCircle, Eye, EyeOff, Fingerprint } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { authApi, webauthnApi } from '../services/api';
-import { verifyOfflineCredentials, cacheOfflineCredentials, pullFromServer, performSync } from '../services/db';
+import { authApi } from '../services/api';
 import { startAuthentication } from '@simplewebauthn/browser';
-import { Fingerprint } from 'lucide-react';
+import { verifyOfflineCredentials, cacheOfflineCredentials, pullFromServer, performSync } from '../services/db';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,6 +16,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
   
   const { login } = useAuth();
   const { settings, isOnline } = useSettings();
@@ -103,31 +103,31 @@ const Login = () => {
   };
 
   const handleBiometricLogin = async () => {
-    let targetEmail = email || localStorage.getItem('remembered_email');
-    if (!targetEmail) {
-      targetEmail = window.prompt('Please enter your email to sign in with biometrics:');
-      if (!targetEmail) return;
-      setEmail(targetEmail);
+    if (!email) {
+      setError('Please enter your email first to use biometric login');
+      return;
     }
-    
-    setIsLoading(true);
+    if (!isOnline) {
+      setError('Biometric login requires an active internet connection');
+      return;
+    }
+
+    setIsBiometricLoading(true);
     setError('');
-    
+
     try {
-      if (!isOnline) {
-        throw new Error('Biometric login requires an internet connection');
-      }
-
-      const resp = await webauthnApi.generateAuthenticationOptions(targetEmail);
-      const asseResp = await startAuthentication(resp.data);
-      const verificationResp = await webauthnApi.verifyAuthentication(targetEmail, asseResp);
+      const resp = await authApi.generateAuthOptions({ email });
+      const options = resp.data;
       
-      const { token, user } = verificationResp.data;
+      const attResp = await startAuthentication({ optionsJSON: options });
       
-      // Cache credentials locally for offline fallback (empty password since we don't have it, offline mode will still need password currently unless we cache passkey which is complex)
-      await cacheOfflineCredentials(targetEmail, '', user, token);
+      const verifyResp = await authApi.verifyAuthResponse({ email, response: attResp });
+      
+      const { token, user } = verifyResp.data;
+      
+      // For biometric we don't know the password to cache for offline, but we still log in!
       await login(token, user, rememberMe);
-
+      
       pullFromServer().catch(e => console.warn('Post-login pull failed:', e));
       performSync().catch(e => console.warn('Post-login push failed:', e));
 
@@ -135,12 +135,14 @@ const Login = () => {
     } catch (err: any) {
       console.error(err);
       if (err.name === 'NotAllowedError') {
-        setError('Biometric login cancelled or not allowed');
+        setError('Biometric login cancelled or failed');
+      } else if (err.response?.data?.error) {
+        setError(err.response.data.error);
       } else {
-        setError(err.response?.data?.error || err.message || 'Biometric login failed. Please use your password.');
+        setError('Failed to authenticate with biometrics');
       }
     } finally {
-      setIsLoading(false);
+      setIsBiometricLoading(false);
     }
   };
 
@@ -229,23 +231,27 @@ const Login = () => {
 
             <button 
               type="submit" 
-              disabled={isLoading}
-              className="w-full py-3.5 bg-primary text-primary-foreground font-medium rounded-xl hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+              disabled={isLoading || isBiometricLoading}
+              className="w-full py-3.5 bg-primary text-primary-foreground font-medium rounded-xl hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
             >
-              {isLoading ? '...' : t('login.submit')}
+              {isLoading ? 'Signing in...' : t('login.submit')}
             </button>
             
-            {isOnline && (
-              <button 
-                type="button" 
-                onClick={handleBiometricLogin}
-                disabled={isLoading}
-                className="w-full py-3.5 bg-secondary text-secondary-foreground font-bold flex items-center justify-center gap-2 rounded-xl border border-border/50 hover:bg-secondary/70 active:scale-[0.98] transition-all disabled:opacity-50 mt-3"
-              >
-                <Fingerprint className="w-5 h-5" />
-                Sign in with Fingerprint
-              </button>
-            )}
+            <div className="relative flex items-center py-2">
+              <div className="flex-grow border-t border-border"></div>
+              <span className="flex-shrink-0 mx-4 text-muted-foreground text-xs font-medium uppercase tracking-widest">or</span>
+              <div className="flex-grow border-t border-border"></div>
+            </div>
+
+            <button 
+              type="button"
+              onClick={handleBiometricLogin}
+              disabled={isLoading || isBiometricLoading || !isOnline}
+              className="w-full flex items-center justify-center gap-2 py-3.5 bg-secondary text-foreground font-medium rounded-xl hover:bg-secondary/80 active:scale-[0.98] transition-all disabled:opacity-50 border border-border/50"
+            >
+              <Fingerprint className="w-5 h-5" />
+              {isBiometricLoading ? 'Authenticating...' : 'Sign in with Fingerprint'}
+            </button>
           </form>
 
           <div className="mt-8 pt-6 border-t flex items-center justify-between">

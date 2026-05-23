@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { FileText, Printer, Share2, Filter, User, Calendar, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { FileText, Printer, Share2, Filter, User, Calendar, ShieldCheck, ShieldAlert, MessageCircle } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import api from '../services/api';
 import { getSetting } from '../services/db';
@@ -90,13 +90,20 @@ const Reports = () => {
   const treasurerUser = users.find(u => u.role === 'TREASURER' && u.isActive) || users.find(u => u.role === 'TREASURER');
   const treasurerName = treasurerUser ? treasurerUser.name : 'Not Designated';
 
-  const generatePDFOptions = () => ({
-    margin: 10,
-    filename: `Report_${selectedMonth}_${new Date().getTime()}.pdf`,
-    image: { type: 'jpeg' as const, quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
-  });
+  const generatePDFOptions = () => {
+    let filename = `Report_${selectedMonth}_${new Date().getTime()}.pdf`;
+    if (reportType === 'INDIVIDUAL' && currentMember) {
+      const safeName = String(currentMember.fullname).replace(/[^a-zA-Z0-9_-]/g, '_');
+      filename = `Report_${safeName}_${selectedMonth}_${new Date().getTime()}.pdf`;
+    }
+    return {
+      margin: 10,
+      filename,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+    };
+  };
 
   const handlePrint = () => { window.print(); };
 
@@ -105,23 +112,34 @@ const Reports = () => {
     html2pdf().set(generatePDFOptions()).from(reportRef.current).save();
   };
 
-  const handleShare = async () => {
+  const handleShare = async (platform?: 'whatsapp') => {
     if (!reportRef.current) return;
     
     try {
-      const pdfBlob = await html2pdf().set(generatePDFOptions()).from(reportRef.current).output('blob');
-      const file = new File([pdfBlob], `Report_${selectedMonth}.pdf`, { type: 'application/pdf' });
+      const pdfOptions = generatePDFOptions();
+      const pdfBlob = await html2pdf().set(pdfOptions).from(reportRef.current).output('blob');
+      const file = new File([pdfBlob], pdfOptions.filename, { type: 'application/pdf' });
       
+      let shareText = `Financial Report for ${selectedMonth}`;
+      if (reportType === 'INDIVIDUAL' && currentMember) {
+        shareText = `Individual Financial Report for ${currentMember.fullname} - Period: ${selectedMonth}`;
+      }
+
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
           title: 'Financial Report',
-          text: `Financial Report for ${selectedMonth}`
+          text: shareText
         });
       } else {
         // Fallback to download if Web Share API doesn't support files
-        handleDownloadPDF();
-        toast.info('File sharing not supported on this browser. Downloading PDF instead.');
+        html2pdf().set(pdfOptions).from(reportRef.current).save();
+        if (platform === 'whatsapp') {
+          toast.info('Report downloaded. Please attach it directly in WhatsApp.');
+          window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' (Please find attached PDF)')}`, '_blank');
+        } else {
+          toast.info('File sharing not supported on this browser. Downloading PDF instead.');
+        }
       }
     } catch (error) {
       console.error('Error sharing PDF', error);
@@ -138,7 +156,7 @@ const Reports = () => {
             <p className="text-muted-foreground font-medium">Verified audit reports and financial statements.</p>
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <button 
               onClick={() => setShowOnlyConfirmed(!showOnlyConfirmed)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all border ${showOnlyConfirmed ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'}`}
@@ -149,8 +167,14 @@ const Reports = () => {
             <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-secondary-foreground font-bold rounded-xl hover:bg-secondary/80 transition-all border border-transparent">
               <Printer className="w-4 h-4" /> Print
             </button>
-            <button onClick={handleShare} className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+            <button onClick={() => handleShare()} className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20">
               <Share2 className="w-4 h-4" /> Share
+            </button>
+            <button 
+              onClick={() => handleShare('whatsapp')} 
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#25D366] text-white font-bold rounded-xl hover:bg-[#128C7E] transition-all shadow-lg shadow-[#25D366]/20"
+            >
+              <MessageCircle className="w-4 h-4" /> WhatsApp
             </button>
           </div>
         </div>
@@ -201,23 +225,23 @@ const Reports = () => {
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Total shares</p>
+            <p className="text-[10px] font-semibold text-gray-500 capitalize tracking-widest mb-1">Total shares</p>
             <h4 className="text-2xl font-bold text-primary">MWK {totalShares.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Emergency fund</p>
+            <p className="text-[10px] font-semibold text-gray-500 capitalize tracking-widest mb-1">Emergency fund</p>
             <h4 className="text-2xl font-bold text-primary">MWK {totalEmergency.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Loan recovery</p>
+            <p className="text-[10px] font-semibold text-gray-500 capitalize tracking-widest mb-1">Loan recovery</p>
             <h4 className="text-2xl font-bold text-primary">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Accumulated interest</p>
+            <p className="text-[10px] font-semibold text-gray-500 capitalize tracking-widest mb-1">Accumulated interest</p>
             <h4 className="text-2xl font-bold text-purple-600">MWK {accumulatedInterest.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Outstanding loans</p>
+            <p className="text-[10px] font-semibold text-gray-500 capitalize tracking-widest mb-1">Outstanding loans</p>
             <h4 className="text-2xl font-bold text-rose-600">MWK {activeLoansTotal.toLocaleString()}</h4>
           </div>
         </div>
@@ -229,7 +253,7 @@ const Reports = () => {
             </h3>
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b-2 border-primary/20 text-[10px] font-black uppercase text-muted-foreground">
+                <tr className="border-b-2 border-primary/20 text-[10px] font-black uppercase text-gray-500">
                   <th className="py-4 pr-4">Date</th>
                   {reportType === 'FULL' && <th className="py-4">Member</th>}
                   <th className="py-4">Type</th>
@@ -255,18 +279,18 @@ const Reports = () => {
         <div className="mt-20 pt-16 border-t border-primary/20 flex justify-between items-end">
           <div className="space-y-8">
             <div className="space-y-1">
-              <p className="text-xs font-black text-foreground/90">{secretaryName}</p>
+              <p className="text-xs font-black text-gray-900">{secretaryName}</p>
               <div className="w-48 h-px bg-primary/30"></div>
-              <p className="text-[10px] font-bold text-muted-foreground">Secretary Signature</p>
+              <p className="text-[10px] font-bold text-gray-500">Secretary Signature</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-black text-foreground/90">{treasurerName}</p>
+              <p className="text-xs font-black text-gray-900">{treasurerName}</p>
               <div className="w-48 h-px bg-primary/30"></div>
-              <p className="text-[10px] font-bold text-muted-foreground">Treasurer Signature</p>
+              <p className="text-[10px] font-bold text-gray-500">Treasurer Signature</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[10px] font-bold text-muted-foreground/60 mb-2">System Authenticated</p>
+            <p className="text-[10px] font-bold text-gray-500 mb-2">System Authenticated</p>
             <div className="flex items-center gap-2 justify-end text-primary">
               <ShieldCheck className="w-5 h-5 animate-pulse" />
               <span className="font-black text-base tracking-tight">{settings.systemName} Secure</span>
