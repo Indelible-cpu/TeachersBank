@@ -133,6 +133,32 @@ const applyServerState = async (serverState: any) => {
     await setSetting('global_settings', { ...currentLocal, ...serverState.settings });
   }
   if (serverState.staffCount !== undefined) await setSetting('staffCount', serverState.staffCount);
+
+  // Re-apply any pending offline items so they aren't wiped from the UI while they wait to be successfully synced
+  const queue = await getSyncQueue();
+  if (queue && queue.length > 0) {
+    for (const item of queue) {
+      if (item.action === 'CREATE' || item.action === 'UPDATE') {
+        const table = item.entity || item.table;
+        if (table) {
+          const currentItems = await getSetting(table) || [];
+          const idx = currentItems.findIndex((x: any) => x.id === item.data.id);
+          if (idx >= 0) {
+            currentItems[idx] = { ...currentItems[idx], ...item.data };
+          } else if (item.action === 'CREATE') {
+            currentItems.push(item.data);
+          }
+          await setSetting(table, currentItems);
+        }
+      } else if (item.action === 'DELETE') {
+        const table = item.entity || item.table;
+        if (table) {
+          const currentItems = await getSetting(table) || [];
+          await setSetting(table, currentItems.filter((x: any) => x.id !== item.data.id));
+        }
+      }
+    }
+  }
 };
 
 /**
@@ -168,6 +194,7 @@ export const performSync = async () => {
 
     // Map 'entity' field to 'table' to match backend sync schema expectations
     const mappedQueue = queue.map((item) => ({
+      queueId: item.id,
       action: item.action,
       table: item.entity || item.table,
       data: item.data
@@ -176,9 +203,28 @@ export const performSync = async () => {
     const response = await syncApi.sync(mappedQueue);
     
     if (response.data && response.data.serverState) {
+      const syncResults = response.data.syncResults;
+      
+      if (syncResults && syncResults.failed > 0 && syncResults.errors) {
+        // Collect IDs of failed queue items
+        const failedQueueIds = syncResults.errors.map((e: any) => e.item?.queueId).filter(Boolean);
+        
+        // Remove only successful items from the queue
+        const db = await dbPromise;
+        const tx = db.transaction('sync_queue', 'readwrite');
+        const allInQueue = await tx.store.getAll();
+        for (const qItem of allInQueue) {
+          if (!failedQueueIds.includes(qItem.id)) {
+            await tx.store.delete(qItem.id!);
+          }
+        }
+        await tx.done;
+      } else {
+        // Clear queue on success if no errors
+        await clearSyncQueue();
+      }
+
       await applyServerState(response.data.serverState);
-      // Clear queue on success
-      await clearSyncQueue();
       return true;
     }
     return false;

@@ -35,8 +35,6 @@ export const syncData = async (req: Request, res: Response) => {
             delete cleanMemberData.timestamp; // Strip frontend-only timestamp if it exists
             
             if (action === 'CREATE') {
-              cleanMemberData.recordedBy = userId;
-              
               // 1. Create a corresponding system User so they appear in users lists and can log in
               let userRecord = await prisma.user.findUnique({
                 where: { email: data.email || `${data.memberNumber.toLowerCase()}@teachersbank.com` }
@@ -100,6 +98,8 @@ export const syncData = async (req: Request, res: Response) => {
             const cleanLoanData = { ...data };
             delete cleanLoanData.timestamp;
             delete cleanLoanData.memberName;
+            delete cleanLoanData.shareInterest;
+            delete cleanLoanData.memberShares;
             
             if (action === 'CREATE') {
               cleanLoanData.recordedBy = userId;
