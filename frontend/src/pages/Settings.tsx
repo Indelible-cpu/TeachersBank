@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, AlertCircle, Lock, Eye, EyeOff, ShieldCheck, Camera, Trash2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { authApi } from '../services/api';
+import { authApi, webauthnApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting } from '../services/db';
 import { useToast } from '../context/useToast';
+import { startRegistration } from '@simplewebauthn/browser';
 
 const Settings = () => {
   const { settings, updateSettings, isOnline } = useSettings();
@@ -22,6 +23,7 @@ const Settings = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [showRemoveOption, setShowRemoveOption] = useState(false);
+  const [isSettingUpBiometric, setIsSettingUpBiometric] = useState(false);
 
   React.useEffect(() => {
     (async () => {
@@ -122,6 +124,29 @@ const Settings = () => {
       setPasswordError(error.response?.data?.error || 'Failed to change password');
     } finally {
       setIsChangingPassword(false);
+    }
+  };
+
+  const handleBiometricSetup = async () => {
+    setIsSettingUpBiometric(true);
+    try {
+      const resp = await webauthnApi.generateRegistrationOptions();
+      const options = resp.data;
+      
+      const attResp = await startRegistration(options);
+      
+      await webauthnApi.verifyRegistration(attResp);
+      
+      toast.success('Biometric sign-in enabled successfully!');
+    } catch (err: any) {
+      console.error(err);
+      if (err.name === 'NotAllowedError') {
+        toast.error('Biometric setup cancelled or not allowed');
+      } else {
+        toast.error('Failed to set up biometric sign-in');
+      }
+    } finally {
+      setIsSettingUpBiometric(false);
     }
   };
 
@@ -366,6 +391,21 @@ const Settings = () => {
             {passwordSuccess}
           </div>
         )}
+
+        <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-xl border border-border/50 mb-6">
+          <div className="flex flex-col gap-1">
+            <h3 className="text-sm font-bold flex items-center gap-2">Biometric Sign-in</h3>
+            <p className="text-[10px] text-muted-foreground">Sign in with Fingerprint, Face ID, or Windows Hello.</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleBiometricSetup}
+            disabled={isSettingUpBiometric || !isOnline}
+            className="px-4 py-2 bg-primary/10 text-primary rounded-xl font-bold text-xs hover:bg-primary/20 transition-all disabled:opacity-50"
+          >
+            {isSettingUpBiometric ? 'Setting up...' : 'Set up Biometric'}
+          </button>
+        </div>
 
         <form onSubmit={handlePasswordChange} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -5,8 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { authApi } from '../services/api';
+import { authApi, webauthnApi } from '../services/api';
 import { verifyOfflineCredentials, cacheOfflineCredentials, pullFromServer, performSync } from '../services/db';
+import { startAuthentication } from '@simplewebauthn/browser';
+import { Fingerprint } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -95,6 +97,48 @@ const Login = () => {
     } catch (err: any) {
       const message = err.message || 'Login failed';
       setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    let targetEmail = email || localStorage.getItem('remembered_email');
+    if (!targetEmail) {
+      targetEmail = window.prompt('Please enter your email to sign in with biometrics:');
+      if (!targetEmail) return;
+      setEmail(targetEmail);
+    }
+    
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      if (!isOnline) {
+        throw new Error('Biometric login requires an internet connection');
+      }
+
+      const resp = await webauthnApi.generateAuthenticationOptions(targetEmail);
+      const asseResp = await startAuthentication(resp.data);
+      const verificationResp = await webauthnApi.verifyAuthentication(targetEmail, asseResp);
+      
+      const { token, user } = verificationResp.data;
+      
+      // Cache credentials locally for offline fallback (empty password since we don't have it, offline mode will still need password currently unless we cache passkey which is complex)
+      await cacheOfflineCredentials(targetEmail, '', user, token);
+      await login(token, user, rememberMe);
+
+      pullFromServer().catch(e => console.warn('Post-login pull failed:', e));
+      performSync().catch(e => console.warn('Post-login push failed:', e));
+
+      navigate('/dashboard');
+    } catch (err: any) {
+      console.error(err);
+      if (err.name === 'NotAllowedError') {
+        setError('Biometric login cancelled or not allowed');
+      } else {
+        setError(err.response?.data?.error || err.message || 'Biometric login failed. Please use your password.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -190,6 +234,18 @@ const Login = () => {
             >
               {isLoading ? '...' : t('login.submit')}
             </button>
+            
+            {isOnline && (
+              <button 
+                type="button" 
+                onClick={handleBiometricLogin}
+                disabled={isLoading}
+                className="w-full py-3.5 bg-secondary text-secondary-foreground font-bold flex items-center justify-center gap-2 rounded-xl border border-border/50 hover:bg-secondary/70 active:scale-[0.98] transition-all disabled:opacity-50 mt-3"
+              >
+                <Fingerprint className="w-5 h-5" />
+                Sign in with Fingerprint
+              </button>
+            )}
           </form>
 
           <div className="mt-8 pt-6 border-t flex items-center justify-between">

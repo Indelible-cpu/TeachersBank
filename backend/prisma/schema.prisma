@@ -22,16 +22,29 @@ model Settings {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      Role     @default(MEMBER)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  member    Member?
-  auditLogs AuditLog[]
+  id               String   @id @default(uuid())
+  email            String   @unique
+  password         String
+  name             String
+  role             Role     @default(MEMBER)
+  isActive         Boolean  @default(true)
+  currentChallenge String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  member           Member?
+  auditLogs        AuditLog[]
+  authenticators   Authenticator[]
+}
+
+model Authenticator {
+  credentialID         String   @id
+  credentialPublicKey  Bytes
+  counter              BigInt
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Role {

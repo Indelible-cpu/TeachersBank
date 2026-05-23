@@ -24,6 +24,13 @@ export const authApi = {
   changePassword: (data: any) => api.post('/auth/change-password', data),
 };
 
+export const webauthnApi = {
+  generateRegistrationOptions: () => api.get('/auth/webauthn/register/options'),
+  verifyRegistration: (response: any) => api.post('/auth/webauthn/register/verify', response),
+  generateAuthenticationOptions: (email: string) => api.post('/auth/webauthn/login/options', { email }),
+  verifyAuthentication: (email: string, response: any) => api.post('/auth/webauthn/login/verify', { email, response }),
+};
+
 export const syncApi = {
   sync: (queue: any[]) => api.post('/sync', { queue }),
 };
