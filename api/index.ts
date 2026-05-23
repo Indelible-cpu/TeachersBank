@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
@@ -16,18 +16,18 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Support both /api prefix and direct routes (for Vercel routing compatibility)
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/sync', syncRoutes);
 app.use('/api/users', userRoutes);
 
-// Compatibility fallbacks
+// Compatibility fallback
 app.use('/auth', authRoutes);
 app.use('/sync', syncRoutes);
 app.use('/users', userRoutes);
 
 // Health check with DB verify
-app.get('/health', async (req: Request, res: Response) => {
+app.get('/health', async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.json({ status: 'ok', database: 'connected', timestamp: new Date().toISOString() });
@@ -35,7 +35,7 @@ app.get('/health', async (req: Request, res: Response) => {
     res.status(500).json({ status: 'error', database: 'disconnected', error: err.message });
   }
 });
-app.get('/api/health', async (req: Request, res: Response) => {
+app.get('/api/health', async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.json({ status: 'ok', database: 'connected', timestamp: new Date().toISOString() });

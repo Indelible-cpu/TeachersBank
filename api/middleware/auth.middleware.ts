@@ -12,7 +12,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
     (req as any).user = decoded;
     next();
-  } catch (error) {
+  } catch (err) {
     res.status(401).json({ error: 'Invalid token.' });
   }
 };
@@ -21,7 +21,7 @@ export const authorize = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const user = (req as any).user;
     if (!user || !roles.includes(user.role)) {
-      return res.status(403).json({ error: 'Access denied. Insufficient permissions.' });
+      return res.status(403).json({ error: 'Permission denied.' });
     }
     next();
   };

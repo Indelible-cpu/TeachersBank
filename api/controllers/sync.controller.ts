@@ -2,6 +2,52 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../prisma';
 
+export const masterReset = async (req: Request, res: Response) => {
+  try {
+    const { reason, password } = req.body;
+    const user = (req as any).user;
+    
+    if (user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Only administrators can perform a master reset.' });
+    }
+    
+    if (!reason || !password) {
+      return res.status(400).json({ error: 'A valid reason and your password are required.' });
+    }
+
+    const adminRecord = await prisma.user.findUnique({ where: { id: user.id } });
+    if (!adminRecord) return res.status(404).json({ error: 'Admin user not found' });
+
+    const isValid = await bcrypt.compare(password, adminRecord.password);
+    if (!isValid) return res.status(401).json({ error: 'Invalid password. Reset aborted.' });
+
+    // Wipe tables (financials + members)
+    await prisma.receipt.deleteMany();
+    await prisma.repayment.deleteMany();
+    await prisma.loan.deleteMany();
+    await prisma.shareContribution.deleteMany();
+    await prisma.emergencyContribution.deleteMany();
+    await prisma.member.deleteMany();
+    await prisma.auditLog.deleteMany();
+
+    // Log the action itself
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        userRole: user.role,
+        action: 'MASTER_RESET',
+        details: `Master reset performed. Reason: ${reason}`,
+        status: 'SUCCESS'
+      }
+    });
+
+    res.json({ message: 'Master reset completed successfully.' });
+  } catch (error: any) {
+    console.error('Master Reset Error:', error);
+    res.status(500).json({ error: 'Internal Server Error during master reset' });
+  }
+};
+
 export const syncData = async (req: Request, res: Response) => {
   try {
     const { queue } = req.body; // Array of offline actions
@@ -29,12 +75,12 @@ export const syncData = async (req: Request, res: Response) => {
         switch (table) {
           case 'members':
             const { fullname, alternativeNames, ...memberData } = data; // Strip frontend fields if any, or adjust
+            // Wait, member in schema has fullname, alternativeNames. Let's make sure we only pass valid fields.
+            // Actually, frontend sends exactly what is needed for member, but we should ensure no extra fields.
             const cleanMemberData = { ...data };
             delete cleanMemberData.timestamp; // Strip frontend-only timestamp if it exists
             
             if (action === 'CREATE') {
-              cleanMemberData.recordedBy = userId;
-              
               // 1. Create a corresponding system User so they appear in users lists and can log in
               let userRecord = await prisma.user.findUnique({
                 where: { email: data.email || `${data.memberNumber.toLowerCase()}@teachersbank.com` }
@@ -98,6 +144,8 @@ export const syncData = async (req: Request, res: Response) => {
             const cleanLoanData = { ...data };
             delete cleanLoanData.timestamp;
             delete cleanLoanData.memberName;
+            delete cleanLoanData.shareInterest;
+            delete cleanLoanData.memberShares;
             
             if (action === 'CREATE') {
               cleanLoanData.recordedBy = userId;
@@ -145,24 +193,6 @@ export const syncData = async (req: Request, res: Response) => {
               } else {
                 await prisma.emergencyContribution.create({ data: cleanContribData });
                 auditDetails = `Logged emergency contribution: Amount ${data.amount} for member ID: ${data.memberId}`;
-              }
-            }
-            if (action === 'UPDATE') {
-              const updateData = { ...cleanContribData };
-              delete updateData.id;
-              
-              if (data.type === 'SHARE') {
-                await prisma.shareContribution.update({
-                  where: { id: data.id },
-                  data: updateData
-                });
-                auditDetails = `Updated share contribution status for ID: ${data.id} to ${data.status}`;
-              } else {
-                await prisma.emergencyContribution.update({
-                  where: { id: data.id },
-                  data: updateData
-                });
-                auditDetails = `Updated emergency contribution status for ID: ${data.id} to ${data.status}`;
               }
             }
             break;
@@ -278,18 +308,37 @@ export const syncData = async (req: Request, res: Response) => {
       }
     }
 
-    const shareContribs = await prisma.shareContribution.findMany();
-    const emergencyContribs = await prisma.emergencyContribution.findMany();
-    const allContributions = [
-      ...shareContribs.map(c => ({ ...c, type: 'SHARE' })),
-      ...emergencyContribs.map(c => ({ ...c, type: 'EMERGENCY' }))
-    ];
+    // Ensure all Users have a corresponding Member record
+    const allUsers = await prisma.user.findMany({ include: { member: true } });
+    for (const u of allUsers) {
+      if (!u.member) {
+        // Generate a unique member number
+        const randomDigits = Math.floor(100000 + Math.random() * 900000);
+        const memberNo = `MBR-${randomDigits}`;
+        try {
+          await prisma.member.create({
+            data: {
+              userId: u.id,
+              memberNumber: memberNo,
+              fullname: u.name || 'Cooperative Member',
+              phone: '',
+              phone2: '',
+              gender: 'MALE',
+              address: '',
+              joinDate: new Date()
+            }
+          });
+          console.log(`Auto-created cooperative member record for user: ${u.email} (${memberNo})`);
+        } catch (err: any) {
+          console.error(`Failed to auto-create member for ${u.email}:`, err.message);
+        }
+      }
+    }
 
     const serverState = {
       members: await prisma.member.findMany(),
       loans: await prisma.loan.findMany(),
       repayments: await prisma.repayment.findMany(),
-      contributions: allContributions,
       receipts: await prisma.receipt.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
       settings: cleanSettings,
       staffCount: await prisma.user.count({

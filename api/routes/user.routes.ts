@@ -1,12 +1,14 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 import prisma from '../prisma';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { trackActivity } from '../middleware/audit.middleware';
 
+import bcrypt from 'bcryptjs';
+
 const router = Router();
 
 // Get all users (Admin only)
-router.get('/', authenticate, authorize(['ADMIN']), async (req: Request, res: Response) => {
+router.get('/', authenticate, authorize(['ADMIN']), async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       include: { member: true },
@@ -18,17 +20,19 @@ router.get('/', authenticate, authorize(['ADMIN']), async (req: Request, res: Re
   }
 });
 
-// Update user role or status (Admin only)
-router.patch('/:id', authenticate, authorize(['ADMIN']), trackActivity('UPDATE_USER'), async (req: Request, res: Response) => {
+// Update user role or status or details (Admin only)
+router.patch('/:id', authenticate, authorize(['ADMIN']), trackActivity('UPDATE_USER'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { role, isActive } = req.body;
+    const { role, isActive, name, email } = req.body;
 
     const user = await prisma.user.update({
-      where: { id },
+      where: { id: id as string },
       data: { 
         role: role,
-        isActive: isActive !== undefined ? isActive : undefined
+        isActive: isActive !== undefined ? isActive : undefined,
+        name: name,
+        email: email
       }
     });
 
@@ -38,15 +42,44 @@ router.patch('/:id', authenticate, authorize(['ADMIN']), trackActivity('UPDATE_U
   }
 });
 
+// Reset password of a user (Admin only)
+router.post('/:id/reset-password', authenticate, authorize(['ADMIN']), trackActivity('RESET_USER_PASSWORD'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password || password.trim().length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.update({
+      where: { id: id as string },
+      data: { password: hashedPassword }
+    });
+
+    res.json({ message: `Password reset successfully for ${user.name}` });
+  } catch (error: any) {
+    console.error('Password reset backend error:', error);
+    res.status(400).json({ error: 'Failed to reset password', details: error?.message });
+  }
+});
+
 // Delete user (Admin only)
-router.delete('/:id', authenticate, authorize(['ADMIN']), trackActivity('DELETE_USER'), async (req: Request, res: Response) => {
+router.delete('/:id', authenticate, authorize(['ADMIN']), trackActivity('DELETE_USER'), async (req: any, res: any) => {
   try {
     const { id } = req.params;
     
     // Check if user is deleting themselves
-    if ((req as any).user.id === id) {
+    if (req.user.id === id) {
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
+
+    // Delete associated member records to prevent foreign key violation
+    await prisma.member.deleteMany({
+      where: { userId: id }
+    });
 
     await prisma.user.delete({
       where: { id }
@@ -58,8 +91,8 @@ router.delete('/:id', authenticate, authorize(['ADMIN']), trackActivity('DELETE_
   }
 });
 
-// Audit Logs (Admin only)
-router.get('/audit-logs', authenticate, authorize(['ADMIN']), async (req: Request, res: Response) => {
+// Audit Logs (Admin, Secretary, Treasurer)
+router.get('/audit-logs', authenticate, authorize(['ADMIN', 'SECRETARY', 'TREASURER']), async (req, res) => {
   try {
     const logs = await prisma.auditLog.findMany({
       include: { user: { select: { name: true, email: true } } },
