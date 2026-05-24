@@ -7,6 +7,7 @@ import api from '../services/api';
 import { getSetting } from '../services/db';
 import { useSettings } from '../context/useSettings';
 import { useToast } from '../context/useToast';
+import { SignaturePad } from '../components/SignaturePad';
 
 const Reports = () => {
   const { t } = useTranslation();
@@ -17,6 +18,7 @@ const Reports = () => {
   const [selectedMonth, setSelectedMonth] = useState('ALL');
   const [selectedMember, setSelectedMember] = useState('');
   const [showOnlyConfirmed, setShowOnlyConfirmed] = useState(true);
+  const [secretarySignature, setSecretarySignature] = useState<string | null>(null);
   
   const [members, setMembers] = useState<any[]>([]);
   const [contributions, setContributions] = useState<any[]>([]);
@@ -267,17 +269,18 @@ const Reports = () => {
         )}
 
         <div className="mt-20 pt-16 border-t border-primary/20 flex justify-between items-end">
-          <div className="space-y-8">
-            <div className="space-y-1">
-              <p className="text-xs font-black text-black dark:text-white">{secretaryName}</p>
-              <div className="w-48 h-px bg-primary/30"></div>
-              <p className="text-[10px] font-bold text-gray-800 dark:text-gray-300">Secretary Signature</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs font-black text-black dark:text-white">{treasurerName}</p>
-              <div className="w-48 h-px bg-primary/30"></div>
-              <p className="text-[10px] font-bold text-gray-800 dark:text-gray-300">Treasurer Signature</p>
-            </div>
+          <div className="space-y-4">
+            <p className="text-xs font-black text-black dark:text-white">{secretaryName}</p>
+            <SignaturePad onSave={setSecretarySignature} label="Secretary Signature" />
+            {!secretarySignature && (
+              <div className="hidden print:block space-y-1">
+                <div className="w-48 h-px bg-primary/30"></div>
+                <p className="text-[10px] font-bold text-gray-800 dark:text-gray-300">Secretary Signature</p>
+              </div>
+            )}
+            {secretarySignature && (
+               <p className="text-[10px] font-bold text-gray-800 dark:text-gray-300 print:block">Secretary Signature</p>
+            )}
           </div>
           <div className="text-right">
             <p className="text-[10px] font-bold text-gray-800 dark:text-gray-300 mb-2">System Authenticated</p>
