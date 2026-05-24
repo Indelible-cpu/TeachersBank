@@ -173,24 +173,24 @@ const Reports = () => {
 
         <div className="glass p-6 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-3 gap-6 shadow-sm border border-primary/5">
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-muted-foreground ml-1">Report Scope</label>
-            <div className="flex bg-secondary/50 p-1.5 rounded-[1.25rem]">
+            <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-foreground ml-1">Report Scope</label>
+            <div className="flex bg-secondary p-1.5 rounded-[1.25rem]">
               <button onClick={() => setReportType('FULL')} className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all ${reportType === 'FULL' ? 'bg-background shadow-md text-primary' : 'text-muted-foreground'}`}>{t('reports.full_report')}</button>
               <button onClick={() => setReportType('INDIVIDUAL')} className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all ${reportType === 'INDIVIDUAL' ? 'bg-background shadow-md text-primary' : 'text-muted-foreground'}`}>{t('reports.individual_report')}</button>
             </div>
           </div>
 
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-muted-foreground ml-1">Timeframe</label>
-            <select title="Month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none">
+            <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-foreground ml-1">Timeframe</label>
+            <select title="Month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="w-full px-4 py-3 bg-secondary text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none">
               {months.map(m => <option key={m} value={m}>{m === 'ALL' ? 'Entire Cycle' : m}</option>)}
             </select>
           </div>
 
           {reportType === 'INDIVIDUAL' && (
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-muted-foreground ml-1">Select Member</label>
-              <select title="Member" value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none">
+              <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-foreground ml-1">Select Member</label>
+              <select title="Member" value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-4 py-3 bg-secondary text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none">
                 <option value="">Choose Member</option>
                 {members.map(m => <option key={String(m.id)} value={String(m.id)}>{String(m.fullname)}</option>)}
               </select>
@@ -202,9 +202,9 @@ const Reports = () => {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black p-2 sm:p-4 md:p-6 rounded-xl shadow-2xl w-full print:shadow-none print:p-0 print:m-0" ref={reportRef} id="printable-report">
         <style>{`@media print { body * { visibility: hidden; } #printable-report, #printable-report * { visibility: visible; } #printable-report { position: absolute; left: 0; top: 0; width: 100%; } .print\\:hidden { display: none !important; } }`}</style>
 
-        <div className="flex flex-col items-center justify-center text-center border-b-4 border-black/20 pb-6 mb-8">
-          <img src="/icon-192x192.png" alt="Logo" className="h-16 mb-4 object-contain" />
-          <h1 className="text-2xl font-bold text-black tracking-tight mb-2 capitalize">{settings.organizationName || 'Teachers Bank'}</h1>
+        <div className="flex flex-col items-center justify-center text-center border-b-4 border-black/20 pb-10 mb-10">
+          <img src="/icon-192x192.png" alt="Logo" className="h-20 mb-6 object-contain" />
+          <h1 className="text-4xl font-bold text-black tracking-tight mb-2 capitalize">{settings.organizationName || 'Teachers Bank'}</h1>
           
           <div className="flex flex-wrap justify-center gap-4 text-[10px] font-semibold capitalize tracking-widest text-black">
             <span>Period: {selectedMonth}</span>
@@ -293,22 +293,19 @@ const Reports = () => {
           );
         })()}
 
-        <div className="mt-20 pt-16 border-t border-black/20 flex justify-between items-end">
+        <div className="mt-20 pt-16 border-t border-black/20 flex flex-col items-center justify-center relative">
           <div className="space-y-4">
-            {secretaryName && <p className="text-xs font-black text-black">{secretaryName}</p>}
             <SignaturePad onSave={setSecretarySignature} label="Secretary Signature" />
             {!secretarySignature && (
               <div className="hidden print:block space-y-1">
-                <div className="w-48 h-px bg-primary/30"></div>
-                <p className="text-[10px] font-bold text-black">Secretary Signature</p>
+                <div className="w-48 h-px bg-black/30"></div>
+                <p className="text-[10px] font-bold text-black text-center">Secretary Signature</p>
               </div>
             )}
             {secretarySignature && (
-               <p className="text-[10px] font-bold text-black print:block">Secretary Signature</p>
+               <p className="text-[10px] font-bold text-black print:block text-center uppercase tracking-widest">Secretary Signature</p>
             )}
           </div>
-          <div className="text-right">
-            {/* Kept empty to maintain flex layout if needed, or we can just remove it */}
           </div>
         </div>
         <div className="mt-8 text-center">
