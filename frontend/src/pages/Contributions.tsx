@@ -133,8 +133,21 @@ const Contributions = () => {
       );
     };
 
-    if (newContrib.recordBoth && (checkDuplicate('SHARE') || checkDuplicate('EMERGENCY'))) {
-      toast.error('A contribution for this month already exists.');
+    const shareAmt = parseFloat(newContrib.shareAmount) || 0;
+    const emergencyAmt = parseFloat(newContrib.emergencyAmount) || 0;
+
+    if (shareAmt <= 0 && emergencyAmt <= 0) {
+      toast.error('Please enter an amount greater than 0.');
+      return;
+    }
+
+    if (shareAmt > 0 && checkDuplicate('SHARE')) {
+      toast.error('A Share contribution for this month already exists.');
+      return;
+    }
+    
+    if (emergencyAmt > 0 && checkDuplicate('EMERGENCY')) {
+      toast.error('An Emergency contribution for this month already exists.');
       return;
     }
 
@@ -142,30 +155,32 @@ const Contributions = () => {
     const timestamp = new Date().toISOString();
     const newRecords: Contribution[] = [];
 
-    const shareRecord: Contribution = {
-      id: `S-${Date.now()}`,
-      memberId: newContrib.memberId,
-      memberName: selectedMember?.fullname || 'Unknown',
-      contributorName: newContrib.contributorName,
-      type: 'SHARE',
-      amount: parseFloat(newContrib.shareAmount),
-      month: newContrib.month,
-      monthName: MONTHS[newContrib.month - 1],
-      year: newContrib.year,
-      isAdvance: newContrib.isAdvance,
-      status: 'PENDING',
-      timestamp
-    };
-    newRecords.push(shareRecord);
+    if (shareAmt > 0) {
+      const shareRecord: Contribution = {
+        id: `S-${Date.now()}`,
+        memberId: newContrib.memberId,
+        memberName: selectedMember?.fullname || 'Unknown',
+        contributorName: newContrib.contributorName,
+        type: 'SHARE',
+        amount: shareAmt,
+        month: newContrib.month,
+        monthName: MONTHS[newContrib.month - 1],
+        year: newContrib.year,
+        isAdvance: newContrib.isAdvance,
+        status: 'PENDING',
+        timestamp
+      };
+      newRecords.push(shareRecord);
+    }
 
-    if (newContrib.recordBoth) {
+    if (emergencyAmt > 0) {
       const emergencyRecord: Contribution = {
         id: `E-${Date.now() + 1}`,
         memberId: newContrib.memberId,
         memberName: selectedMember?.fullname || 'Unknown',
         contributorName: newContrib.contributorName,
         type: 'EMERGENCY',
-        amount: parseFloat(newContrib.emergencyAmount),
+        amount: emergencyAmt,
         month: newContrib.month,
         monthName: MONTHS[newContrib.month - 1],
         year: newContrib.year,

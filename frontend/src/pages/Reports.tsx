@@ -199,12 +199,12 @@ const Reports = () => {
         </div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black p-10 md:p-16 rounded-[3rem] shadow-2xl print:shadow-none print:p-0 print:m-0" ref={reportRef} id="printable-report">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black p-4 sm:p-6 md:p-8 rounded-[3rem] shadow-2xl w-full print:shadow-none print:p-0 print:m-0" ref={reportRef} id="printable-report">
         <style>{`@media print { body * { visibility: hidden; } #printable-report, #printable-report * { visibility: visible; } #printable-report { position: absolute; left: 0; top: 0; width: 100%; } .print\\:hidden { display: none !important; } }`}</style>
 
-        <div className="flex flex-col items-center justify-center text-center border-b-4 border-primary/20 pb-10 mb-10">
+        <div className="flex flex-col items-center justify-center text-center border-b-4 border-black/20 pb-10 mb-10">
           <img src="/icon-192x192.png" alt="Logo" className="h-20 mb-6 object-contain" />
-          <h1 className="text-4xl font-bold text-primary tracking-tight mb-2">{settings.organizationName || 'Teachers Bank'}</h1>
+          <h1 className="text-4xl font-bold text-black tracking-tight mb-2 capitalize">{settings.organizationName || 'Teachers Bank'}</h1>
           
           <div className="flex flex-wrap justify-center gap-4 text-[10px] font-semibold capitalize tracking-widest text-black">
             <span>Period: {selectedMonth}</span>
@@ -216,17 +216,17 @@ const Reports = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
-          <div className="border-l-4 border-primary pl-6">
+          <div className="border-l-4 border-black pl-6">
             <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Total shares</p>
-            <h4 className="text-2xl font-bold text-primary">MWK {totalShares.toLocaleString()}</h4>
+            <h4 className="text-2xl font-bold text-black">MWK {totalShares.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-primary pl-6">
+          <div className="border-l-4 border-black pl-6">
             <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Emergency fund</p>
-            <h4 className="text-2xl font-bold text-primary">MWK {totalEmergency.toLocaleString()}</h4>
+            <h4 className="text-2xl font-bold text-black">MWK {totalEmergency.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-primary pl-6">
+          <div className="border-l-4 border-black pl-6">
             <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Loan recovery</p>
-            <h4 className="text-2xl font-bold text-primary">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
+            <h4 className="text-2xl font-bold text-black">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
             <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Accumulated interest</p>
@@ -238,37 +238,64 @@ const Reports = () => {
           </div>
         </div>
 
-        {filteredContributions.length > 0 && (
-          <div className="mb-16">
-            <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-6 flex items-center gap-3">
-              <span className="w-8 h-1 bg-primary"></span> Contribution Detail
-            </h3>
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b-2 border-primary/20 text-[10px] font-black uppercase text-black">
-                  <th className="py-4 pr-4">Date</th>
-                  {reportType === 'FULL' && <th className="py-4">Member</th>}
-                  <th className="py-4">Type</th>
-                  <th className="py-4">Period</th>
-                  <th className="py-4 text-right">Amount (MWK)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredContributions.map((c, i) => (
-                  <tr key={i} className="text-xs font-bold">
-                    <td className="py-4 text-black">{new Date(c.timestamp).toLocaleDateString()}</td>
-                    {reportType === 'FULL' && <td className="py-4">{c.memberName}</td>}
-                    <td className="py-4 uppercase tracking-tighter text-[10px]">{c.type}</td>
-                    <td className="py-4 text-black">{c.monthName} {c.year}</td>
-                    <td className="py-4 text-right font-black">{c.amount.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {filteredContributions.length > 0 && (() => {
+          const groupedContributions = Object.values(
+            filteredContributions.reduce((acc, c) => {
+              const key = `${c.memberId}-${c.year}-${c.month}`;
+              if (!acc[key]) {
+                acc[key] = {
+                  date: new Date(c.timestamp),
+                  memberName: c.memberName,
+                  period: `${c.monthName} ${c.year}`,
+                  shareAmount: 0,
+                  emergencyAmount: 0,
+                  totalAmount: 0
+                };
+              }
+              if (c.type === 'SHARE') acc[key].shareAmount += c.amount;
+              if (c.type === 'EMERGENCY') acc[key].emergencyAmount += c.amount;
+              acc[key].totalAmount += c.amount;
+              
+              const cDate = new Date(c.timestamp);
+              if (cDate > acc[key].date) acc[key].date = cDate;
+              return acc;
+            }, {} as Record<string, any>)
+          ).sort((a: any, b: any) => b.date.getTime() - a.date.getTime());
 
-        <div className="mt-20 pt-16 border-t border-primary/20 flex justify-between items-end">
+          return (
+            <div className="mb-16">
+              <h3 className="text-sm font-black capitalize tracking-widest text-black mb-6 flex items-center gap-3">
+                <span className="w-8 h-1 bg-black"></span> Contribution Detail
+              </h3>
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-black/20 text-[10px] font-black capitalize text-black">
+                    <th className="py-4 pr-4">Date</th>
+                    {reportType === 'FULL' && <th className="py-4">Member Name</th>}
+                    <th className="py-4">Share</th>
+                    <th className="py-4">Emergency</th>
+                    <th className="py-4">Period</th>
+                    <th className="py-4 text-right">Amount (MWK)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {groupedContributions.map((g: any, i) => (
+                    <tr key={i} className="text-xs font-bold text-black">
+                      <td className="py-4 text-black">{g.date.toLocaleDateString()}</td>
+                      {reportType === 'FULL' && <td className="py-4 text-black">{g.memberName}</td>}
+                      <td className="py-4 text-black">{g.shareAmount > 0 ? g.shareAmount.toLocaleString() : 'x'}</td>
+                      <td className="py-4 text-black">{g.emergencyAmount > 0 ? g.emergencyAmount.toLocaleString() : 'x'}</td>
+                      <td className="py-4 text-black">{g.period}</td>
+                      <td className="py-4 text-right font-black text-black">{g.totalAmount.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
+
+        <div className="mt-20 pt-16 border-t border-black/20 flex justify-between items-end">
           <div className="space-y-4">
             {secretaryName && <p className="text-xs font-black text-black">{secretaryName}</p>}
             <SignaturePad onSave={setSecretarySignature} label="Secretary Signature" />
