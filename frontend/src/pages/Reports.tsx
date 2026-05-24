@@ -145,7 +145,7 @@ const Reports = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="w-full max-w-[100vw] px-2 sm:px-6 mx-auto space-y-6">
       <div className="print:hidden space-y-6">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex flex-col gap-1">
@@ -199,12 +199,12 @@ const Reports = () => {
         </div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black p-4 sm:p-6 md:p-8 rounded-[3rem] shadow-2xl w-full print:shadow-none print:p-0 print:m-0" ref={reportRef} id="printable-report">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black p-2 sm:p-4 md:p-6 rounded-xl shadow-2xl w-full print:shadow-none print:p-0 print:m-0" ref={reportRef} id="printable-report">
         <style>{`@media print { body * { visibility: hidden; } #printable-report, #printable-report * { visibility: visible; } #printable-report { position: absolute; left: 0; top: 0; width: 100%; } .print\\:hidden { display: none !important; } }`}</style>
 
-        <div className="flex flex-col items-center justify-center text-center border-b-4 border-black/20 pb-10 mb-10">
-          <img src="/icon-192x192.png" alt="Logo" className="h-20 mb-6 object-contain" />
-          <h1 className="text-4xl font-bold text-black tracking-tight mb-2 capitalize">{settings.organizationName || 'Teachers Bank'}</h1>
+        <div className="flex flex-col items-center justify-center text-center border-b-4 border-black/20 pb-6 mb-8">
+          <img src="/icon-192x192.png" alt="Logo" className="h-16 mb-4 object-contain" />
+          <h1 className="text-2xl font-bold text-black tracking-tight mb-2 capitalize">{settings.organizationName || 'Teachers Bank'}</h1>
           
           <div className="flex flex-wrap justify-center gap-4 text-[10px] font-semibold capitalize tracking-widest text-black">
             <span>Period: {selectedMonth}</span>
@@ -271,21 +271,19 @@ const Reports = () => {
                 <thead>
                   <tr className="border-b-2 border-black/20 text-[10px] font-black capitalize text-black">
                     <th className="py-4 pr-4">Date</th>
-                    {reportType === 'FULL' && <th className="py-4">Member Name</th>}
+                    {reportType === 'FULL' && <th className="py-4">Member</th>}
                     <th className="py-4">Share</th>
                     <th className="py-4">Emergency</th>
-                    <th className="py-4">Period</th>
                     <th className="py-4 text-right">Amount (MWK)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {groupedContributions.map((g: any, i) => (
                     <tr key={i} className="text-xs font-bold text-black">
-                      <td className="py-4 text-black">{g.date.toLocaleDateString()}</td>
+                      <td className="py-4 text-black">{g.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td>
                       {reportType === 'FULL' && <td className="py-4 text-black">{g.memberName}</td>}
                       <td className="py-4 text-black">{g.shareAmount > 0 ? g.shareAmount.toLocaleString() : 'x'}</td>
                       <td className="py-4 text-black">{g.emergencyAmount > 0 ? g.emergencyAmount.toLocaleString() : 'x'}</td>
-                      <td className="py-4 text-black">{g.period}</td>
                       <td className="py-4 text-right font-black text-black">{g.totalAmount.toLocaleString()}</td>
                     </tr>
                   ))}
