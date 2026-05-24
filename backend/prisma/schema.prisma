@@ -16,6 +16,7 @@ model Settings {
   contactDetails        String?
   defaultLanguage       String   @default("en")
   interestPercentage    Float    @default(0)
+  emergencyInterestPercentage Float @default(0)
   maturityMonths        Int      @default(12)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
@@ -75,6 +76,7 @@ model Member {
   loans                  Loan[]
   repayments             Repayment[]
   disbursements          Disbursement[]
+  pledges                Pledge[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -106,6 +108,7 @@ model ContributionCycle {
   shareContributions     ShareContribution[]
   emergencyContributions EmergencyContribution[]
   disbursements          Disbursement[]
+  pledges                Pledge[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -115,6 +118,11 @@ enum ConfirmationStatus {
   PENDING
   CONFIRMED
   REJECTED
+}
+
+enum FundType {
+  SHARE
+  EMERGENCY
 }
 
 model ShareContribution {
@@ -176,6 +184,7 @@ model Loan {
   expectedReturn Float
   balance        Float
   status         LoanStatus @default(PENDING)
+  fundType       FundType   @default(SHARE)
   dueDate        DateTime
   recordedBy     String
   
@@ -193,6 +202,7 @@ model Loan {
 
 enum LoanStatus {
   PENDING
+  VERIFIED
   APPROVED
   REJECTED
   FULLY_PAID
@@ -227,6 +237,7 @@ model Disbursement {
   cycle      ContributionCycle @relation(fields: [cycleId], references: [id])
   amount     Float
   interest   Float
+  fundType   FundType   @default(SHARE)
   status     DisbursementStatus @default(PENDING)
   recordedBy String
   receiptId  String?  @unique
@@ -260,4 +271,22 @@ model Receipt {
   loanId                 String?
   
   createdAt DateTime @default(now())
+}
+
+model Pledge {
+  id                           String   @id @default(uuid())
+  memberId                     String
+  member                       Member   @relation(fields: [memberId], references: [id])
+  cycleId                      String
+  cycle                        ContributionCycle @relation(fields: [cycleId], references: [id])
+  month                        Int
+  year                         Int
+  shareAmount                  Float    @default(0)
+  loanRepaymentAmount          Float    @default(0)
+  emergencyLoanRepaymentAmount Float    @default(0)
+  
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+
+  @@unique([memberId, month, year])
 }

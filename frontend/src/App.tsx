@@ -37,6 +37,8 @@ const Reports = safeLazy(() => import('./pages/Reports'));
 const Users = safeLazy(() => import('./pages/Users'));
 const AuditTrail = safeLazy(() => import('./pages/AuditTrail'));
 const LoanConfigurations = safeLazy(() => import('./pages/LoanConfigurations'));
+const TotalEarnings = safeLazy(() => import('./pages/TotalEarnings'));
+const Emergency = safeLazy(() => import('./pages/Emergency'));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
@@ -71,6 +73,8 @@ function App() {
             <Route path="repayments" element={<Repayments />} />
 
             <Route path="reports" element={<Reports />} />
+            <Route path="total-earnings" element={<TotalEarnings />} />
+            <Route path="emergency" element={<Emergency />} />
             <Route path="users" element={<Users />} />
             <Route path="loan-configurations" element={<LoanConfigurations />} />
             <Route path="audit-trail" element={<AuditTrail />} />

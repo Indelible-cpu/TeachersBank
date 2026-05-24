@@ -198,14 +198,14 @@ const Reports = () => {
         </div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black px-4 py-6 sm:px-6 sm:py-8 md:px-8 w-full rounded-none print:p-0 print:m-0 print:w-full" ref={reportRef} id="printable-report">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-background text-foreground print:bg-white print:text-foreground print:text-black px-4 py-6 sm:px-6 sm:py-8 md:px-8 w-full rounded-none print:p-0 print:m-0 print:w-full" ref={reportRef} id="printable-report">
         <style>{`@media print { body * { visibility: hidden; } #printable-report, #printable-report * { visibility: visible; } #printable-report { position: absolute; left: 0; top: 0; width: 100%; } .print\\:hidden { display: none !important; } }`}</style>
 
-        <div className="flex flex-col items-center justify-center text-center border-b-4 border-black/20 pb-10 mb-10">
+        <div className="flex flex-col items-center justify-center text-center border-b-4 border-foreground/20 print:border-foreground print:border-black/20 pb-10 mb-10">
           <img src="/icon-192x192.png" alt="Logo" className="h-20 mb-6 object-contain" />
-          <h1 className="text-xl font-bold text-black tracking-tight mb-2 capitalize">{settings.organizationName || 'Teachers Bank'}</h1>
+          <h1 className="text-xl font-bold text-foreground print:text-black tracking-tight mb-2 capitalize">{settings.organizationName || 'Teachers Bank'}</h1>
           
-          <div className="flex flex-wrap justify-center gap-4 text-[10px] font-semibold capitalize tracking-widest text-black">
+          <div className="flex flex-wrap justify-center gap-4 text-[10px] font-semibold capitalize tracking-widest text-foreground print:text-black">
             <span>Period: {selectedMonth}</span>
             <span className="w-1.5 h-1.5 bg-gray-200 rounded-full my-auto"></span>
             <span>Generated: {new Date().toLocaleDateString()}</span>
@@ -215,28 +215,28 @@ const Reports = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 mb-16">
-          <div className="border-l-4 border-black pl-4">
-            <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Total shares</p>
-            <h4 className="text-xl font-bold text-black">MWK {totalShares.toLocaleString()}</h4>
+          <div className="border-l-4 border-foreground print:border-black pl-4">
+            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Total shares</p>
+            <h4 className="text-xl font-bold text-foreground print:text-black">MWK {totalShares.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-black pl-4">
-            <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Emergency fund</p>
-            <h4 className="text-xl font-bold text-black">MWK {totalEmergency.toLocaleString()}</h4>
+          <div className="border-l-4 border-foreground print:border-black pl-4">
+            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Emergency fund</p>
+            <h4 className="text-xl font-bold text-foreground print:text-black">MWK {totalEmergency.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-black pl-4">
-            <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Loan recovery</p>
-            <h4 className="text-xl font-bold text-black">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
+          <div className="border-l-4 border-foreground print:border-black pl-4">
+            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Loan recovery</p>
+            <h4 className="text-xl font-bold text-foreground print:text-black">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-4">
-            <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Interest</p>
+            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Interest</p>
             <h4 className="text-xl font-bold text-purple-600">MWK {accumulatedInterest.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-emerald-500 pl-4 bg-emerald-50/50 p-2 rounded-r-lg">
-            <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Disbursement</p>
+            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Total earnings</p>
             <h4 className="text-xl font-black text-emerald-600">MWK {(totalShares + accumulatedInterest).toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-rose-500 pl-4">
-            <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Outstanding</p>
+            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Outstanding</p>
             <h4 className="text-xl font-bold text-rose-600">MWK {activeLoansTotal.toLocaleString()}</h4>
           </div>
         </div>
@@ -267,12 +267,12 @@ const Reports = () => {
 
           return (
             <div className="mb-16">
-              <h3 className="text-sm font-black capitalize tracking-widest text-black mb-6 flex items-center gap-3">
-                <span className="w-8 h-1 bg-black"></span> Contribution Detail
+              <h3 className="text-sm font-black capitalize tracking-widest text-foreground print:text-black mb-6 flex items-center gap-3">
+                <span className="w-8 h-1 bg-foreground print:bg-black"></span> Contribution Detail
               </h3>
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b-2 border-black/20 text-[10px] font-black capitalize text-black">
+                  <tr className="border-b-2 border-foreground/20 print:border-foreground print:border-black/20 text-[10px] font-black capitalize text-foreground print:text-black">
                     <th className="py-4 pr-4">Date</th>
                     {reportType === 'FULL' && <th className="py-4">Member</th>}
                     <th className="py-4">Share</th>
@@ -282,16 +282,16 @@ const Reports = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {groupedContributions.map((g: any, i) => (
-                    <tr key={i} className="text-xs font-bold text-black">
-                      <td className="py-4 text-black">{g.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td>
-                      {reportType === 'FULL' && <td className="py-4 text-black">{g.memberName}</td>}
+                    <tr key={i} className="text-xs font-bold text-foreground print:text-black">
+                      <td className="py-4 text-foreground print:text-black">{g.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td>
+                      {reportType === 'FULL' && <td className="py-4 text-foreground print:text-black">{g.memberName}</td>}
                       <td className="py-4">
                         {g.shareAmount > 0 ? <span className="text-emerald-600">{g.shareAmount.toLocaleString()}</span> : <span className="text-gray-400">x</span>}
                       </td>
                       <td className="py-4">
                         {g.emergencyAmount > 0 ? <span className="text-rose-600">{g.emergencyAmount.toLocaleString()}</span> : <span className="text-gray-400">x</span>}
                       </td>
-                      <td className="py-4 text-right font-black text-black">{g.totalAmount.toLocaleString()}</td>
+                      <td className="py-4 text-right font-black text-foreground print:text-black">{g.totalAmount.toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -300,22 +300,22 @@ const Reports = () => {
           );
         })()}
 
-        <div className="mt-20 pt-16 border-t border-black/20 flex flex-col items-center justify-center relative">
+        <div className="mt-20 pt-16 border-t border-foreground/20 print:border-foreground print:border-black/20 flex flex-col items-center justify-center relative">
           <div className="space-y-4">
             <SignaturePad onSave={setSecretarySignature} label="Secretary Signature" />
             {!secretarySignature && (
               <div className="hidden print:block space-y-1">
-                <div className="w-48 h-px bg-black/30"></div>
-                <p className="text-[10px] font-bold text-black text-center">Secretary Signature</p>
+                <div className="w-48 h-px bg-foreground print:bg-black/30"></div>
+                <p className="text-[10px] font-bold text-foreground print:text-black text-center">Secretary Signature</p>
               </div>
             )}
             {secretarySignature && (
-               <p className="text-[10px] font-bold text-black print:block text-center uppercase tracking-widest">Secretary Signature</p>
+               <p className="text-[10px] font-bold text-foreground print:text-black print:block text-center uppercase tracking-widest">Secretary Signature</p>
             )}
           </div>
         </div>
         <div className="mt-8 text-center">
-          <p className="text-[10px] font-bold text-black tracking-widest">Powered by Indelible Technologies</p>
+          <p className="text-[10px] font-bold text-foreground print:text-black tracking-widest">Powered by Indelible Technologies</p>
         </div>
       </motion.div>
     </div>

@@ -46,7 +46,7 @@ export const generateRegOptions = async (req: Request, res: Response) => {
       userName: user.email,
       attestationType: 'none',
       excludeCredentials: user.authenticators.map((auth) => ({
-        id: Buffer.from(auth.credentialID),
+        id: Buffer.from(auth.credentialID).toString('base64url'),
         type: 'public-key',
         transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
       })),
@@ -91,12 +91,13 @@ export const verifyRegResponse = async (req: Request, res: Response) => {
     });
 
     if (verification.verified && verification.registrationInfo) {
-      const { credentialPublicKey, credentialID, counter, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
+      const { id, publicKey, counter } = verification.registrationInfo.credential;
+      const { credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
 
       await prisma.authenticator.create({
         data: {
-          credentialID: Buffer.from(credentialID),
-          credentialPublicKey: Buffer.from(credentialPublicKey),
+          credentialID: Buffer.from(id, 'base64url'),
+          credentialPublicKey: Buffer.from(publicKey),
           counter: BigInt(counter),
           credentialDeviceType,
           credentialBackedUp,
@@ -139,7 +140,7 @@ export const generateAuthOptions = async (req: Request, res: Response) => {
     const options = await generateAuthenticationOptions({
       rpID,
       allowCredentials: user.authenticators.map((auth) => ({
-        id: Buffer.from(auth.credentialID),
+        id: Buffer.from(auth.credentialID).toString('base64url'),
         type: 'public-key',
         transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
       })),
@@ -186,9 +187,9 @@ export const verifyAuthResponse = async (req: Request, res: Response) => {
       expectedChallenge: user.currentChallenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
-      authenticator: {
-        credentialID: new Uint8Array(authenticator.credentialID),
-        credentialPublicKey: new Uint8Array(authenticator.credentialPublicKey),
+      credential: {
+        id: Buffer.from(authenticator.credentialID).toString('base64url'),
+        publicKey: new Uint8Array(authenticator.credentialPublicKey),
         counter: Number(authenticator.counter),
         transports: authenticator.transports ? (authenticator.transports.split(',') as any[]) : [],
       },

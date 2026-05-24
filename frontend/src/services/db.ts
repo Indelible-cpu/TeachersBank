@@ -28,6 +28,16 @@ interface TEBAMSDB extends DBSchema {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any[];
   };
+  shareContributions: {
+    key: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    value: any[];
+  };
+  emergencyContributions: {
+    key: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    value: any[];
+  };
   loans: {
     key: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,6 +49,11 @@ interface TEBAMSDB extends DBSchema {
     value: any[];
   };
   receipts: {
+    key: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    value: any[];
+  };
+  pledges: {
     key: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any[];
@@ -67,9 +82,12 @@ export const initDB = () => {
       db.createObjectStore('users', { keyPath: 'id' });
       db.createObjectStore('members');
       db.createObjectStore('contributions');
+      db.createObjectStore('shareContributions');
+      db.createObjectStore('emergencyContributions');
       db.createObjectStore('loans');
       db.createObjectStore('repayments');
       db.createObjectStore('receipts');
+      db.createObjectStore('pledges');
       
       const syncQueue = db.createObjectStore('sync_queue', {
         keyPath: 'id',
@@ -127,7 +145,10 @@ const applyServerState = async (serverState: any) => {
   if (serverState.loans) await setSetting('loans', serverState.loans);
   if (serverState.repayments) await setSetting('repayments', serverState.repayments);
   if (serverState.contributions) await setSetting('contributions', serverState.contributions);
+  if (serverState.shareContributions) await setSetting('shareContributions', serverState.shareContributions);
+  if (serverState.emergencyContributions) await setSetting('emergencyContributions', serverState.emergencyContributions);
   if (serverState.receipts) await setSetting('receipts', serverState.receipts);
+  if (serverState.pledges) await setSetting('pledges', serverState.pledges);
   if (serverState.settings) {
     const currentLocal = await getSetting('global_settings') || {};
     await setSetting('global_settings', { ...currentLocal, ...serverState.settings });

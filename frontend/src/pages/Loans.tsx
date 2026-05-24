@@ -17,6 +17,7 @@ interface Loan {
   balance: number;
   dueDate: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'FULLY_PAID';
+  fundType?: 'SHARE' | 'EMERGENCY';
   timestamp: string;
   shareInterest?: number;    // Interest accumulated from member's share pool (for disbursement reports)
   memberShares?: number;     // Total confirmed shares at time of loan issuance
@@ -48,7 +49,8 @@ const Loans = () => {
   const [newLoan, setNewLoan] = useState({
     memberId: '',
     principal: '',
-    dueDate: ''
+    dueDate: '',
+    fundType: 'SHARE'
   });
 
   const handleRuleChange = (ruleId: string) => {
@@ -143,6 +145,12 @@ const Loans = () => {
       return;
     }
 
+    const hasActiveLoan = loans.some((l: any) => l.memberId === newLoan.memberId && ['PENDING', 'VERIFIED', 'APPROVED'].includes(l.status));
+    if (hasActiveLoan) {
+      toast.error('System Rejected: Member already has an active loan.');
+      return;
+    }
+
     const selectedMember = members.find(m => m.id === newLoan.memberId);
     
     // Calculate total confirmed share contributions for the selected member
@@ -152,7 +160,11 @@ const Loans = () => {
       .reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
 
     const principal = parseFloat(newLoan.principal);
-    const interestRate = settings.interestPercentage || 10;
+    
+    const isEmergency = newLoan.fundType === 'EMERGENCY';
+    const interestRate = isEmergency 
+      ? (settings.emergencyInterestPercentage || 0) 
+      : (settings.interestPercentage || 10);
     
     // Loan repayment model: interest on the loan = principal × interestRate%
     // (separate from share-disbursement interest which = memberShares × interestRate%)
@@ -160,7 +172,7 @@ const Loans = () => {
     const expectedReturn = principal + loanInterestAmount;
 
     // Share-pool interest stored for reporting/disbursement purposes
-    const shareInterestAmount = memberShares * (interestRate / 100);
+    const shareInterestAmount = memberShares * ((settings.interestPercentage || 10) / 100);
 
     const loan: Loan = {
       id: Date.now().toString(),
@@ -174,6 +186,7 @@ const Loans = () => {
       memberShares,
       dueDate: newLoan.dueDate,
       status: 'PENDING',
+      fundType: newLoan.fundType as 'SHARE' | 'EMERGENCY',
       timestamp: new Date().toISOString()
     };
     
@@ -190,7 +203,7 @@ const Loans = () => {
     toast.success('Loan issued and recorded successfully. Pending Treasurer confirmation.');
     setIsModalOpen(false);
     setSelectedRuleId('');
-    setNewLoan({ memberId: '', principal: '', dueDate: '' });
+    setNewLoan({ memberId: '', principal: '', dueDate: '', fundType: 'SHARE' });
   };
 
   const handleApproveLoan = async (loanId: string) => {
@@ -418,6 +431,19 @@ const Loans = () => {
                     </div>
                   );
                 })()}
+
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold capitalize tracking-widest text-muted-foreground ml-1" htmlFor="loan-fund-type">Fund Type</label>
+                  <select 
+                    id="loan-fund-type" title="Select Fund Type" required
+                    value={newLoan.fundType}
+                    onChange={e => setNewLoan({...newLoan, fundType: e.target.value})}
+                    className="w-full px-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                  >
+                    <option value="SHARE">Share Fund</option>
+                    <option value="EMERGENCY">Emergency Fund</option>
+                  </select>
+                </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-muted-foreground ml-1" htmlFor="loan-term-range">Select Loan Range & Term</label>

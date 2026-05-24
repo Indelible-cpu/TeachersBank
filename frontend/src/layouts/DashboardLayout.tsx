@@ -61,6 +61,9 @@ const DashboardLayout = () => {
     { to: '/dashboard/loans', label: t('loans.title'), icon: CreditCard, roles: ['TREASURER', 'SECRETARY'], badge: pendingStats.loans },
     { to: '/dashboard/repayments', label: t('repayments.title'), icon: Receipt, roles: ['ADMIN', 'TREASURER', 'SECRETARY'], badge: pendingStats.repayments },
 
+    { to: '/dashboard/total-earnings', label: 'Total Earnings', icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/emergency', label: 'Emergency Fund', icon: Shield, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    
     { to: '/dashboard/reports', label: t('reports.title'), icon: FileText, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
     { to: '/dashboard/audit-trail', label: t('audit.title'), icon: HistoryIcon, roles: ['ADMIN'] },
     { to: '/dashboard/users', label: t('users.title'), icon: Shield, roles: ['ADMIN'] },

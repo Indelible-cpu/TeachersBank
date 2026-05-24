@@ -363,13 +363,14 @@ const Contributions = () => {
               </div>
             </div>
           </div>
-          
-          <div className="glass p-6 rounded-[2.5rem] border border-blue-500/10 bg-blue-500/5">
-            <h3 className="font-semibold text-blue-600 text-sm mb-2 flex items-center gap-2"><Clock className="w-4 h-4" /> Treasurer note</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed italic">
-              Verification ensures accountability. As Treasurer, your confirmation marks the official receipt of funds into the physical bank/pool.
-            </p>
-          </div>
+          {user?.role === 'TREASURER' && (
+            <div className="glass p-6 rounded-[2.5rem] border border-blue-500/10 bg-blue-500/5">
+              <h3 className="font-semibold text-blue-600 text-sm mb-2 flex items-center gap-2"><Clock className="w-4 h-4" /> Treasurer note</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed italic">
+                Verification ensures accountability. As Treasurer, your confirmation marks the official receipt of funds into the physical bank/pool.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
