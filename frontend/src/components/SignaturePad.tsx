@@ -106,9 +106,9 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({ onSave, className = 
       <div className={`flex flex-col items-center justify-center print:hidden ${className}`}>
         <button
           onClick={() => setIsOpen(true)}
-          className="px-6 py-2 bg-primary/10 text-primary font-bold rounded-xl hover:bg-primary/20 transition-all text-xs tracking-wider uppercase shadow-sm"
+          className="px-6 py-2 bg-black/5 text-black font-semibold rounded-xl border border-black/10 hover:bg-black/10 transition-all text-sm shadow-sm"
         >
-          Sign
+          Sign the report
         </button>
       </div>
     );
@@ -152,7 +152,7 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({ onSave, className = 
         <button
           onClick={handleSave}
           disabled={!hasSignature}
-          className="text-xs font-bold text-primary hover:opacity-80 disabled:opacity-50"
+          className="text-xs font-bold text-blue-600 hover:opacity-80 disabled:opacity-50"
         >
           Save
         </button>
