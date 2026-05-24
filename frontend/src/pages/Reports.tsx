@@ -145,52 +145,51 @@ const Reports = () => {
   };
 
   return (
-    <div className="w-full max-w-none space-y-6">
-      <div className="print:hidden space-y-6 px-4 sm:px-8 pt-4">
+    <div className="w-[calc(100%+2rem)] -ml-4 lg:w-[calc(100%+4rem)] lg:-ml-8 max-w-none space-y-6">
+      <div className="print:hidden space-y-6 px-4 sm:px-6 md:px-8 pt-4">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-3xl font-black tracking-tight">{t('reports.title')}</h1>
-            <p className="text-muted-foreground font-medium">Verified audit reports and financial statements.</p>
+            <p className="text-muted-foreground font-medium text-sm sm:text-base">Verified audit reports and financial statements.</p>
           </div>
           
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-row gap-2 sm:gap-3 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none snap-x">
             <button 
               onClick={() => setShowOnlyConfirmed(!showOnlyConfirmed)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all border ${showOnlyConfirmed ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'}`}
+              className={`snap-start whitespace-nowrap flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-[10px] sm:text-xs transition-all border ${showOnlyConfirmed ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'}`}
             >
               {showOnlyConfirmed ? <ShieldCheck className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
               {showOnlyConfirmed ? 'Verified Only' : 'Include Pending'}
             </button>
-            <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-secondary-foreground font-bold rounded-xl hover:bg-secondary/80 transition-all border border-transparent">
+            <button onClick={handlePrint} className="snap-start whitespace-nowrap flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-secondary text-secondary-foreground font-bold rounded-xl hover:bg-secondary/80 transition-all border border-transparent text-[10px] sm:text-xs">
               <Printer className="w-4 h-4" /> Print
             </button>
-            <button onClick={() => handleShare()} className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+            <button onClick={() => handleShare()} className="snap-start whitespace-nowrap flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 text-[10px] sm:text-xs">
               <Share2 className="w-4 h-4" /> Share
             </button>
-
           </div>
         </div>
 
-        <div className="glass p-6 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-3 gap-6 shadow-sm border border-primary/5">
+        <div className="glass p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 shadow-sm border border-primary/5">
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-foreground ml-1">Report Scope</label>
-            <select title="Report Scope" value={reportType} onChange={(e) => setReportType(e.target.value as 'FULL' | 'INDIVIDUAL')} className="w-full px-4 py-3 bg-secondary text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
+            <label className="block text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1 sm:mb-2 text-foreground ml-1">Report Scope</label>
+            <select title="Report Scope" value={reportType} onChange={(e) => setReportType(e.target.value as 'FULL' | 'INDIVIDUAL')} className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm bg-secondary text-foreground rounded-xl sm:rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
               <option value="FULL">{t('reports.full_report') || 'Entire Bank'}</option>
               <option value="INDIVIDUAL">{t('reports.individual_report') || 'Individual Member'}</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-foreground ml-1">Timeframe</label>
-            <select title="Month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="w-full px-4 py-3 bg-secondary text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
+            <label className="block text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1 sm:mb-2 text-foreground ml-1">Timeframe</label>
+            <select title="Month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm bg-secondary text-foreground rounded-xl sm:rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
               {months.map(m => <option key={m} value={m}>{m === 'ALL' ? 'Entire Cycle' : m}</option>)}
             </select>
           </div>
 
           {reportType === 'INDIVIDUAL' && (
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-foreground ml-1">Select Member</label>
-              <select title="Member" value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-4 py-3 bg-secondary text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
+            <div className="col-span-2 md:col-span-1">
+              <label className="block text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1 sm:mb-2 text-foreground ml-1">Select Member</label>
+              <select title="Member" value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm bg-secondary text-foreground rounded-xl sm:rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
                 <option value="">Choose Member</option>
                 {members.map(m => <option key={String(m.id)} value={String(m.id)}>{String(m.fullname)}</option>)}
               </select>
@@ -199,7 +198,7 @@ const Reports = () => {
         </div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black px-4 py-6 sm:px-6 sm:py-8 md:px-8 w-[calc(100%+2rem)] -ml-4 lg:w-[calc(100%+4rem)] lg:-ml-8 rounded-none print:p-0 print:m-0 print:w-full" ref={reportRef} id="printable-report">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black px-4 py-6 sm:px-6 sm:py-8 md:px-8 w-full rounded-none print:p-0 print:m-0 print:w-full" ref={reportRef} id="printable-report">
         <style>{`@media print { body * { visibility: hidden; } #printable-report, #printable-report * { visibility: visible; } #printable-report { position: absolute; left: 0; top: 0; width: 100%; } .print\\:hidden { display: none !important; } }`}</style>
 
         <div className="flex flex-col items-center justify-center text-center border-b-4 border-black/20 pb-10 mb-10">
