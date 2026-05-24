@@ -29,10 +29,10 @@ router.patch('/:id', authenticate, authorize(['ADMIN']), trackActivity('UPDATE_U
     const user = await prisma.user.update({
       where: { id: id as string },
       data: { 
-        role: role,
-        isActive: isActive !== undefined ? isActive : undefined,
-        name: name,
-        email: email
+        role: role as any,
+        isActive: isActive !== undefined ? Boolean(isActive) : undefined,
+        name: name as string,
+        email: email as string
       }
     });
 
@@ -48,11 +48,12 @@ router.post('/:id/reset-password', authenticate, authorize(['ADMIN']), trackActi
     const { id } = req.params;
     const { password } = req.body;
 
-    if (!password || password.trim().length < 6) {
+    const passwordStr = password as string;
+    if (!passwordStr || passwordStr.trim().length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(passwordStr, 10);
 
     const user = await prisma.user.update({
       where: { id: id as string },

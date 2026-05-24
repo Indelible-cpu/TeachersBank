@@ -12,9 +12,9 @@ export const trackActivity = (action: string) => {
         try {
           await prisma.auditLog.create({
             data: {
-              userId: user.id,
-              userRole: user.role,
-              action: action,
+              userId: user.id as string,
+              userRole: user.role as string,
+              action: action as string,
               details: JSON.stringify({
                 method: req.method,
                 path: req.path,
@@ -22,11 +22,11 @@ export const trackActivity = (action: string) => {
                 params: req.params,
                 query: req.query,
                 // We avoid logging full body for security/size unless needed
-              }),
+              }) as string,
               startTime: startTime,
               endTime: new Date(),
-              status: res.statusCode < 400 ? 'SUCCESS' : 'FAILED',
-              ipAddress: req.ip || req.socket.remoteAddress,
+              status: (res.statusCode < 400 ? 'SUCCESS' : 'FAILED') as string,
+              ipAddress: (req.ip || req.socket.remoteAddress) as string | undefined,
             }
           });
         } catch (error) {
