@@ -204,7 +204,7 @@ const Reports = () => {
           <img src="/icon-192x192.png" alt="Logo" className="h-20 mb-6 object-contain" />
           <h1 className="text-4xl font-bold text-primary tracking-tight mb-2">{settings.organizationName || 'Teachers Bank'}</h1>
           
-          <div className="flex flex-wrap justify-center gap-4 text-[10px] font-semibold capitalize tracking-widest text-gray-600">
+          <div className="flex flex-wrap justify-center gap-4 text-[10px] font-semibold capitalize tracking-widest text-gray-800 dark:text-gray-300">
             <span>Period: {selectedMonth}</span>
             <span className="w-1.5 h-1.5 bg-gray-200 rounded-full my-auto"></span>
             <span>Generated: {new Date().toLocaleDateString()}</span>
@@ -215,23 +215,23 @@ const Reports = () => {
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-semibold text-gray-500 capitalize tracking-widest mb-1">Total shares</p>
+            <p className="text-[10px] font-semibold text-gray-800 dark:text-gray-300 capitalize tracking-widest mb-1">Total shares</p>
             <h4 className="text-2xl font-bold text-primary">MWK {totalShares.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-semibold text-gray-500 capitalize tracking-widest mb-1">Emergency fund</p>
+            <p className="text-[10px] font-semibold text-gray-800 dark:text-gray-300 capitalize tracking-widest mb-1">Emergency fund</p>
             <h4 className="text-2xl font-bold text-primary">MWK {totalEmergency.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-semibold text-gray-500 capitalize tracking-widest mb-1">Loan recovery</p>
+            <p className="text-[10px] font-semibold text-gray-800 dark:text-gray-300 capitalize tracking-widest mb-1">Loan recovery</p>
             <h4 className="text-2xl font-bold text-primary">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-semibold text-gray-500 capitalize tracking-widest mb-1">Accumulated interest</p>
+            <p className="text-[10px] font-semibold text-gray-800 dark:text-gray-300 capitalize tracking-widest mb-1">Accumulated interest</p>
             <h4 className="text-2xl font-bold text-purple-600">MWK {accumulatedInterest.toLocaleString()}</h4>
           </div>
           <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-semibold text-gray-500 capitalize tracking-widest mb-1">Outstanding loans</p>
+            <p className="text-[10px] font-semibold text-gray-800 dark:text-gray-300 capitalize tracking-widest mb-1">Outstanding loans</p>
             <h4 className="text-2xl font-bold text-rose-600">MWK {activeLoansTotal.toLocaleString()}</h4>
           </div>
         </div>
@@ -243,7 +243,7 @@ const Reports = () => {
             </h3>
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b-2 border-primary/20 text-[10px] font-black uppercase text-gray-500">
+                <tr className="border-b-2 border-primary/20 text-[10px] font-black uppercase text-gray-800 dark:text-gray-300">
                   <th className="py-4 pr-4">Date</th>
                   {reportType === 'FULL' && <th className="py-4">Member</th>}
                   <th className="py-4">Type</th>
@@ -254,10 +254,10 @@ const Reports = () => {
               <tbody className="divide-y divide-gray-100">
                 {filteredContributions.map((c, i) => (
                   <tr key={i} className="text-xs font-bold">
-                    <td className="py-4 text-gray-600">{new Date(c.timestamp).toLocaleDateString()}</td>
+                    <td className="py-4 text-gray-800 dark:text-gray-300">{new Date(c.timestamp).toLocaleDateString()}</td>
                     {reportType === 'FULL' && <td className="py-4">{c.memberName}</td>}
                     <td className="py-4 uppercase tracking-tighter text-[10px]">{c.type}</td>
-                    <td className="py-4 text-gray-600">{c.monthName} {c.year}</td>
+                    <td className="py-4 text-gray-800 dark:text-gray-300">{c.monthName} {c.year}</td>
                     <td className="py-4 text-right font-black">{c.amount.toLocaleString()}</td>
                   </tr>
                 ))}
@@ -269,18 +269,18 @@ const Reports = () => {
         <div className="mt-20 pt-16 border-t border-primary/20 flex justify-between items-end">
           <div className="space-y-8">
             <div className="space-y-1">
-              <p className="text-xs font-black text-gray-900">{secretaryName}</p>
+              <p className="text-xs font-black text-black dark:text-white">{secretaryName}</p>
               <div className="w-48 h-px bg-primary/30"></div>
-              <p className="text-[10px] font-bold text-gray-500">Secretary Signature</p>
+              <p className="text-[10px] font-bold text-gray-800 dark:text-gray-300">Secretary Signature</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-black text-gray-900">{treasurerName}</p>
+              <p className="text-xs font-black text-black dark:text-white">{treasurerName}</p>
               <div className="w-48 h-px bg-primary/30"></div>
-              <p className="text-[10px] font-bold text-gray-500">Treasurer Signature</p>
+              <p className="text-[10px] font-bold text-gray-800 dark:text-gray-300">Treasurer Signature</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[10px] font-bold text-gray-500 mb-2">System Authenticated</p>
+            <p className="text-[10px] font-bold text-gray-800 dark:text-gray-300 mb-2">System Authenticated</p>
             <div className="flex items-center gap-2 justify-end text-primary">
               <ShieldCheck className="w-5 h-5 animate-pulse" />
               <span className="font-black text-base tracking-tight">{settings.systemName} Secure</span>

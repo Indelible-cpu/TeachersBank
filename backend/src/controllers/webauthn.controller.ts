@@ -9,8 +9,21 @@ import jwt from 'jsonwebtoken';
 import prisma from '../prisma';
 
 const rpName = 'TeachersBank';
-const rpID = process.env.RP_ID || 'localhost';
-const origin = process.env.CLIENT_URL || `http://${rpID}:5173`;
+
+const getWebAuthnConfig = (req: Request) => {
+  // Try env vars first, otherwise derive from the request (perfect for Vercel/dynamic hosting)
+  let rpID = process.env.RP_ID || req.hostname;
+  
+  // Clean up rpID if it contains ports (e.g., localhost:3000 -> localhost)
+  if (rpID.includes(':')) {
+    rpID = rpID.split(':')[0];
+  }
+
+  // origin must exactly match what the browser sees
+  const origin = process.env.CLIENT_URL || req.headers.origin || (req.hostname === 'localhost' ? 'http://localhost:5173' : `https://${req.headers.host}`);
+  
+  return { rpID, origin };
+};
 
 export const generateRegOptions = async (req: Request, res: Response) => {
   try {
@@ -23,6 +36,8 @@ export const generateRegOptions = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
+
+    const { rpID } = getWebAuthnConfig(req);
 
     const options = await generateRegistrationOptions({
       rpName,
@@ -65,6 +80,8 @@ export const verifyRegResponse = async (req: Request, res: Response) => {
     if (!user || !user.currentChallenge) {
       return res.status(400).json({ error: 'User or challenge not found' });
     }
+
+    const { rpID, origin } = getWebAuthnConfig(req);
 
     const verification = await verifyRegistrationResponse({
       response: body,
@@ -117,6 +134,8 @@ export const generateAuthOptions = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found or no biometric registered' });
     }
 
+    const { rpID } = getWebAuthnConfig(req);
+
     const options = await generateAuthenticationOptions({
       rpID,
       allowCredentials: user.authenticators.map((auth) => ({
@@ -159,6 +178,8 @@ export const verifyAuthResponse = async (req: Request, res: Response) => {
     if (!authenticator) {
       return res.status(400).json({ error: 'Authenticator not registered with this user' });
     }
+
+    const { rpID, origin } = getWebAuthnConfig(req);
 
     const verification = await verifyAuthenticationResponse({
       response,
