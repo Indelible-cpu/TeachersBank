@@ -310,7 +310,6 @@ const Reports = () => {
                <p className="text-[10px] font-bold text-black print:block text-center uppercase tracking-widest">Secretary Signature</p>
             )}
           </div>
-          </div>
         </div>
         <div className="mt-8 text-center">
           <p className="text-[10px] font-bold text-black tracking-widest">Powered by Indelible Technologies</p>
