@@ -282,8 +282,12 @@ const Reports = () => {
                     <tr key={i} className="text-xs font-bold text-black">
                       <td className="py-4 text-black">{g.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td>
                       {reportType === 'FULL' && <td className="py-4 text-black">{g.memberName}</td>}
-                      <td className="py-4 text-black">{g.shareAmount > 0 ? g.shareAmount.toLocaleString() : 'x'}</td>
-                      <td className="py-4 text-black">{g.emergencyAmount > 0 ? g.emergencyAmount.toLocaleString() : 'x'}</td>
+                      <td className="py-4">
+                        {g.shareAmount > 0 ? <span className="text-emerald-600">{g.shareAmount.toLocaleString()}</span> : <span className="text-gray-400">x</span>}
+                      </td>
+                      <td className="py-4">
+                        {g.emergencyAmount > 0 ? <span className="text-rose-600">{g.emergencyAmount.toLocaleString()}</span> : <span className="text-gray-400">x</span>}
+                      </td>
                       <td className="py-4 text-right font-black text-black">{g.totalAmount.toLocaleString()}</td>
                     </tr>
                   ))}
