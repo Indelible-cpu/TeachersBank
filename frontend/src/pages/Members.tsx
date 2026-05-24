@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Phone, Calendar, Lock, User as UserIcon, MapPin, ShieldCheck } from 'lucide-react';
+import { Search, Plus, Phone, Calendar, Lock, User as UserIcon, MapPin, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/useToast';
@@ -46,6 +46,9 @@ const Members = () => {
     email: '',
     password: ''
   });
+
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
 
   const canAddMember = user?.role === 'SECRETARY';
 
@@ -366,8 +369,9 @@ const Members = () => {
                       id="national-id"
                       type="text" 
                       value={newMember.nationalId}
-                      onChange={e => setNewMember({...newMember, nationalId: e.target.value})}
+                      onChange={e => setNewMember({...newMember, nationalId: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                      maxLength={8}
                       placeholder="8 characters"
                     />
                   </div>
@@ -402,15 +406,20 @@ const Members = () => {
 
                 <div className="space-y-2">
                   <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="member-password">Account Password</label>
-                  <input 
-                    id="member-password"
-                    type="password" 
-                    required
-                    value={newMember.password}
-                    onChange={e => setNewMember({...newMember, password: e.target.value})}
-                    className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
-                    placeholder="Min 6 characters"
-                  />
+                  <div className="relative">
+                    <input 
+                      id="member-password"
+                      type={showNewPassword ? "text" : "password"}
+                      required
+                      value={newMember.password}
+                      onChange={e => setNewMember({...newMember, password: e.target.value})}
+                      className="w-full px-5 py-3 pr-12 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                      placeholder="Min 6 characters"
+                    />
+                    <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex gap-4 pt-6">
@@ -499,8 +508,9 @@ const Members = () => {
                       id="edit-national-id"
                       type="text" 
                       value={editForm.nationalId}
-                      onChange={e => setEditForm({...editForm, nationalId: e.target.value})}
+                      onChange={e => setEditForm({...editForm, nationalId: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                      maxLength={8}
                       placeholder="8 characters"
                     />
                   </div>
@@ -535,14 +545,19 @@ const Members = () => {
 
                 <div className="space-y-2">
                   <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-password">New Password (Optional - Leave blank to keep current)</label>
-                  <input 
-                    id="edit-password"
-                    type="password" 
-                    value={editForm.password}
-                    onChange={e => setEditForm({...editForm, password: e.target.value})}
-                    className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
-                    placeholder="Min 6 characters"
-                  />
+                  <div className="relative">
+                    <input 
+                      id="edit-password"
+                      type={showEditPassword ? "text" : "password"}
+                      value={editForm.password}
+                      onChange={e => setEditForm({...editForm, password: e.target.value})}
+                      className="w-full px-5 py-3 pr-12 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                      placeholder="Enter new password"
+                    />
+                    <button type="button" onClick={() => setShowEditPassword(!showEditPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      {showEditPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex gap-4 pt-6">

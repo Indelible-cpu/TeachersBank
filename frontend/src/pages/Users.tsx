@@ -342,7 +342,7 @@ const Users = () => {
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="newUserNationalId" className="text-xs font-black text-muted-foreground ml-1">National ID (Optional)</label>
-                  <input id="newUserNationalId" type="text" placeholder="e.g. ABC12345" value={newUser.nationalId} onChange={e => setNewUser({...newUser, nationalId: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
+                  <input id="newUserNationalId" type="text" placeholder="e.g. ABC12345" value={newUser.nationalId} onChange={e => setNewUser({...newUser, nationalId: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" maxLength={8} />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="newUserEmail" className="text-xs font-black text-muted-foreground ml-1">Email</label>
@@ -463,7 +463,7 @@ const Users = () => {
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="editUserNationalId" className="text-xs font-black text-muted-foreground ml-1">National ID (Optional)</label>
-                  <input id="editUserNationalId" type="text" placeholder="e.g. ABC12345" value={editForm.nationalId} onChange={e => setEditForm({...editForm, nationalId: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" />
+                  <input id="editUserNationalId" type="text" placeholder="e.g. ABC12345" value={editForm.nationalId} onChange={e => setEditForm({...editForm, nationalId: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" maxLength={8} />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="editUserEmail" className="text-xs font-black text-muted-foreground ml-1">Email</label>
