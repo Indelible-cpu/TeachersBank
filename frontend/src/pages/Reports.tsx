@@ -199,7 +199,7 @@ const Reports = () => {
         </div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black px-4 py-8 sm:px-8 sm:py-12 md:px-12 w-full rounded-none print:p-0 print:m-0" ref={reportRef} id="printable-report">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black px-2 py-6 sm:px-4 sm:py-8 md:px-6 w-full rounded-none print:p-0 print:m-0" ref={reportRef} id="printable-report">
         <style>{`@media print { body * { visibility: hidden; } #printable-report, #printable-report * { visibility: visible; } #printable-report { position: absolute; left: 0; top: 0; width: 100%; } .print\\:hidden { display: none !important; } }`}</style>
 
         <div className="flex flex-col items-center justify-center text-center border-b-4 border-black/20 pb-10 mb-10">
