@@ -145,8 +145,8 @@ const Reports = () => {
   };
 
   return (
-    <div className="w-full max-w-[100vw] px-2 sm:px-6 mx-auto space-y-6">
-      <div className="print:hidden space-y-6">
+    <div className="w-full max-w-none space-y-6">
+      <div className="print:hidden space-y-6 px-4 sm:px-8 pt-4">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-3xl font-black tracking-tight">{t('reports.title')}</h1>
@@ -199,7 +199,7 @@ const Reports = () => {
         </div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black p-2 sm:p-4 md:p-6 rounded-xl shadow-2xl w-full print:shadow-none print:p-0 print:m-0" ref={reportRef} id="printable-report">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black px-4 py-8 sm:px-8 sm:py-12 md:px-12 w-full rounded-none print:p-0 print:m-0" ref={reportRef} id="printable-report">
         <style>{`@media print { body * { visibility: hidden; } #printable-report, #printable-report * { visibility: visible; } #printable-report { position: absolute; left: 0; top: 0; width: 100%; } .print\\:hidden { display: none !important; } }`}</style>
 
         <div className="flex flex-col items-center justify-center text-center border-b-4 border-black/20 pb-10 mb-10">
