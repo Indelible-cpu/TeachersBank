@@ -204,7 +204,7 @@ const Reports = () => {
 
         <div className="flex flex-col items-center justify-center text-center border-b-4 border-black/20 pb-10 mb-10">
           <img src="/icon-192x192.png" alt="Logo" className="h-20 mb-6 object-contain" />
-          <h1 className="text-4xl font-bold text-black tracking-tight mb-2 capitalize">{settings.organizationName || 'Teachers Bank'}</h1>
+          <h1 className="text-xl font-bold text-black tracking-tight mb-2 capitalize">{settings.organizationName || 'Teachers Bank'}</h1>
           
           <div className="flex flex-wrap justify-center gap-4 text-[10px] font-semibold capitalize tracking-widest text-black">
             <span>Period: {selectedMonth}</span>
