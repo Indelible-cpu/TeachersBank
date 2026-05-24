@@ -215,26 +215,30 @@ const Reports = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
-          <div className="border-l-4 border-black pl-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 mb-16">
+          <div className="border-l-4 border-black pl-4">
             <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Total shares</p>
-            <h4 className="text-2xl font-bold text-black">MWK {totalShares.toLocaleString()}</h4>
+            <h4 className="text-xl font-bold text-black">MWK {totalShares.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-black pl-6">
+          <div className="border-l-4 border-black pl-4">
             <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Emergency fund</p>
-            <h4 className="text-2xl font-bold text-black">MWK {totalEmergency.toLocaleString()}</h4>
+            <h4 className="text-xl font-bold text-black">MWK {totalEmergency.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-black pl-6">
+          <div className="border-l-4 border-black pl-4">
             <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Loan recovery</p>
-            <h4 className="text-2xl font-bold text-black">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
+            <h4 className="text-xl font-bold text-black">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Accumulated interest</p>
-            <h4 className="text-2xl font-bold text-purple-600">MWK {accumulatedInterest.toLocaleString()}</h4>
+          <div className="border-l-4 border-primary pl-4">
+            <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Interest</p>
+            <h4 className="text-xl font-bold text-purple-600">MWK {accumulatedInterest.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-primary pl-6">
-            <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Outstanding loans</p>
-            <h4 className="text-2xl font-bold text-rose-600">MWK {activeLoansTotal.toLocaleString()}</h4>
+          <div className="border-l-4 border-emerald-500 pl-4 bg-emerald-50/50 p-2 rounded-r-lg">
+            <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Disbursement</p>
+            <h4 className="text-xl font-black text-emerald-600">MWK {(totalShares + accumulatedInterest).toLocaleString()}</h4>
+          </div>
+          <div className="border-l-4 border-rose-500 pl-4">
+            <p className="text-[10px] font-semibold text-black capitalize tracking-widest mb-1">Outstanding</p>
+            <h4 className="text-xl font-bold text-rose-600">MWK {activeLoansTotal.toLocaleString()}</h4>
           </div>
         </div>
 
