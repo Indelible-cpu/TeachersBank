@@ -174,15 +174,15 @@ const Reports = () => {
         <div className="glass p-6 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-3 gap-6 shadow-sm border border-primary/5">
           <div>
             <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-foreground ml-1">Report Scope</label>
-            <div className="flex bg-secondary p-1.5 rounded-[1.25rem]">
-              <button onClick={() => setReportType('FULL')} className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all ${reportType === 'FULL' ? 'bg-background shadow-md text-primary' : 'text-muted-foreground'}`}>{t('reports.full_report')}</button>
-              <button onClick={() => setReportType('INDIVIDUAL')} className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all ${reportType === 'INDIVIDUAL' ? 'bg-background shadow-md text-primary' : 'text-muted-foreground'}`}>{t('reports.individual_report')}</button>
-            </div>
+            <select title="Report Scope" value={reportType} onChange={(e) => setReportType(e.target.value as 'FULL' | 'INDIVIDUAL')} className="w-full px-4 py-3 bg-secondary text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
+              <option value="FULL">{t('reports.full_report') || 'Entire Bank'}</option>
+              <option value="INDIVIDUAL">{t('reports.individual_report') || 'Individual Member'}</option>
+            </select>
           </div>
 
           <div>
             <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-foreground ml-1">Timeframe</label>
-            <select title="Month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="w-full px-4 py-3 bg-secondary text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none">
+            <select title="Month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="w-full px-4 py-3 bg-secondary text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
               {months.map(m => <option key={m} value={m}>{m === 'ALL' ? 'Entire Cycle' : m}</option>)}
             </select>
           </div>
@@ -190,7 +190,7 @@ const Reports = () => {
           {reportType === 'INDIVIDUAL' && (
             <div>
               <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-foreground ml-1">Select Member</label>
-              <select title="Member" value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-4 py-3 bg-secondary text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none">
+              <select title="Member" value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-4 py-3 bg-secondary text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
                 <option value="">Choose Member</option>
                 {members.map(m => <option key={String(m.id)} value={String(m.id)}>{String(m.fullname)}</option>)}
               </select>
@@ -199,7 +199,7 @@ const Reports = () => {
         </div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black px-2 py-6 sm:px-4 sm:py-8 md:px-6 w-full rounded-none print:p-0 print:m-0" ref={reportRef} id="printable-report">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white text-black px-4 py-6 sm:px-6 sm:py-8 md:px-8 w-[calc(100%+2rem)] -ml-4 lg:w-[calc(100%+4rem)] lg:-ml-8 rounded-none print:p-0 print:m-0 print:w-full" ref={reportRef} id="printable-report">
         <style>{`@media print { body * { visibility: hidden; } #printable-report, #printable-report * { visibility: visible; } #printable-report { position: absolute; left: 0; top: 0; width: 100%; } .print\\:hidden { display: none !important; } }`}</style>
 
         <div className="flex flex-col items-center justify-center text-center border-b-4 border-black/20 pb-10 mb-10">
