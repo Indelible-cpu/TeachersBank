@@ -87,7 +87,7 @@ const Reports = () => {
   const currentMember = members.find(m => m.id === selectedMember);
 
   const secretaryUser = users.find(u => u.role === 'SECRETARY' && u.isActive) || users.find(u => u.role === 'SECRETARY');
-  const secretaryName = secretaryUser ? secretaryUser.name : 'Not Designated';
+  const secretaryName = secretaryUser ? secretaryUser.name : '';
 
   const treasurerUser = users.find(u => u.role === 'TREASURER' && u.isActive) || users.find(u => u.role === 'TREASURER');
   const treasurerName = treasurerUser ? treasurerUser.name : 'Not Designated';
@@ -270,7 +270,7 @@ const Reports = () => {
 
         <div className="mt-20 pt-16 border-t border-primary/20 flex justify-between items-end">
           <div className="space-y-4">
-            <p className="text-xs font-black text-black">{secretaryName}</p>
+            {secretaryName && <p className="text-xs font-black text-black">{secretaryName}</p>}
             <SignaturePad onSave={setSecretarySignature} label="Secretary Signature" />
             {!secretarySignature && (
               <div className="hidden print:block space-y-1">
@@ -287,7 +287,7 @@ const Reports = () => {
           </div>
         </div>
         <div className="mt-8 text-center">
-          <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Powered by Indelible Technologies</p>
+          <p className="text-[10px] font-bold text-gray-400 tracking-widest">Powered by Indelible Technologies</p>
         </div>
       </motion.div>
     </div>
