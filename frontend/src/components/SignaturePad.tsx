@@ -11,10 +11,11 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({ onSave, className = 
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
   const [savedSignature, setSavedSignature] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (canvas) {
+    if (canvas && isOpen) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.strokeStyle = '#000000';
@@ -23,7 +24,7 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({ onSave, className = 
         ctx.lineJoin = 'round';
       }
     }
-  }, [savedSignature]); // Re-init when not saved
+  }, [savedSignature, isOpen]); // Re-init when opened or not saved
 
   const startDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (savedSignature) return; // Prevent drawing if already saved
@@ -86,6 +87,7 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({ onSave, className = 
     const dataUrl = canvas.toDataURL('image/png');
     setSavedSignature(dataUrl);
     onSave(dataUrl);
+    setIsOpen(false);
   };
 
   if (savedSignature) {
@@ -95,6 +97,19 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({ onSave, className = 
         <div className="flex gap-2 print:hidden">
           <button onClick={handleClear} className="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-3 py-1 rounded-full">Clear</button>
         </div>
+      </div>
+    );
+  }
+
+  if (!isOpen) {
+    return (
+      <div className={`flex flex-col items-center justify-center print:hidden ${className}`}>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="px-6 py-2 bg-primary/10 text-primary font-bold rounded-xl hover:bg-primary/20 transition-all text-xs tracking-wider uppercase shadow-sm"
+        >
+          Sign
+        </button>
       </div>
     );
   }
@@ -119,19 +134,27 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({ onSave, className = 
         )}
       </div>
       <div className="flex justify-between w-full px-2">
-        <button
-          onClick={handleClear}
-          disabled={!hasSignature}
-          className="text-xs font-semibold text-gray-500 hover:text-gray-700 disabled:opacity-50"
-        >
-          Clear
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={() => { setIsOpen(false); handleClear(); }}
+            className="text-xs font-semibold text-gray-500 hover:text-gray-700"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleClear}
+            disabled={!hasSignature}
+            className="text-xs font-semibold text-gray-500 hover:text-gray-700 disabled:opacity-50"
+          >
+            Clear
+          </button>
+        </div>
         <button
           onClick={handleSave}
           disabled={!hasSignature}
           className="text-xs font-bold text-primary hover:opacity-80 disabled:opacity-50"
         >
-          Save Signature
+          Save
         </button>
       </div>
     </div>
