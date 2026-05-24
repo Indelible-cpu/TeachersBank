@@ -134,9 +134,7 @@ const Reports = () => {
       } else {
         // Fallback to download if Web Share API doesn't support files
         html2pdf().set(pdfOptions).from(reportRef.current).save();
-        } else {
-          toast.info('File sharing not supported on this browser. Downloading PDF instead.');
-        }
+        toast.info('File sharing not supported on this browser. Downloading PDF instead.');
       }
     } catch (error) {
       console.error('Error sharing PDF', error);
