@@ -56,6 +56,7 @@ const DashboardLayout = () => {
 
   const navItems = [
     { to: '/dashboard', label: t('dashboard.title'), icon: Home, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
+    { to: '/dashboard/my-account', label: 'My Account', icon: UserIcon, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
     { to: '/dashboard/members', label: t('members.title'), icon: Users, roles: ['TREASURER', 'SECRETARY'], badge: pendingStats.members },
     { to: '/dashboard/contributions', label: t('contributions.title'), icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'], badge: pendingStats.contributions },
     { to: '/dashboard/loans', label: t('loans.title'), icon: CreditCard, roles: ['TREASURER', 'SECRETARY'], badge: pendingStats.loans },
@@ -63,6 +64,7 @@ const DashboardLayout = () => {
 
     { to: '/dashboard/total-earnings', label: 'Total Earnings', icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
     { to: '/dashboard/emergency', label: 'Emergency Fund', icon: Shield, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/pledges', label: 'Pledges', icon: FileText, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
     
     { to: '/dashboard/reports', label: t('reports.title'), icon: FileText, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
     { to: '/dashboard/audit-trail', label: t('audit.title'), icon: HistoryIcon, roles: ['ADMIN'] },

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Wallet, CreditCard, ShieldAlert, CheckCircle2, TrendingUp, HandCoins, Receipt } from 'lucide-react';
 import { getSetting, pullFromServer } from '../services/db';
 import { useSettings } from '../context/useSettings';
-import MemberDashboard from './MemberDashboard';
+
 
 interface DashboardStats {
   contributions: number;
@@ -45,9 +45,7 @@ const Dashboard = () => {
   const { user, canConfirm } = useAuth();
   const { settings } = useSettings();
   
-  if (user?.role === 'MEMBER') {
-    return <MemberDashboard />;
-  }
+
 
   const [data, setData] = useState<DashboardStats>({
     contributions: 0,

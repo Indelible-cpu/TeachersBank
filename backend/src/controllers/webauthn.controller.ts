@@ -42,14 +42,16 @@ export const generateRegOptions = async (req: Request, res: Response) => {
     const options = await generateRegistrationOptions({
       rpName,
       rpID,
-      userID: Buffer.from(user.id, 'utf8'),
-      userName: user.email,
+      userID: new Uint8Array(Buffer.from(user.id, 'utf8')),
+      userName: user.email || 'unknown',
       attestationType: 'none',
-      excludeCredentials: user.authenticators.map((auth) => ({
-        id: Buffer.from(auth.credentialID).toString('base64url'),
-        type: 'public-key',
-        transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
-      })),
+      excludeCredentials: user.authenticators
+        .filter(auth => auth.credentialID)
+        .map((auth) => ({
+          id: Buffer.from(auth.credentialID).toString('base64url'),
+          type: 'public-key',
+          transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
+        })),
       authenticatorSelection: {
         residentKey: 'preferred',
         userVerification: 'preferred',
@@ -139,11 +141,13 @@ export const generateAuthOptions = async (req: Request, res: Response) => {
 
     const options = await generateAuthenticationOptions({
       rpID,
-      allowCredentials: user.authenticators.map((auth) => ({
-        id: Buffer.from(auth.credentialID).toString('base64url'),
-        type: 'public-key',
-        transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
-      })),
+      allowCredentials: user.authenticators
+        .filter(auth => auth.credentialID)
+        .map((auth) => ({
+          id: Buffer.from(auth.credentialID).toString('base64url'),
+          type: 'public-key',
+          transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
+        })),
       userVerification: 'preferred',
     });
 

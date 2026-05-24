@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { FileText, Printer, Share2, Filter, User, Calendar, ShieldCheck, ShieldAlert, MessageCircle } from 'lucide-react';
+import { FileText, Printer, Share2, Filter, User, Calendar, ShieldCheck, ShieldAlert, MessageCircle, Wallet, Shield } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import api from '../services/api';
 import { getSetting } from '../services/db';
@@ -82,7 +82,12 @@ const Reports = () => {
   const totalEmergency = filteredContributions.filter(c => c.type === 'EMERGENCY').reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
   const activeLoansTotal = filteredLoans.filter(l => l.status !== 'FULLY_PAID').reduce((sum, l) => sum + (Number(l.balance) || 0), 0);
   const totalRepaymentsAmount = filteredRepayments.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
-  const accumulatedInterest = filteredLoans.reduce((sum, l) => sum + ((Number(l.expectedReturn) || 0) - (Number(l.principal) || 0)), 0);
+  
+  const shareInterestRate = settings.interestPercentage || 10;
+  const emergencyInterestRate = settings.emergencyInterestPercentage || 0;
+  
+  const shareEarnings = totalShares + (totalShares * (shareInterestRate / 100));
+  const emergencyEarnings = totalEmergency + (totalEmergency * (emergencyInterestRate / 100));
 
   const currentMember = members.find(m => m.id === selectedMember);
 
@@ -134,7 +139,6 @@ const Reports = () => {
           text: shareText
         });
       } else {
-        // Fallback to download if Web Share API doesn't support files
         html2pdf().set(pdfOptions).from(reportRef.current).save();
         toast.info('File sharing not supported on this browser. Downloading PDF instead.');
       }
@@ -146,55 +150,56 @@ const Reports = () => {
 
   return (
     <div className="w-[calc(100%+2rem)] -ml-4 lg:w-[calc(100%+4rem)] lg:-ml-8 max-w-none space-y-6">
-      <div className="print:hidden space-y-6 px-4 sm:px-6 md:px-8 pt-4">
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-3xl font-black tracking-tight">{t('reports.title')}</h1>
-            <p className="text-muted-foreground font-medium text-sm sm:text-base">Verified audit reports and financial statements.</p>
-          </div>
+      <div className="print:hidden space-y-4 px-4 sm:px-6 md:px-8 pt-4 w-full">
+        <h1 className="text-3xl font-black tracking-tight">{t('reports.title')}</h1>
+        <p className="text-muted-foreground font-medium text-sm sm:text-base">Verified audit reports and financial statements.</p>
+        
+        {/* Controls Layout Request: verified, print, share all be in one row. reportscope and timeframe be in one row. */}
+        <div className="glass p-6 rounded-[2rem] w-full flex flex-col gap-6 shadow-sm border border-primary/5">
           
-          <div className="flex flex-row gap-2 sm:gap-3 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none snap-x">
-            <button 
-              onClick={() => setShowOnlyConfirmed(!showOnlyConfirmed)}
-              className={`snap-start whitespace-nowrap flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-[10px] sm:text-xs transition-all border ${showOnlyConfirmed ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'}`}
-            >
-              {showOnlyConfirmed ? <ShieldCheck className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
-              {showOnlyConfirmed ? 'Verified Only' : 'Include Pending'}
-            </button>
-            <button onClick={handlePrint} className="snap-start whitespace-nowrap flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-secondary text-secondary-foreground font-bold rounded-xl hover:bg-secondary/80 transition-all border border-transparent text-[10px] sm:text-xs">
-              <Printer className="w-4 h-4" /> Print
-            </button>
-            <button onClick={() => handleShare()} className="snap-start whitespace-nowrap flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 text-[10px] sm:text-xs">
-              <Share2 className="w-4 h-4" /> Share
-            </button>
-          </div>
-        </div>
-
-        <div className="glass p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 shadow-sm border border-primary/5">
-          <div>
-            <label className="block text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1 sm:mb-2 text-foreground ml-1">Report Scope</label>
-            <select title="Report Scope" value={reportType} onChange={(e) => setReportType(e.target.value as 'FULL' | 'INDIVIDUAL')} className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm bg-secondary text-foreground rounded-xl sm:rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
-              <option value="FULL">{t('reports.full_report') || 'Entire Bank'}</option>
-              <option value="INDIVIDUAL">{t('reports.individual_report') || 'Individual Member'}</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1 sm:mb-2 text-foreground ml-1">Timeframe</label>
-            <select title="Month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm bg-secondary text-foreground rounded-xl sm:rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
-              {months.map(m => <option key={m} value={m}>{m === 'ALL' ? 'Entire Cycle' : m}</option>)}
-            </select>
-          </div>
-
-          {reportType === 'INDIVIDUAL' && (
-            <div className="col-span-2 md:col-span-1">
-              <label className="block text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1 sm:mb-2 text-foreground ml-1">Select Member</label>
-              <select title="Member" value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm bg-secondary text-foreground rounded-xl sm:rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
-                <option value="">Choose Member</option>
-                {members.map(m => <option key={String(m.id)} value={String(m.id)}>{String(m.fullname)}</option>)}
+          {/* Row 1: Report Scope & Timeframe & Member (if applicable) */}
+          <div className="flex flex-col md:flex-row gap-4 w-full">
+            <div className="flex-1">
+              <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-foreground ml-1">Report Scope</label>
+              <select title="Report Scope" value={reportType} onChange={(e) => setReportType(e.target.value as 'FULL' | 'INDIVIDUAL')} className="w-full px-4 py-3 bg-secondary text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
+                <option value="FULL">{t('reports.full_report') || 'Entire Bank'}</option>
+                <option value="INDIVIDUAL">{t('reports.individual_report') || 'Individual Member'}</option>
               </select>
             </div>
-          )}
+            <div className="flex-1">
+              <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-foreground ml-1">Timeframe</label>
+              <select title="Month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="w-full px-4 py-3 bg-secondary text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
+                {months.map(m => <option key={m} value={m}>{m === 'ALL' ? 'Entire Cycle' : m}</option>)}
+              </select>
+            </div>
+            {reportType === 'INDIVIDUAL' && (
+              <div className="flex-1">
+                <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-foreground ml-1">Select Member</label>
+                <select title="Member" value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-4 py-3 bg-secondary text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none cursor-pointer">
+                  <option value="">Choose Member</option>
+                  {members.map(m => <option key={String(m.id)} value={String(m.id)}>{String(m.fullname)}</option>)}
+                </select>
+              </div>
+            )}
+          </div>
+
+          {/* Row 2: Verified Toggle, Print, Share */}
+          <div className="flex flex-row flex-wrap gap-4 w-full pt-2">
+            <button 
+              onClick={() => setShowOnlyConfirmed(!showOnlyConfirmed)}
+              className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border ${showOnlyConfirmed ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'}`}
+            >
+              {showOnlyConfirmed ? <ShieldCheck className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
+              {showOnlyConfirmed ? 'Verified Records' : 'Provisional Records'}
+            </button>
+            <button onClick={handlePrint} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-secondary text-secondary-foreground font-bold rounded-2xl hover:bg-secondary/80 transition-all">
+              <Printer className="w-5 h-5" /> Print Report
+            </button>
+            <button onClick={() => handleShare()} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground font-bold rounded-2xl hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+              <Share2 className="w-5 h-5" /> Share Document
+            </button>
+          </div>
+
         </div>
       </div>
 
@@ -215,29 +220,31 @@ const Reports = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 mb-16">
-          <div className="border-l-4 border-foreground print:border-black pl-4">
-            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Total shares</p>
+          <div className="border-l-4 border-emerald-500 pl-4">
+            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Total Shares</p>
             <h4 className="text-xl font-bold text-foreground print:text-black">MWK {totalShares.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-foreground print:border-black pl-4">
-            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Emergency fund</p>
+          <div className="border-l-4 border-emerald-600 pl-4 bg-emerald-50/50 p-2 rounded-r-lg">
+            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Share Earnings</p>
+            <h4 className="text-xl font-black text-emerald-600">MWK {shareEarnings.toLocaleString()}</h4>
+          </div>
+          
+          <div className="border-l-4 border-amber-500 pl-4">
+            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Emergency Fund</p>
             <h4 className="text-xl font-bold text-foreground print:text-black">MWK {totalEmergency.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-foreground print:border-black pl-4">
-            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Loan recovery</p>
+          <div className="border-l-4 border-amber-600 pl-4 bg-amber-50/50 p-2 rounded-r-lg">
+            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Emergency Earnings</p>
+            <h4 className="text-xl font-black text-amber-600">MWK {emergencyEarnings.toLocaleString()}</h4>
+          </div>
+          
+          <div className="border-l-4 border-blue-500 pl-4">
+            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Loan Recovery</p>
             <h4 className="text-xl font-bold text-foreground print:text-black">MWK {totalRepaymentsAmount.toLocaleString()}</h4>
           </div>
-          <div className="border-l-4 border-primary pl-4">
-            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Interest</p>
-            <h4 className="text-xl font-bold text-purple-600">MWK {accumulatedInterest.toLocaleString()}</h4>
-          </div>
-          <div className="border-l-4 border-emerald-500 pl-4 bg-emerald-50/50 p-2 rounded-r-lg">
-            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Total earnings</p>
-            <h4 className="text-xl font-black text-emerald-600">MWK {(totalShares + accumulatedInterest).toLocaleString()}</h4>
-          </div>
-          <div className="border-l-4 border-rose-500 pl-4">
-            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Outstanding</p>
-            <h4 className="text-xl font-bold text-rose-600">MWK {activeLoansTotal.toLocaleString()}</h4>
+          <div className="border-l-4 border-rose-500 pl-4 bg-rose-50/50 p-2 rounded-r-lg">
+            <p className="text-[10px] font-semibold text-foreground print:text-black capitalize tracking-widest mb-1">Active Loans</p>
+            <h4 className="text-xl font-black text-rose-600">MWK {activeLoansTotal.toLocaleString()}</h4>
           </div>
         </div>
 
