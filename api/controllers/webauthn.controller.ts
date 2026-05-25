@@ -42,15 +42,16 @@ export const generateRegOptions = async (req: Request, res: Response) => {
     const options = await generateRegistrationOptions({
       rpName,
       rpID,
-      userID: Buffer.from(user.id, 'utf8'),
-      userName: user.email,
+      userID: new Uint8Array(Buffer.from(user.id || '', 'utf8')),
+      userName: user.email || 'unknown',
       attestationType: 'none',
-      excludeCredentials: user.authenticators.map((auth) => ({
-        // @ts-ignore
-        id: Buffer.from(auth.credentialID),
-        type: 'public-key',
-        transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
-      })),
+      excludeCredentials: user.authenticators
+        .filter(auth => auth.credentialID)
+        .map((auth) => ({
+          id: auth.credentialID ? Buffer.from(auth.credentialID).toString('base64url') : '',
+          type: 'public-key',
+          transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
+        })),
       authenticatorSelection: {
         residentKey: 'preferred',
         userVerification: 'preferred',
@@ -64,8 +65,8 @@ export const generateRegOptions = async (req: Request, res: Response) => {
 
     res.json(options);
   } catch (error: any) {
-    console.error('Registration options error:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Registration options error:', error.stack || error);
+    res.status(500).json({ error: error.message, stack: error.stack });
   }
 };
 
@@ -92,13 +93,18 @@ export const verifyRegResponse = async (req: Request, res: Response) => {
     });
 
     if (verification.verified && verification.registrationInfo) {
-      // @ts-ignore
-      const { credentialPublicKey, credentialID, counter, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
+      const { id, publicKey, counter } = verification.registrationInfo.credential;
+      const { credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
+
+      if (!id) throw new Error("verification.registrationInfo.credential.id is undefined");
+      if (!publicKey) throw new Error("verification.registrationInfo.credential.publicKey is undefined");
 
       await prisma.authenticator.create({
         data: {
-          credentialID: Buffer.from(credentialID),
-          credentialPublicKey: Buffer.from(credentialPublicKey),
+          // @ts-ignore
+          credentialID: Buffer.from(id as any, 'base64url'),
+          // @ts-ignore
+          credentialPublicKey: Buffer.from(publicKey as any),
           counter: BigInt(counter),
           credentialDeviceType,
           credentialBackedUp,
@@ -118,8 +124,8 @@ export const verifyRegResponse = async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Verification failed' });
     }
   } catch (error: any) {
-    console.error('Verify registration error:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Verify registration error:', error.stack || error);
+    res.status(500).json({ error: error.message, stack: error.stack });
   }
 };
 
@@ -140,12 +146,13 @@ export const generateAuthOptions = async (req: Request, res: Response) => {
 
     const options = await generateAuthenticationOptions({
       rpID,
-      allowCredentials: user.authenticators.map((auth) => ({
-        // @ts-ignore
-        id: Buffer.from(auth.credentialID),
-        type: 'public-key',
-        transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
-      })),
+      allowCredentials: user.authenticators
+        .filter(auth => auth.credentialID)
+        .map((auth) => ({
+          id: auth.credentialID ? Buffer.from(auth.credentialID).toString('base64url') : '',
+          type: 'public-key',
+          transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
+        })),
       userVerification: 'preferred',
     });
 
@@ -175,7 +182,7 @@ export const verifyAuthResponse = async (req: Request, res: Response) => {
     }
 
     const authenticator = user.authenticators.find(
-      (auth) => Buffer.from(auth.credentialID).toString('base64url') === response.id
+      (auth) => auth.credentialID && Buffer.from(auth.credentialID).toString('base64url') === response.id
     );
 
     if (!authenticator) {
@@ -189,10 +196,9 @@ export const verifyAuthResponse = async (req: Request, res: Response) => {
       expectedChallenge: user.currentChallenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
-      // @ts-ignore
-      authenticator: {
-        credentialID: new Uint8Array(authenticator.credentialID),
-        credentialPublicKey: new Uint8Array(authenticator.credentialPublicKey),
+      credential: {
+        id: authenticator.credentialID ? Buffer.from(authenticator.credentialID).toString('base64url') : '',
+        publicKey: new Uint8Array(authenticator.credentialPublicKey || []),
         counter: Number(authenticator.counter),
         transports: authenticator.transports ? (authenticator.transports.split(',') as any[]) : [],
       },
