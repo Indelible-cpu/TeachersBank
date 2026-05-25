@@ -9,6 +9,8 @@ import { getSetting, setSetting, pullFromServer } from '../services/db';
 import { useToast } from '../context/useToast';
 import { startRegistration } from '@simplewebauthn/browser';
 import { useTheme } from 'next-themes';
+import { storage } from '../services/firebase';
+import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 const Settings = () => {
   const { settings, updateSettings, isOnline } = useSettings();
@@ -77,24 +79,34 @@ const Settings = () => {
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-        setProfilePhoto(base64);
-        if (user?.id) {
-          await setSetting(`profile_photo_${user.id}`, base64);
-        }
-      };
-      reader.readAsDataURL(file);
+    if (file && user?.id) {
+      try {
+        const fileRef = storageRef(storage, `profile_photos/${user.id}_${Date.now()}`);
+        await uploadBytes(fileRef, file);
+        const downloadUrl = await getDownloadURL(fileRef);
+        setProfilePhoto(downloadUrl);
+        await setSetting(`profile_photo_${user.id}`, downloadUrl);
+        toast.success("Profile photo updated successfully");
+      } catch (error) {
+        console.error("Error uploading photo to Firebase:", error);
+        toast.error("Failed to upload profile photo");
+      }
     }
   };
 
   const handleRemovePhoto = async () => {
     if (user?.id) {
-      await setSetting(`profile_photo_${user.id}`, null);
+      if (profilePhoto && profilePhoto.includes('firebasestorage')) {
+        try {
+          const photoRef = storageRef(storage, profilePhoto);
+          await deleteObject(photoRef).catch(() => {});
+        } catch (e) {
+        }
+      }
       setProfilePhoto(null);
+      await setSetting(`profile_photo_${user.id}`, null);
       setShowRemoveOption(false);
+      toast.success("Profile photo removed");
     }
   };
 

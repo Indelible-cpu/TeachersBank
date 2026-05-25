@@ -240,36 +240,68 @@ const Dashboard = () => {
             {data.chartData.map((d, i) => (
               <span key={i}>{d.label}</span>
             ))}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="lg:col-span-2 bg-card rounded-3xl p-6 border shadow-sm"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="text-primary" />
+            </div>
+            <h2 className="text-lg font-bold">{t('dashboard.performance_overview')}</h2>
           </div>
-        </div>
+          <div className="h-[300px] w-full">
+            <div className="h-48 flex items-end gap-4 px-4">
+              {data.chartData.map((d, i) => (
+                <div key={i} className="flex-1 bg-primary/20 rounded-t-xl relative group transition-all" title={`${d.label}: ${settings.currency} ${d.amount.toLocaleString()}`}>
+                  <motion.div initial={{ height: 0 }} animate={{ height: `${d.height}%` }} transition={{ duration: 1, delay: i * 0.1, ease: "easeOut" }} className="absolute bottom-0 left-0 right-0 bg-primary/40 rounded-t-xl" />
+                  <motion.div initial={{ opacity: 0 }} whileHover={{ opacity: 1 }} animate={{ height: `${d.height}%` }} className="absolute bottom-0 left-0 right-0 bg-primary rounded-t-xl" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
 
-        <div className="glass p-10 rounded-[3rem] space-y-8">
-          <h3 className="text-xl font-bold tracking-tight flex items-center gap-3">
-            <CheckCircle2 className="text-emerald-500" /> {t('dashboard_stats.recent_verifications')}
-          </h3>
-          <div className="space-y-4">
-             {recentActivities.length > 0 ? recentActivities.map(activity => (
-               <div key={activity.id} className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-transparent hover:border-emerald-500/20 transition-all">
-                 <div className="flex items-center gap-4">
-                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activity.isPositive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
-                     <CheckCircle2 className="w-5 h-5" />
-                   </div>
-                   <div>
-                     <p className="text-sm font-bold">{activity.title}</p>
-                     <p className="text-[10px] font-medium text-muted-foreground">{activity.subtitle}</p>
-                   </div>
-                 </div>
-                 <span className={`text-xs font-bold ${activity.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                   {activity.isPositive ? '+' : '-'}{settings.currency} {activity.amount.toLocaleString()}
-                 </span>
-               </div>
-             )) : (
-               <div className="flex items-center justify-center h-24 border-2 border-dashed border-border/50 rounded-3xl">
-                 <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40">{t('dashboard_stats.no_recent_activity')}</p>
-               </div>
-             )}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-card rounded-3xl p-6 border shadow-sm flex flex-col"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+              <CheckCircle2 className="text-emerald-500" />
+            </div>
+            <h2 className="text-lg font-bold">{t('dashboard.recent_verifications')}</h2>
           </div>
-        </div>
+          
+          <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+            {recentActivities.length > 0 ? recentActivities.map(activity => (
+              <div key={activity.id} className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-transparent hover:border-emerald-500/20 transition-all">
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activity.isPositive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">{activity.title}</p>
+                    <p className="text-[10px] font-medium text-muted-foreground">{activity.subtitle}</p>
+                  </div>
+                </div>
+                <span className={`text-xs font-bold ${activity.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {activity.isPositive ? '+' : '-'}{settings.currency} {activity.amount.toLocaleString()}
+                </span>
+              </div>
+            )) : (
+              <div className="h-full flex flex-col items-center justify-center opacity-50">
+                 <Clock className="w-12 h-12 mb-3 text-muted-foreground" />
+                 <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40 uppercase">{t('dashboard.no_recent_activity')}</p>
+              </div>
+            )}
+          </div>
+        </motion.div>
       </div>
     </div>
   );
