@@ -110,10 +110,10 @@ const Landing = () => {
             <div className="flex items-center gap-2 flex-nowrap md:justify-end w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
               <span className="text-[11px] font-black text-muted-foreground opacity-60 whitespace-nowrap shrink-0">For Support:</span>
                 <a
-                  href="mailto:indelible.support@gmail.com"
+                  href="mailto:indelibletechnologiesmw@gmail.com"
                   className="text-xs font-bold text-blue-500 hover:text-blue-600 hover:underline transition-all duration-200 whitespace-nowrap"
                 >
-                  indelible.support@gmail.com
+                  indelibletechnologiesmw@gmail.com
                 </a>
 
                 {/* WhatsApp */}

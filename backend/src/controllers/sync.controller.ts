@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../prisma';
+import { broadcastUpdate } from '../services/firebase.service';
 
 export const masterReset = async (req: Request, res: Response) => {
   try {
@@ -369,6 +370,11 @@ export const syncData = async (req: Request, res: Response) => {
         }
       })
     };
+
+    if (results.successful > 0) {
+      // Broadcast a "refresh" event to all connected clients
+      await broadcastUpdate('sync/global/trigger', { timestamp: Date.now() });
+    }
 
     res.json({
       message: 'Sync completed',

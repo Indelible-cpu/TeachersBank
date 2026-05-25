@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { getSetting, setSetting, addToSyncQueue, performSync } from '../services/db';
 import type { Settings } from '../types/settings';
 import { SettingsContext } from './SettingsContextBase';
+import { database, ref, onValue, isFirebaseConfigured } from '../services/firebase';
 
 const defaultSettings: Settings = {
   systemName: 'TeachersBank',
@@ -42,6 +43,20 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     if (navigator.onLine) {
       performSync();
     }
+    
+    // Firebase Realtime Listener
+    let unsubscribeFirebase = () => {};
+    if (isFirebaseConfigured) {
+      const syncRef = ref(database, 'sync/global/trigger');
+      unsubscribeFirebase = onValue(syncRef, (snapshot) => {
+        if (snapshot.exists()) {
+          console.log('Firebase realtime sync triggered!', snapshot.val());
+          if (navigator.onLine) {
+             performSync();
+          }
+        }
+      });
+    }
 
     let isMounted = true;
     (async () => {
@@ -61,6 +76,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       isMounted = false;
+      unsubscribeFirebase();
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
