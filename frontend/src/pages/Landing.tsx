@@ -152,7 +152,7 @@ const Landing = () => {
           </div>
 
         </div>
-      </footer>oter>
+      </footer>
     </div>
   );
 };
