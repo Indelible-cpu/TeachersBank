@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Wallet, CreditCard, ShieldAlert, CheckCircle2, TrendingUp, HandCoins, Receipt } from 'lucide-react';
+import { Wallet, CreditCard, ShieldAlert, CheckCircle2, TrendingUp, HandCoins, Receipt, Clock } from 'lucide-react';
 import { getSetting, pullFromServer } from '../services/db';
 import { useSettings } from '../context/useSettings';
 
@@ -206,40 +206,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="glass p-10 rounded-[3rem] space-y-8 bg-gradient-to-br from-primary/5 to-transparent border border-primary/10">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold tracking-tight flex items-center gap-3">
-              <TrendingUp className="text-primary" /> {t('dashboard_stats.performance_overview')}
-            </h3>
-          </div>
-          <div className="h-48 flex items-end gap-4 px-4">
-             {/* Monthly performance bars */}
-             {data.chartData.map((d, i) => (
-               <div 
-                 key={i} 
-                 className="flex-1 bg-primary/20 rounded-t-xl relative group transition-all"
-                 title={`${d.label}: ${settings.currency} ${d.amount.toLocaleString()}`}
-               >
-                 <motion.div 
-                    initial={{ height: 0 }}
-                    animate={{ height: `${d.height}%` }}
-                    transition={{ duration: 1, delay: i * 0.1, ease: "easeOut" }}
-                    className="absolute bottom-0 left-0 right-0 bg-primary/40 rounded-t-xl" 
-                 />
-                 <motion.div 
-                    initial={{ opacity: 0 }}
-                    whileHover={{ opacity: 1 }}
-                    animate={{ height: `${d.height}%` }}
-                    className="absolute bottom-0 left-0 right-0 bg-primary rounded-t-xl"
-                 />
-               </div>
-             ))}
-          </div>
-          <div className="flex justify-between text-[10px] font-bold text-muted-foreground capitalize tracking-widest px-2">
-            {data.chartData.map((d, i) => (
-              <span key={i}>{d.label}</span>
-            ))}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
