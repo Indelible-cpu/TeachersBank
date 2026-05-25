@@ -196,6 +196,24 @@ export const syncData = async (req: Request, res: Response) => {
                 auditDetails = `Logged emergency contribution: Amount ${data.amount} for member ID: ${data.memberId}`;
               }
             }
+            if (action === 'UPDATE') {
+              if (data.type === 'SHARE') {
+                await prisma.shareContribution.update({ where: { id: data.id }, data: cleanContribData });
+                auditDetails = `Updated share contribution status: ${data.status} for ID: ${data.id}`;
+              } else {
+                await prisma.emergencyContribution.update({ where: { id: data.id }, data: cleanContribData });
+                auditDetails = `Updated emergency contribution status: ${data.status} for ID: ${data.id}`;
+              }
+            }
+            if (action === 'DELETE') {
+              if (data.type === 'SHARE') {
+                await prisma.shareContribution.delete({ where: { id: data.id } });
+                auditDetails = `Deleted share contribution ID: ${data.id}`;
+              } else {
+                await prisma.emergencyContribution.delete({ where: { id: data.id } });
+                auditDetails = `Deleted emergency contribution ID: ${data.id}`;
+              }
+            }
             break;
 
           case 'receipts':
