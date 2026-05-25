@@ -155,6 +155,41 @@ const applyServerState = async (serverState: any) => {
   }
   if (serverState.staffCount !== undefined) await setSetting('staffCount', serverState.staffCount);
 
+  // Reconstruct unified contributions cache from share and emergency records
+  if (serverState.shareContributions || serverState.emergencyContributions) {
+    const shares = serverState.shareContributions || await getSetting('shareContributions') || [];
+    const emergencies = serverState.emergencyContributions || await getSetting('emergencyContributions') || [];
+    const members = serverState.members || await getSetting('members') || [];
+    
+    const memberMap = new Map(members.map((m: any) => [m.id, m.fullname]));
+    const MONTHS = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const combinedShares = shares.map((s: any) => ({
+      ...s,
+      type: 'SHARE',
+      memberName: memberMap.get(s.memberId) || s.contributorName || 'Unknown',
+      monthName: MONTHS[s.month - 1] || '',
+      timestamp: s.createdAt || s.timestamp || new Date().toISOString()
+    }));
+    
+    const combinedEmergencies = emergencies.map((e: any) => ({
+      ...e,
+      type: 'EMERGENCY',
+      memberName: memberMap.get(e.memberId) || e.contributorName || 'Unknown',
+      monthName: MONTHS[e.month - 1] || '',
+      timestamp: e.createdAt || e.timestamp || new Date().toISOString()
+    }));
+    
+    const combined = [...combinedShares, ...combinedEmergencies].sort((a: any, b: any) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+    
+    await setSetting('contributions', combined);
+  }
+
   // Re-apply any pending offline items so they aren't wiped from the UI while they wait to be successfully synced
   const queue = await getSyncQueue();
   if (queue && queue.length > 0) {

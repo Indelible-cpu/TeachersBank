@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../prisma';
+import { broadcastUpdate } from '../services/firebase.service';
 
 export const masterReset = async (req: Request, res: Response) => {
   try {
@@ -195,6 +196,24 @@ export const syncData = async (req: Request, res: Response) => {
                 auditDetails = `Logged emergency contribution: Amount ${data.amount} for member ID: ${data.memberId}`;
               }
             }
+            if (action === 'UPDATE') {
+              if (data.type === 'SHARE') {
+                await prisma.shareContribution.update({ where: { id: data.id }, data: cleanContribData });
+                auditDetails = `Updated share contribution status: ${data.status} for ID: ${data.id}`;
+              } else {
+                await prisma.emergencyContribution.update({ where: { id: data.id }, data: cleanContribData });
+                auditDetails = `Updated emergency contribution status: ${data.status} for ID: ${data.id}`;
+              }
+            }
+            if (action === 'DELETE') {
+              if (data.type === 'SHARE') {
+                await prisma.shareContribution.delete({ where: { id: data.id } });
+                auditDetails = `Deleted share contribution ID: ${data.id}`;
+              } else {
+                await prisma.emergencyContribution.delete({ where: { id: data.id } });
+                auditDetails = `Deleted emergency contribution ID: ${data.id}`;
+              }
+            }
             break;
 
           case 'receipts':
@@ -219,12 +238,13 @@ export const syncData = async (req: Request, res: Response) => {
               'receiptFooter',
               'defaultLanguage',
               'interestPercentage',
+              'emergencyInterestPercentage',
               'maturityMonths'
             ];
             
             allowedFields.forEach(field => {
               if (settingsData[field] !== undefined && settingsData[field] !== null) {
-                if (field === 'interestPercentage') {
+                if (field === 'interestPercentage' || field === 'emergencyInterestPercentage') {
                   cleanSettingsPayload[field] = parseFloat(settingsData[field]);
                 } else if (field === 'maturityMonths') {
                   cleanSettingsPayload[field] = parseInt(settingsData[field], 10);
@@ -253,6 +273,24 @@ export const syncData = async (req: Request, res: Response) => {
               });
             }
             auditDetails = `Successfully saved updated global system and loan configurations`;
+            break;
+
+          case 'pledges':
+            const cleanPledgeData = { ...data };
+            delete cleanPledgeData.timestamp;
+            
+            if (action === 'CREATE') {
+              await prisma.pledge.create({ data: cleanPledgeData });
+              auditDetails = `Created pledge for member ID: ${data.memberId} for ${data.month}/${data.year}`;
+            }
+            if (action === 'UPDATE') {
+              await prisma.pledge.update({ where: { id: data.id }, data: cleanPledgeData });
+              auditDetails = `Updated pledge ID: ${data.id}`;
+            }
+            if (action === 'DELETE') {
+              await prisma.pledge.delete({ where: { id: data.id } });
+              auditDetails = `Deleted pledge ID: ${data.id}`;
+            }
             break;
             
           default:
@@ -340,6 +378,9 @@ export const syncData = async (req: Request, res: Response) => {
       loans: await prisma.loan.findMany(),
       repayments: await prisma.repayment.findMany(),
       receipts: await prisma.receipt.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
+      pledges: await prisma.pledge.findMany(),
+      shareContributions: await prisma.shareContribution.findMany(),
+      emergencyContributions: await prisma.emergencyContribution.findMany(),
       settings: cleanSettings,
       staffCount: await prisma.user.count({
         where: {
@@ -347,6 +388,11 @@ export const syncData = async (req: Request, res: Response) => {
         }
       })
     };
+
+    if (results.successful > 0) {
+      // Broadcast a "refresh" event to all connected clients
+      await broadcastUpdate('sync/global/trigger', { timestamp: Date.now() });
+    }
 
     res.json({
       message: 'Sync completed',
