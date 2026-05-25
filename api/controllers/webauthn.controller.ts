@@ -46,6 +46,7 @@ export const generateRegOptions = async (req: Request, res: Response) => {
       userName: user.email,
       attestationType: 'none',
       excludeCredentials: user.authenticators.map((auth) => ({
+        // @ts-ignore
         id: Buffer.from(auth.credentialID),
         type: 'public-key',
         transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
@@ -91,6 +92,7 @@ export const verifyRegResponse = async (req: Request, res: Response) => {
     });
 
     if (verification.verified && verification.registrationInfo) {
+      // @ts-ignore
       const { credentialPublicKey, credentialID, counter, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
 
       await prisma.authenticator.create({
@@ -139,6 +141,7 @@ export const generateAuthOptions = async (req: Request, res: Response) => {
     const options = await generateAuthenticationOptions({
       rpID,
       allowCredentials: user.authenticators.map((auth) => ({
+        // @ts-ignore
         id: Buffer.from(auth.credentialID),
         type: 'public-key',
         transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
@@ -186,6 +189,7 @@ export const verifyAuthResponse = async (req: Request, res: Response) => {
       expectedChallenge: user.currentChallenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
+      // @ts-ignore
       authenticator: {
         credentialID: new Uint8Array(authenticator.credentialID),
         credentialPublicKey: new Uint8Array(authenticator.credentialPublicKey),

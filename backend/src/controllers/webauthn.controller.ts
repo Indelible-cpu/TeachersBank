@@ -101,8 +101,10 @@ export const verifyRegResponse = async (req: Request, res: Response) => {
 
       await prisma.authenticator.create({
         data: {
-          credentialID: Buffer.from(id as string | Uint8Array, 'base64url'),
-          credentialPublicKey: Buffer.from(publicKey),
+          // @ts-ignore
+          credentialID: Buffer.from(id as any, 'base64url'),
+          // @ts-ignore
+          credentialPublicKey: Buffer.from(publicKey as any),
           counter: BigInt(counter),
           credentialDeviceType,
           credentialBackedUp,
