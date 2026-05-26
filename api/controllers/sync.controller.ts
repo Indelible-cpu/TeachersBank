@@ -402,7 +402,11 @@ export const syncData = async (req: Request, res: Response) => {
     
   } catch (error: any) {
     console.error('Sync Error:', error);
-    res.status(500).json({ error: 'Internal Server Error during synchronization' });
+    res.status(500).json({ 
+      error: 'Internal Server Error during synchronization',
+      message: error.message,
+      stack: error.stack
+    });
   }
 };
 
