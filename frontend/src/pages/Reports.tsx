@@ -313,8 +313,9 @@ const Reports = () => {
           );
         })()}
 
-        <div className="mt-20 pt-16 border-t border-foreground/20 print:border-foreground print:border-black/20 flex flex-col items-center justify-center relative">
-          <div className="space-y-4">
+        <div className="mt-20 pt-16 border-t border-foreground/20 print:border-foreground print:border-black/20 flex flex-col sm:flex-row items-center sm:items-end justify-between relative gap-8 sm:gap-0">
+          <div className="hidden sm:block flex-1"></div>
+          <div className="space-y-4 flex flex-col items-center flex-1">
             <SignaturePad onSave={setSecretarySignature} label="Secretary Signature" />
             {!secretarySignature && (
               <div className="hidden print:block space-y-1">
@@ -326,9 +327,9 @@ const Reports = () => {
                <p className="text-[10px] font-bold text-foreground print:text-black print:block text-center uppercase tracking-widest">Secretary Signature</p>
             )}
           </div>
-        </div>
-        <div className="mt-8 text-center">
-          <p className="text-[10px] font-bold text-foreground print:text-black tracking-widest">Powered by Indelible Technologies</p>
+          <div className="flex-1 sm:text-right pb-1">
+            <p className="text-[10px] font-bold text-foreground print:text-black tracking-widest lowercase">powered by indelible technologies</p>
+          </div>
         </div>
       </motion.div>
     </div>

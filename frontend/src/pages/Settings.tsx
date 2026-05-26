@@ -79,57 +79,84 @@ const Settings = () => {
     }
   };
 
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 500;
+          const MAX_HEIGHT = 500;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            resolve(dataUrl);
+          } else {
+            resolve(event.target?.result as string);
+          }
+        };
+        img.onerror = (error) => reject(error);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && user?.id) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image file size must be less than 5MB");
-        return;
-      }
-
+      toast.success("Processing image...");
+      
       try {
+        const base64Data = await compressImage(file);
+        
+        // Convert base64 back to Blob for Firebase upload
+        const response = await fetch(base64Data);
+        const blob = await response.blob();
+
         // Safe check to verify if Firebase Storage is actually configured
         if (storage && storage.app && storage.app.options && storage.app.options.projectId && !storage.app.options.projectId.includes('placeholder')) {
-          const fileRef = storageRef(storage, `profile_photos/${user.id}_${Date.now()}`);
-          await uploadBytes(fileRef, file);
+          const fileRef = storageRef(storage, `profile_photos/${user.id}_${Date.now()}.jpg`);
+          await uploadBytes(fileRef, blob);
           const downloadUrl = await getDownloadURL(fileRef);
           
           setProfilePhoto(downloadUrl);
           await setSetting(`profile_photo_${user.id}`, downloadUrl);
           
-          // Also stage user profile update to the local sync queue (adds cross-device replication)
           await addToSyncQueue('UPDATE', 'users', { id: user.id, photo: downloadUrl });
           
           toast.success("Profile photo updated successfully");
           window.dispatchEvent(new CustomEvent('sync-completed'));
         } else {
           // Fallback to local Base64 string encoding inside IndexedDB
-          const reader = new FileReader();
-          reader.onload = async (event) => {
-            const base64 = event.target?.result as string;
-            if (base64) {
-              setProfilePhoto(base64);
-              await setSetting(`profile_photo_${user.id}`, base64);
-              toast.success("Profile photo saved locally");
-              window.dispatchEvent(new CustomEvent('sync-completed'));
-            }
-          };
-          reader.readAsDataURL(file);
+          setProfilePhoto(base64Data);
+          await setSetting(`profile_photo_${user.id}`, base64Data);
+          toast.success("Profile photo saved locally");
+          window.dispatchEvent(new CustomEvent('sync-completed'));
         }
       } catch (error) {
-        console.error("Error uploading photo to Firebase:", error);
-        // Resilient fallback to local Base64 string on Firebase fail/network issue
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-          const base64 = event.target?.result as string;
-          if (base64) {
-            setProfilePhoto(base64);
-            await setSetting(`profile_photo_${user.id}`, base64);
-            toast.success("Profile photo saved locally (fallback)");
-            window.dispatchEvent(new CustomEvent('sync-completed'));
-          }
-        };
-        reader.readAsDataURL(file);
+        console.error("Error processing/uploading photo:", error);
+        toast.error("Failed to process image.");
       }
     }
   };

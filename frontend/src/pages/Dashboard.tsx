@@ -63,6 +63,7 @@ const Dashboard = () => {
   });
 
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
+  const [pendingLoanRequests, setPendingLoanRequests] = useState<any[]>([]);
 
   const loadData = async () => {
     const contribs = (await getSetting('contributions') || []) as DBRecord[];
@@ -134,6 +135,14 @@ const Dashboard = () => {
     }));
     activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     setRecentActivities(activities.slice(0, 3));
+    
+    // Set pending loan requests for the public view
+    pendingLoansList.sort((a, b) => {
+      const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+      const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+      return dateB - dateA;
+    });
+    setPendingLoanRequests(pendingLoansList);
   };
 
   useEffect(() => {
@@ -286,6 +295,58 @@ const Dashboard = () => {
           </div>
         </motion.div>
       </div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="bg-card rounded-3xl p-6 border shadow-sm flex flex-col"
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
+            <Clock className="text-orange-500" />
+          </div>
+          <h2 className="text-lg font-bold">Pending Loan Requests</h2>
+        </div>
+        
+        <div className="overflow-x-auto custom-scrollbar">
+          {pendingLoanRequests.length > 0 ? (
+            <table className="w-full text-left border-collapse min-w-[600px]">
+              <thead>
+                <tr className="border-b-2 border-border text-[10px] font-black capitalize text-muted-foreground">
+                  <th className="py-4 pr-4">Date Requested</th>
+                  <th className="py-4 pr-4">Member Name</th>
+                  <th className="py-4 pr-4">Fund Type</th>
+                  <th className="py-4 text-right">Requested Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {pendingLoanRequests.map((loan, i) => (
+                  <tr key={loan.id || i} className="text-sm font-bold group hover:bg-secondary/20 transition-colors">
+                    <td className="py-4 text-muted-foreground">
+                      {loan.timestamp ? new Date(loan.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
+                    </td>
+                    <td className="py-4">{loan.memberName}</td>
+                    <td className="py-4">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest ${loan.fundType === 'EMERGENCY' ? 'bg-amber-500/10 text-amber-600' : 'bg-emerald-500/10 text-emerald-600'}`}>
+                        {loan.fundType}
+                      </span>
+                    </td>
+                    <td className="py-4 text-right text-orange-600">
+                      {settings.currency} {Number(loan.principal).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="h-40 flex flex-col items-center justify-center opacity-50">
+               <Receipt className="w-10 h-10 mb-3 text-muted-foreground" />
+               <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40 uppercase">No Pending Requests</p>
+            </div>
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 };

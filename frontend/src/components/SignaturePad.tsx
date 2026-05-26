@@ -94,7 +94,7 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({ onSave, className = 
     return (
       <div className={`flex flex-col items-center gap-2 ${className}`}>
         <img src={savedSignature} alt="Signature" className="h-20 object-contain bg-white rounded-lg border border-transparent" />
-        <div className="flex gap-2 print:hidden">
+        <div className="flex gap-2 print:hidden" data-html2canvas-ignore="true">
           <button onClick={handleClear} className="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-3 py-1 rounded-full">Clear</button>
         </div>
       </div>
