@@ -29,6 +29,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     loadAuth();
+
+    const handleUnauthorized = () => {
+      logout();
+    };
+    
+    window.addEventListener('auth-unauthorized', handleUnauthorized);
+    return () => {
+      window.removeEventListener('auth-unauthorized', handleUnauthorized);
+    };
   }, []);
 
   async function loadAuth() {

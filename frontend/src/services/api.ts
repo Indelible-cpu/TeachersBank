@@ -9,7 +9,6 @@ const api = axios.create({
   },
 });
 
-// Add token to requests
 api.interceptors.request.use((config) => {
   const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
   if (token && config.headers) {
@@ -17,6 +16,19 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Handle global 401 unauthorized errors (e.g. expired tokens during background sync)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth-unauthorized'));
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const authApi = {
   login: (credentials: any) => api.post('/auth/login', credentials),
