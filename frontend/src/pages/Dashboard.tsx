@@ -178,7 +178,6 @@ const Dashboard = () => {
     { title: t('dashboard_stats.verified_capital'), value: `${settings.currency} ${data.contributions.toLocaleString()}`, icon: Wallet, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
     { title: t('dashboard_stats.verified_emergency'), value: `${settings.currency} ${data.emergencyContributions.toLocaleString()}`, icon: ShieldAlert, color: 'text-rose-500', bg: 'bg-rose-500/10' },
     { title: t('dashboard_stats.active_loan_book'), value: `${settings.currency} ${data.loans.toLocaleString()}`, icon: CreditCard, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { title: 'Requested Loans', value: `${settings.currency} ${data.requestedLoans.toLocaleString()}`, icon: Clock, color: 'text-orange-500', bg: 'bg-orange-500/10' },
     { title: t('dashboard_stats.accumulated_interest'), value: `${settings.currency} ${data.accumulatedInterest.toLocaleString()}`, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
     { title: t('dashboard_stats.in_transit'), value: `${settings.currency} ${data.pendingAmount.toLocaleString()}`, icon: HandCoins, color: 'text-amber-500', bg: 'bg-amber-500/10' },
 
@@ -211,7 +210,7 @@ const Dashboard = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
         {stats.map((stat, i) => (
           <motion.div
             key={i}
