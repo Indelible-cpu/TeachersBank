@@ -33,7 +33,7 @@ const Repayments = () => {
 
   useEffect(() => {
     let isMounted = true;
-    (async () => {
+    const loadLocalData = async () => {
       const cachedLoans = await getSetting('loans');
       if (cachedLoans && isMounted) {
         setActiveLoans(cachedLoans.filter((l: { balance: number }) => l.balance > 0));
@@ -43,25 +43,23 @@ const Repayments = () => {
       if (cachedRepayments && isMounted) {
         setRepayments(cachedRepayments);
       }
+    };
 
-      // Background sync to fetch fresh loans from the server
-      if (navigator.onLine) {
-        try {
-          const synced = await performSync();
-          if (synced && isMounted) {
-            const freshLoans = await getSetting('loans');
-            if (freshLoans) {
-              setActiveLoans(freshLoans.filter((l: { balance: number }) => l.balance > 0));
-            }
-            const freshRepayments = await getSetting('repayments');
-            if (freshRepayments) setRepayments(freshRepayments);
-          }
-        } catch (err) {
-          console.error('Failed to sync repayments', err);
-        }
-      }
-    })();
-    return () => { isMounted = false; };
+    loadLocalData();
+
+    if (navigator.onLine) {
+      performSync().catch(err => console.error('Failed to sync repayments', err));
+    }
+
+    const handleSyncCompleted = () => {
+      loadLocalData();
+    };
+    window.addEventListener('sync-completed', handleSyncCompleted);
+
+    return () => { 
+      isMounted = false; 
+      window.removeEventListener('sync-completed', handleSyncCompleted);
+    };
   }, []);
 
   // Fail-safe reactive loader when modal is opened

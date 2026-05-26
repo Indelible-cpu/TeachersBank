@@ -58,8 +58,8 @@ const Terms = () => {
       body: (
         <>
           {t('terms.sec10_body_1')}
-          <a href="mailto:indelible.support@gmail.com" className="text-blue-500 hover:text-blue-600 hover:underline">
-            indelible.support@gmail.com
+          <a href="mailto:indelibletechnologies@gmail.com" className="text-blue-500 hover:text-blue-600 hover:underline">
+            indelibletechnologies@gmail.com
           </a>
           {t('terms.sec10_body_2')}
           <a href="https://wa.me/265993732694" target="_blank" rel="noopener noreferrer" className="text-[#25D366] hover:underline font-bold">

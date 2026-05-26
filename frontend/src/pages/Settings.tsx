@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Save, AlertCircle, Lock, Eye, EyeOff, ShieldCheck, Camera, Trash2, Fingerprint } from 'lucide-react';
 import { authApi, syncApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { getSetting, setSetting, pullFromServer } from '../services/db';
+import { getSetting, setSetting, pullFromServer, addToSyncQueue } from '../services/db';
 import { useToast } from '../context/useToast';
 import { startRegistration } from '@simplewebauthn/browser';
 import { useTheme } from 'next-themes';
@@ -28,6 +28,8 @@ const Settings = () => {
   const [showMasterReset, setShowMasterReset] = useState(false);
   const [resetData, setResetData] = useState({ reason: '', password: '' });
   const [isResetting, setIsResetting] = useState(false);
+
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     (async () => {
@@ -80,16 +82,54 @@ const Settings = () => {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && user?.id) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image file size must be less than 5MB");
+        return;
+      }
+
       try {
-        const fileRef = storageRef(storage, `profile_photos/${user.id}_${Date.now()}`);
-        await uploadBytes(fileRef, file);
-        const downloadUrl = await getDownloadURL(fileRef);
-        setProfilePhoto(downloadUrl);
-        await setSetting(`profile_photo_${user.id}`, downloadUrl);
-        toast.success("Profile photo updated successfully");
+        // Safe check to verify if Firebase Storage is actually configured
+        if (storage && storage.app && storage.app.options && storage.app.options.projectId && !storage.app.options.projectId.includes('placeholder')) {
+          const fileRef = storageRef(storage, `profile_photos/${user.id}_${Date.now()}`);
+          await uploadBytes(fileRef, file);
+          const downloadUrl = await getDownloadURL(fileRef);
+          
+          setProfilePhoto(downloadUrl);
+          await setSetting(`profile_photo_${user.id}`, downloadUrl);
+          
+          // Also stage user profile update to the local sync queue (adds cross-device replication)
+          await addToSyncQueue('UPDATE', 'users', { id: user.id, photo: downloadUrl });
+          
+          toast.success("Profile photo updated successfully");
+          window.dispatchEvent(new CustomEvent('sync-completed'));
+        } else {
+          // Fallback to local Base64 string encoding inside IndexedDB
+          const reader = new FileReader();
+          reader.onload = async (event) => {
+            const base64 = event.target?.result as string;
+            if (base64) {
+              setProfilePhoto(base64);
+              await setSetting(`profile_photo_${user.id}`, base64);
+              toast.success("Profile photo saved locally");
+              window.dispatchEvent(new CustomEvent('sync-completed'));
+            }
+          };
+          reader.readAsDataURL(file);
+        }
       } catch (error) {
         console.error("Error uploading photo to Firebase:", error);
-        toast.error("Failed to upload profile photo");
+        // Resilient fallback to local Base64 string on Firebase fail/network issue
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          const base64 = event.target?.result as string;
+          if (base64) {
+            setProfilePhoto(base64);
+            await setSetting(`profile_photo_${user.id}`, base64);
+            toast.success("Profile photo saved locally (fallback)");
+            window.dispatchEvent(new CustomEvent('sync-completed'));
+          }
+        };
+        reader.readAsDataURL(file);
       }
     }
   };
@@ -101,12 +141,14 @@ const Settings = () => {
           const photoRef = storageRef(storage, profilePhoto);
           await deleteObject(photoRef).catch(() => {});
         } catch (e) {
+          console.warn("Storage deletion warning:", e);
         }
       }
       setProfilePhoto(null);
       await setSetting(`profile_photo_${user.id}`, null);
       setShowRemoveOption(false);
       toast.success("Profile photo removed");
+      window.dispatchEvent(new CustomEvent('sync-completed'));
     }
   };
 

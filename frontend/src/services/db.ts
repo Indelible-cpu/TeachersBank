@@ -215,6 +215,11 @@ const applyServerState = async (serverState: any) => {
       }
     }
   }
+
+  // Dispatch a custom event to notify components that local DB has been updated
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('sync-completed'));
+  }
 };
 
 /**

@@ -21,12 +21,13 @@ const DashboardLayout = () => {
   const [pendingStats, setPendingStats] = useState({ contributions: 0, repayments: 0, loans: 0, members: 0 });
 
   useEffect(() => {
-    (async () => {
+    const fetchPhoto = async () => {
       if (user?.id) {
         const photo = await getSetting(`profile_photo_${user.id}`);
         if (photo) setProfilePhoto(photo as string);
       }
-    })();
+    };
+    fetchPhoto();
 
     const fetchPending = async () => {
       const contribs = await getSetting('contributions') || [];
@@ -43,7 +44,17 @@ const DashboardLayout = () => {
     
     fetchPending();
     const interval = setInterval(fetchPending, 10000);
-    return () => clearInterval(interval);
+
+    const handleSyncCompleted = () => {
+      fetchPhoto();
+      fetchPending();
+    };
+    window.addEventListener('sync-completed', handleSyncCompleted);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('sync-completed', handleSyncCompleted);
+    };
   }, [user?.id]);
 
   const handleLogout = async () => {

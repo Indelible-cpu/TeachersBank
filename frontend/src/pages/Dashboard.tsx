@@ -146,7 +146,15 @@ const Dashboard = () => {
       }
     }, 30000);
 
-    return () => clearInterval(interval);
+    const handleSyncCompleted = () => {
+      loadData();
+    };
+    window.addEventListener('sync-completed', handleSyncCompleted);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('sync-completed', handleSyncCompleted);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t]);
 

@@ -282,9 +282,8 @@ const Reports = () => {
                   <tr className="border-b-2 border-foreground/20 print:border-foreground print:border-black/20 text-[10px] font-black capitalize text-foreground print:text-black">
                     <th className="py-4 pr-4">Date</th>
                     {reportType === 'FULL' && <th className="py-4">Member</th>}
-                    <th className="py-4">Share</th>
-                    <th className="py-4">Emergency</th>
-                    <th className="py-4 text-right">Amount (MWK)</th>
+                    <th className="py-4 text-right">Share (MWK)</th>
+                    <th className="py-4 text-right">Emergency (MWK)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -292,16 +291,23 @@ const Reports = () => {
                     <tr key={i} className="text-xs font-bold text-foreground print:text-black">
                       <td className="py-4 text-foreground print:text-black">{g.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td>
                       {reportType === 'FULL' && <td className="py-4 text-foreground print:text-black">{g.memberName}</td>}
-                      <td className="py-4">
-                        {g.shareAmount > 0 ? <span className="text-emerald-600">{g.shareAmount.toLocaleString()}</span> : <span className="text-gray-400">x</span>}
+                      <td className="py-4 text-right">
+                        {g.shareAmount > 0 ? <span className="text-emerald-600 font-black">{g.shareAmount.toLocaleString()}</span> : <span className="text-gray-400">x</span>}
                       </td>
-                      <td className="py-4">
-                        {g.emergencyAmount > 0 ? <span className="text-rose-600">{g.emergencyAmount.toLocaleString()}</span> : <span className="text-gray-400">x</span>}
+                      <td className="py-4 text-right">
+                        {g.emergencyAmount > 0 ? <span className="text-rose-600 font-black">{g.emergencyAmount.toLocaleString()}</span> : <span className="text-gray-400">x</span>}
                       </td>
-                      <td className="py-4 text-right font-black text-foreground print:text-black">{g.totalAmount.toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-foreground/20 print:border-foreground print:border-black/20 text-xs font-black text-foreground print:text-black">
+                    <td className="py-4">Total</td>
+                    {reportType === 'FULL' && <td className="py-4"></td>}
+                    <td className="py-4 text-right text-emerald-600 font-black">MWK {totalShares.toLocaleString()}</td>
+                    <td className="py-4 text-right text-rose-600 font-black">MWK {totalEmergency.toLocaleString()}</td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           );
