@@ -11,6 +11,7 @@ interface DashboardStats {
   contributions: number;
   emergencyContributions: number;
   loans: number;
+  requestedLoans: number;
   members: number;
   pendingVerification: number;
   pendingAmount: number;
@@ -51,6 +52,7 @@ const Dashboard = () => {
     contributions: 0,
     emergencyContributions: 0,
     loans: 0,
+    requestedLoans: 0,
     members: 0,
     pendingVerification: 0,
     pendingAmount: 0,
@@ -75,7 +77,11 @@ const Dashboard = () => {
     const confirmedContribs = contribs.filter((c) => c.status === 'CONFIRMED');
     const pendingContribs = contribs.filter((c) => c.status === 'PENDING');
     const pendingRepayments = repaymentsList.filter((r) => r.status === 'PENDING');
-    const accumulatedInterest = loansList.reduce((acc, l) => acc + ((l.expectedReturn || 0) - (l.principal || 0)), 0);
+    
+    const activeLoansList = loansList.filter((l) => l.status === 'APPROVED');
+    const pendingLoansList = loansList.filter((l) => l.status === 'PENDING');
+    
+    const accumulatedInterest = activeLoansList.reduce((acc, l) => acc + ((l.expectedReturn || 0) - (l.principal || 0)), 0);
 
     const last6Months = Array.from({length: 6}, (_, i) => {
       const d = new Date();
@@ -94,9 +100,10 @@ const Dashboard = () => {
     setData({
       contributions: confirmedShares.reduce((acc, c) => acc + (Number(c.amount) || 0), 0),
       emergencyContributions: confirmedEmergency.reduce((acc, c) => acc + (Number(c.amount) || 0), 0),
-      loans: loansList.reduce((acc, l) => acc + (Number(l.balance) || 0), 0),
+      loans: activeLoansList.reduce((acc, l) => acc + (Number(l.balance) || 0), 0),
+      requestedLoans: pendingLoansList.reduce((acc, l) => acc + (Number(l.principal) || 0), 0),
       members: membersList.length,
-      pendingVerification: pendingContribs.length + pendingRepayments.length,
+      pendingVerification: pendingContribs.length + pendingRepayments.length + pendingLoansList.length,
       pendingAmount: pendingContribs.reduce((acc, c) => acc + (Number(c.amount) || 0), 0) + pendingRepayments.reduce((acc, r) => acc + (Number(r.amount) || 0), 0),
       accumulatedInterest,
       staffCount,
@@ -162,6 +169,7 @@ const Dashboard = () => {
     { title: t('dashboard_stats.verified_capital'), value: `${settings.currency} ${data.contributions.toLocaleString()}`, icon: Wallet, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
     { title: t('dashboard_stats.verified_emergency'), value: `${settings.currency} ${data.emergencyContributions.toLocaleString()}`, icon: ShieldAlert, color: 'text-rose-500', bg: 'bg-rose-500/10' },
     { title: t('dashboard_stats.active_loan_book'), value: `${settings.currency} ${data.loans.toLocaleString()}`, icon: CreditCard, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { title: 'Requested Loans', value: `${settings.currency} ${data.requestedLoans.toLocaleString()}`, icon: Clock, color: 'text-orange-500', bg: 'bg-orange-500/10' },
     { title: t('dashboard_stats.accumulated_interest'), value: `${settings.currency} ${data.accumulatedInterest.toLocaleString()}`, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
     { title: t('dashboard_stats.in_transit'), value: `${settings.currency} ${data.pendingAmount.toLocaleString()}`, icon: HandCoins, color: 'text-amber-500', bg: 'bg-amber-500/10' },
 
