@@ -163,7 +163,7 @@ const DashboardLayout = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 flex flex-col min-h-screen">
+      <main className="flex-1 lg:ml-64 flex flex-col min-h-screen min-w-0">
         {/* Header */}
         <header className="h-16 glass border-b flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
           <div className="flex items-center gap-4">
