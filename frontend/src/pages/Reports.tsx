@@ -149,7 +149,7 @@ const Reports = () => {
   };
 
   return (
-    <div className="w-[calc(100%+2rem)] -ml-4 lg:w-[calc(100%+4rem)] lg:-ml-8 max-w-none space-y-6">
+    <div className="w-full max-w-none space-y-6 pt-4 pb-8 lg:pt-8 lg:pb-12">
       <div className="print:hidden space-y-4 px-4 sm:px-6 md:px-8 pt-4 w-full">
         <h1 className="text-3xl font-black tracking-tight">{t('reports.title')}</h1>
         <p className="text-muted-foreground font-medium text-sm sm:text-base">Verified audit reports and financial statements.</p>

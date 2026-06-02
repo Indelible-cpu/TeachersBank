@@ -106,7 +106,7 @@ const LoanConfigurations = () => {
   const inputCls = 'w-full px-3 py-1.5 bg-secondary/60 border border-border/50 rounded-lg focus:ring-2 focus:ring-primary outline-none font-bold text-sm';
 
   return (
-    <div className="w-[calc(100%+2rem)] -ml-4 lg:w-[calc(100%+4rem)] lg:-ml-8 max-w-none px-4 lg:px-8 space-y-8">
+    <div className="w-full max-w-none px-4 lg:px-8 pt-4 pb-8 lg:pt-8 lg:pb-12 space-y-8">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <Sliders className="w-8 h-8 text-primary" />

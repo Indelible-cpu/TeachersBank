@@ -37,7 +37,7 @@ const Pledges = () => {
   const grandTotal = totalSharePledges + totalLoanRepaymentPledges;
 
   return (
-    <div className="w-[calc(100%+2rem)] -ml-4 lg:w-[calc(100%+4rem)] lg:-ml-8 max-w-none px-4 lg:px-8 space-y-8 pb-12">
+    <div className="w-full max-w-none px-4 lg:px-8 pt-4 pb-8 lg:pt-8 lg:pb-12 space-y-8 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">Member Pledges</h1>

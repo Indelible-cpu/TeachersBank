@@ -148,7 +148,7 @@ const MemberDashboard = () => {
   };
 
   return (
-    <div className="w-full max-w-none space-y-8 pb-12">
+    <div className="w-full max-w-none space-y-8 pb-12 px-4 lg:px-8 pt-4 lg:pt-8">
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">My Account</h1>
         <p className="text-muted-foreground font-medium italic">Welcome back, {user?.name}</p>

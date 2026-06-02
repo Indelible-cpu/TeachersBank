@@ -176,7 +176,7 @@ const Users = () => {
   });
 
   return (
-    <div className="w-[calc(100%+2rem)] -ml-4 lg:w-[calc(100%+4rem)] lg:-ml-8 max-w-none px-4 lg:px-8 space-y-8">
+    <div className="w-full max-w-none px-4 lg:px-8 pt-4 pb-8 lg:pt-8 lg:pb-12 space-y-8">
       {/* Upper header */}
       <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
         <div className="flex flex-col gap-2">
