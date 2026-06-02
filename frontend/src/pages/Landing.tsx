@@ -107,7 +107,7 @@ const Landing = () => {
             </div>
 
             {/* Right: Support */}
-            <div className="flex items-center gap-2 flex-nowrap md:justify-end w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+            <div className="flex items-center gap-2 flex-wrap md:justify-end w-full md:w-auto pb-1 md:pb-0">
               <span className="text-[11px] font-black text-muted-foreground opacity-60 whitespace-nowrap shrink-0">For Support:</span>
                 <a
                   href="mailto:indelibletechnologiesmw@gmail.com"

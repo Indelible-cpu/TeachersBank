@@ -184,7 +184,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10">
+    <div className="w-[calc(100%+2rem)] -ml-4 lg:w-[calc(100%+4rem)] lg:-ml-8 max-w-none px-4 lg:px-8 space-y-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div className="space-y-1">
           <h1 className="text-4xl font-bold tracking-tight">{t('dashboard.title')}</h1>

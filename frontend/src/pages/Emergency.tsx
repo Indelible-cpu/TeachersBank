@@ -47,7 +47,7 @@ const Emergency = () => {
   const emergencyInterestRate = settings.emergencyInterestPercentage || 0;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="w-[calc(100%+2rem)] -ml-4 lg:w-[calc(100%+4rem)] lg:-ml-8 max-w-none px-4 lg:px-8 space-y-8">
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">Emergency Fund & Earnings</h1>
         <p className="text-muted-foreground font-medium italic">Emergency contributions and accumulated interest per member</p>
