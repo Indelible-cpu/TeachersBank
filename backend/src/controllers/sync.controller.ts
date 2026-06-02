@@ -226,6 +226,16 @@ export const syncData = async (req: Request, res: Response) => {
             }
             break;
 
+          case 'users':
+            if (action === 'UPDATE' && data.photo) {
+              await prisma.member.updateMany({
+                where: { userId: data.id },
+                data: { photo: data.photo }
+              });
+              auditDetails = `Updated profile photo for user ID: ${data.id}`;
+            }
+            break;
+
           case 'settings':
             const { loanDurationRules, ...settingsData } = data;
             

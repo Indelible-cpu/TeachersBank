@@ -141,7 +141,14 @@ export const clearSyncQueue = async () => {
 // Apply server state to local IndexedDB — the single source of reconciliation truth
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const applyServerState = async (serverState: any) => {
-  if (serverState.members) await setSetting('members', serverState.members);
+  if (serverState.members) {
+    await setSetting('members', serverState.members);
+    for (const member of serverState.members) {
+      if (member.userId && member.photo) {
+        await setSetting(`profile_photo_${member.userId}`, member.photo);
+      }
+    }
+  }
   if (serverState.loans) await setSetting('loans', serverState.loans);
   if (serverState.repayments) await setSetting('repayments', serverState.repayments);
   if (serverState.contributions) await setSetting('contributions', serverState.contributions);
