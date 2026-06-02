@@ -46,6 +46,8 @@ const AuditTrail = () => {
                           (filter === 'FAIL' && log.status !== 'SUCCESS') ||
                           action.includes(filter);
                           
+    return matchesSearch && matchesFilter;
+                          
   });
 
   if (currentUser?.role !== 'ADMIN') {
