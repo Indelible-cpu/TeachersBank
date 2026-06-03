@@ -97,7 +97,7 @@ const DashboardLayout = () => {
   return (
     <div className="min-h-screen bg-background flex text-foreground">
       {/* Sidebar - Desktop/Mobile */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass border-r transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out flex flex-col select-none`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass border-r transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col select-none`}>
         <div className="p-6 flex items-center gap-3 border-b border-border/50 flex-shrink-0">
           <Link to="/dashboard" className="flex items-center gap-3" onClick={closeSidebar}>
             <img 
@@ -139,7 +139,7 @@ const DashboardLayout = () => {
 
         <div className="p-3 border-t border-border/50 bg-background/80 backdrop-blur-md flex-shrink-0 space-y-2">
           {/* Mobile Profile Card */}
-          <div className="flex items-center gap-3 p-2 bg-primary/5 rounded-xl border border-primary/10">
+          <div className="flex lg:hidden items-center gap-3 p-2 bg-primary/5 rounded-xl border border-primary/10">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black text-xs">
               {profilePhoto ? (
                 <img src={profilePhoto} alt="Profile" className="w-full h-full rounded-full object-cover" />
@@ -171,11 +171,11 @@ const DashboardLayout = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-h-screen min-w-0">
+      <main className="flex-1 lg:ml-64 flex flex-col min-h-screen min-w-0">
         {/* Header */}
         <header className="h-16 glass border-b flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
           <div className="flex items-center gap-4">
-            <button className="p-2 rounded-md hover:bg-muted" aria-label="Toggle menu" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+            <button className="lg:hidden p-2 rounded-md hover:bg-muted" aria-label="Toggle menu" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
               <Menu className="w-6 h-6" />
             </button>
             
@@ -231,7 +231,7 @@ const DashboardLayout = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
             onClick={closeSidebar}
           />
         )}
