@@ -98,7 +98,7 @@ const DashboardLayout = () => {
     <div className="min-h-screen bg-background flex text-foreground">
       {/* Sidebar - Desktop/Mobile */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass border-r transition-transform duration-300 ease-in-out flex flex-col select-none lg:translate-x-0 lg:transform-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="p-6 flex items-center gap-3 border-b border-border/50 flex-shrink-0">
+        <div className="p-6 flex items-center gap-3 flex-shrink-0">
           <Link to="/dashboard" className="flex items-center gap-3" onClick={closeSidebar}>
             <img 
               src="/icon-192x192.png" 
