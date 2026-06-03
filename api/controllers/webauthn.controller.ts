@@ -132,36 +132,51 @@ export const verifyRegResponse = async (req: Request, res: Response) => {
 export const generateAuthOptions = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
+    let user = null;
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: { authenticators: true },
-    });
+    if (email) {
+      user = await prisma.user.findUnique({
+        where: { email },
+        include: { authenticators: true },
+      });
 
-    if (!user || user.authenticators.length === 0) {
-      return res.status(404).json({ error: 'User not found or no biometric registered' });
+      if (!user || user.authenticators.length === 0) {
+        return res.status(404).json({ error: 'User not found or no biometric registered' });
+      }
     }
 
     const { rpID } = getWebAuthnConfig(req);
 
     const options = await generateAuthenticationOptions({
       rpID,
-      allowCredentials: user.authenticators
-        .filter(auth => auth.credentialID)
-        .map((auth) => ({
-          id: auth.credentialID ? Buffer.from(auth.credentialID).toString('base64url') : '',
-          type: 'public-key',
-          transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
-        })),
+      allowCredentials: user
+        ? user.authenticators
+            .filter((auth) => auth.credentialID)
+            .map((auth) => ({
+              id: auth.credentialID ? Buffer.from(auth.credentialID).toString('base64url') : '',
+              type: 'public-key',
+              transports: auth.transports ? (auth.transports.split(',') as any[]) : [],
+            }))
+        : [],
       userVerification: 'preferred',
     });
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { currentChallenge: options.challenge },
-    });
+    // Create a stateless challenge token for one-tap login
+    const challengeToken = jwt.sign(
+      { challenge: options.challenge },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: '5m' }
+    );
 
-    res.json(options);
+    if (user) {
+      // Backward compatibility for standard biometric flow
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { currentChallenge: options.challenge },
+      });
+    }
+
+    res.json({ options, challengeToken });
   } catch (error: any) {
     console.error('Auth options error:', error);
     res.status(500).json({ error: error.message });
@@ -170,30 +185,56 @@ export const generateAuthOptions = async (req: Request, res: Response) => {
 
 export const verifyAuthResponse = async (req: Request, res: Response) => {
   try {
-    const { email, response } = req.body;
+    const { email, response, challengeToken } = req.body;
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: { authenticators: true, member: true },
-    });
+    let user;
+    let authenticator;
+    let expectedChallenge;
 
-    if (!user || !user.currentChallenge) {
-      return res.status(400).json({ error: 'User or challenge not found' });
-    }
+    if (challengeToken) {
+      // One-tap flow using stateless token
+      const decoded = jwt.verify(challengeToken, process.env.JWT_SECRET || 'secret') as any;
+      expectedChallenge = decoded.challenge;
 
-    const authenticator = user.authenticators.find(
-      (auth) => auth.credentialID && Buffer.from(auth.credentialID).toString('base64url') === response.id
-    );
+      // Find authenticator by credential ID
+      const credentialIDBuffer = Buffer.from(response.id, 'base64url');
+      authenticator = await prisma.authenticator.findUnique({
+        where: { credentialID: credentialIDBuffer },
+        include: { user: { include: { member: true, authenticators: true } } },
+      });
 
-    if (!authenticator) {
-      return res.status(400).json({ error: 'Authenticator not registered with this user' });
+      if (!authenticator) {
+        return res.status(400).json({ error: 'Authenticator not registered' });
+      }
+      user = (authenticator as any).user;
+    } else if (email) {
+      // Backward compatibility standard flow
+      user = await prisma.user.findUnique({
+        where: { email },
+        include: { authenticators: true, member: true },
+      });
+
+      if (!user || !user.currentChallenge) {
+        return res.status(400).json({ error: 'User or challenge not found' });
+      }
+      expectedChallenge = user.currentChallenge;
+
+      authenticator = user.authenticators.find(
+        (auth: any) => auth.credentialID && Buffer.from(auth.credentialID).toString('base64url') === response.id
+      );
+
+      if (!authenticator) {
+        return res.status(400).json({ error: 'Authenticator not registered with this user' });
+      }
+    } else {
+      return res.status(400).json({ error: 'Missing email or challenge token' });
     }
 
     const { rpID, origin } = getWebAuthnConfig(req);
 
     const verification = await verifyAuthenticationResponse({
       response,
-      expectedChallenge: user.currentChallenge,
+      expectedChallenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
       credential: {
@@ -211,11 +252,13 @@ export const verifyAuthResponse = async (req: Request, res: Response) => {
         data: { counter: BigInt(verification.authenticationInfo.newCounter) },
       });
 
-      // Clear the challenge
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { currentChallenge: null },
-      });
+      // Clear the challenge (only applicable if we were using stateful challenges)
+      if (email && user.currentChallenge) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { currentChallenge: null },
+        });
+      }
 
       // Issue JWT Token
       const token = jwt.sign(
