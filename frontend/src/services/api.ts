@@ -31,14 +31,15 @@ api.interceptors.response.use(
 );
 
 export const authApi = {
-  login: (credentials: any) => api.post('/auth/login', credentials),
+  login: (data: any) => api.post('/auth/login', data),
   register: (data: any) => api.post('/auth/register', data),
   changePassword: (data: any) => api.post('/auth/change-password', data),
   // WebAuthn Biometrics
   generateRegOptions: () => api.post('/auth/webauthn/register/options'),
   verifyRegResponse: (data: any) => api.post('/auth/webauthn/register/verify', data),
-  generateAuthOptions: (data: { email: string }) => api.post('/auth/webauthn/login/options', data),
-  verifyAuthResponse: (data: { email: string, response: any }) => api.post('/auth/webauthn/login/verify', data),
+  generateAuthOptions: (data?: { email?: string }) => api.post('/auth/webauthn/login/options', data || {}),
+  verifyAuthResponse: (data: { email?: string; response: any; challengeToken?: string }) => 
+    api.post('/auth/webauthn/login/verify', data),
 };
 
 export const syncApi = {

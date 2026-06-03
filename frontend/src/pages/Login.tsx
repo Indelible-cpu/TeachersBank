@@ -17,6 +17,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+  const [isBiometricsSupported, setIsBiometricsSupported] = useState(false);
   
   const { login } = useAuth();
   const { settings, isOnline } = useSettings();
@@ -32,6 +33,19 @@ const Login = () => {
         setEmail(savedEmail);
       }
     }
+
+    // Detect if device supports platform biometrics (Windows Hello, FaceID, TouchID, etc)
+    const checkBiometrics = async () => {
+      try {
+        if (window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+          const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+          setIsBiometricsSupported(available);
+        }
+      } catch (e) {
+        console.warn('Failed to detect biometric support', e);
+      }
+    };
+    checkBiometrics();
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -103,10 +117,6 @@ const Login = () => {
   };
 
   const handleBiometricLogin = async () => {
-    if (!email) {
-      setError('Please enter your email first to use biometric login');
-      return;
-    }
     if (!isOnline) {
       setError('Biometric login requires an active internet connection');
       return;
@@ -116,16 +126,20 @@ const Login = () => {
     setError('');
 
     try {
-      const resp = await authApi.generateAuthOptions({ email });
-      const options = resp.data;
+      // One-tap flow: Request auth options without email
+      const resp = await authApi.generateAuthOptions();
+      const { options, challengeToken } = resp.data;
       
       const attResp = await startAuthentication({ optionsJSON: options });
       
-      const verifyResp = await authApi.verifyAuthResponse({ email, response: attResp });
+      const verifyResp = await authApi.verifyAuthResponse({ 
+        response: attResp,
+        challengeToken 
+      });
       
       const { token, user } = verifyResp.data;
       
-      // For biometric we don't know the password to cache for offline, but we still log in!
+      // We don't cache password for offline when using one-tap biometrics, but we still log in!
       await login(token, user, rememberMe);
       
       pullFromServer().catch(e => console.warn('Post-login pull failed:', e));
@@ -237,21 +251,25 @@ const Login = () => {
               {isLoading ? 'Signing in...' : t('login.submit')}
             </button>
             
-            <div className="relative flex items-center py-2">
-              <div className="flex-grow border-t border-border"></div>
-              <span className="flex-shrink-0 mx-4 text-muted-foreground text-xs font-medium uppercase tracking-widest">or</span>
-              <div className="flex-grow border-t border-border"></div>
-            </div>
+            {isBiometricsSupported && (
+              <>
+                <div className="relative flex items-center py-2">
+                  <div className="flex-grow border-t border-border"></div>
+                  <span className="flex-shrink-0 mx-4 text-muted-foreground text-xs font-medium uppercase tracking-widest">or</span>
+                  <div className="flex-grow border-t border-border"></div>
+                </div>
 
-            <button 
-              type="button"
-              onClick={handleBiometricLogin}
-              disabled={isLoading || isBiometricLoading || !isOnline}
-              className="w-full flex items-center justify-center gap-2 py-3.5 bg-secondary text-foreground font-medium rounded-xl hover:bg-secondary/80 active:scale-[0.98] transition-all disabled:opacity-50 border border-border/50"
-            >
-              <Fingerprint className="w-5 h-5" />
-              {isBiometricLoading ? 'Authenticating...' : 'Sign in with Fingerprint'}
-            </button>
+                <button 
+                  type="button"
+                  onClick={handleBiometricLogin}
+                  disabled={isLoading || isBiometricLoading || !isOnline}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-secondary text-foreground font-medium rounded-xl hover:bg-secondary/80 active:scale-[0.98] transition-all disabled:opacity-50 border border-border/50"
+                >
+                  <Fingerprint className="w-5 h-5" />
+                  {isBiometricLoading ? 'Authenticating...' : 'Sign in with Biometrics'}
+                </button>
+              </>
+            )}
           </form>
 
           <div className="mt-8 pt-6 border-t flex items-center justify-between">
