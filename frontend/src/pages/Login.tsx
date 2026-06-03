@@ -266,7 +266,11 @@ const Login = () => {
                   className="w-full flex items-center justify-center gap-2 py-3.5 bg-secondary text-foreground font-medium rounded-xl hover:bg-secondary/80 active:scale-[0.98] transition-all disabled:opacity-50 border border-border/50"
                 >
                   <Fingerprint className="w-5 h-5" />
-                  {isBiometricLoading ? 'Authenticating...' : 'Sign in with Biometrics'}
+                  {isBiometricLoading ? 'Authenticating...' : (
+                    navigator.userAgent.includes('Windows') ? 'Sign in with Windows Hello' :
+                    navigator.userAgent.includes('Mac') && !navigator.userAgent.includes('iPhone') && !navigator.userAgent.includes('iPad') ? 'Sign in with Touch ID' :
+                    'Sign in with Biometrics'
+                  )}
                 </button>
               </>
             )}
