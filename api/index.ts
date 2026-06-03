@@ -18,12 +18,12 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/sync', syncRoutes);
+app.use('/api/state/reconcile', syncRoutes);
 app.use('/api/users', userRoutes);
 
 // Compatibility fallback
 app.use('/auth', authRoutes);
-app.use('/sync', syncRoutes);
+app.use('/state/reconcile', syncRoutes);
 app.use('/users', userRoutes);
 
 // Health check with DB verify

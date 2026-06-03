@@ -49,11 +49,19 @@ const DashboardLayout = () => {
       fetchPhoto();
       fetchPending();
     };
+
+    const handleSyncError = (e: any) => {
+      // Use standard alert since toast might not be imported here
+      alert(`Sync Error: ${e.detail}`);
+    };
+
     window.addEventListener('sync-completed', handleSyncCompleted);
+    window.addEventListener('sync-error', handleSyncError);
 
     return () => {
       clearInterval(interval);
       window.removeEventListener('sync-completed', handleSyncCompleted);
+      window.removeEventListener('sync-error', handleSyncError);
     };
   }, [user?.id]);
 

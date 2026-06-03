@@ -42,8 +42,8 @@ export const authApi = {
 };
 
 export const syncApi = {
-  sync: (queue: any[]) => api.post('/sync', { queue }),
-  masterReset: (data: { reason: string, password: string }) => api.post('/sync/master-reset', data)
+  sync: (queue: any[]) => api.post('/state/reconcile', { queue }),
+  masterReset: (data: { reason: string, password: string }) => api.post('/state/reconcile/master-reset', data)
 };
 
 export default api;

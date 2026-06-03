@@ -12,6 +12,9 @@ const safeLazy = (importFn: () => Promise<any>) => {
       return await importFn();
     } catch (error) {
       console.error("Failed to load chunk, performing a full reload to fetch latest assets:", error);
+      window.addEventListener('sync-error', (e: any) => {
+        console.error(e.detail || 'Failed to synchronize data');
+      });
       window.location.reload();
       return new Promise(() => {}); // Keep loading state active during reload
     }

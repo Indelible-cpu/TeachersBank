@@ -245,7 +245,11 @@ export const pullFromServer = async (): Promise<boolean> => {
       return true;
     }
     return false;
-  } catch {
+  } catch (error: any) {
+    console.error('Sync failed:', error);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('sync-error', { detail: error?.message || 'Sync failed' }));
+    }
     return false;
   }
 };
