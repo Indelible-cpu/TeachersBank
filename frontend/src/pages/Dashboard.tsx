@@ -56,6 +56,64 @@ const Dashboard = () => {
     members: 0,
     pendingVerification: 0,
     pendingAmount: 0,
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
+import { Wallet, CreditCard, ShieldAlert, CheckCircle2, TrendingUp, HandCoins, Receipt, Clock } from 'lucide-react';
+import { getSetting, pullFromServer } from '../services/db';
+import { useSettings } from '../context/useSettings';
+
+
+interface DashboardStats {
+  contributions: number;
+  emergencyContributions: number;
+  loans: number;
+  requestedLoans: number;
+  members: number;
+  pendingVerification: number;
+  pendingAmount: number;
+  accumulatedInterest: number;
+  staffCount: number;
+
+  chartData: { label: string; height: number; amount: number }[];
+}
+
+interface DBRecord {
+  id?: string;
+  amount?: number;
+  principal?: number;
+  balance?: number;
+  status?: string;
+  timestamp?: string;
+  type?: string;
+  confirmedBy?: string;
+}
+
+interface Activity {
+  id: string;
+  title: string;
+  subtitle: string;
+  amount: number;
+  timestamp: string;
+  isPositive: boolean;
+}
+
+const Dashboard = () => {
+  const { t } = useTranslation();
+  const { user, canConfirm } = useAuth();
+  const { settings } = useSettings();
+  
+
+
+  const [data, setData] = useState<DashboardStats>({
+    contributions: 0,
+    emergencyContributions: 0,
+    loans: 0,
+    requestedLoans: 0,
+    members: 0,
+    pendingVerification: 0,
+    pendingAmount: 0,
     accumulatedInterest: 0,
     staffCount: 0,
 
@@ -296,17 +354,17 @@ const Dashboard = () => {
       </div>
 
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="bg-card rounded-3xl p-6 border shadow-sm flex flex-col"
-      >
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
-            <Clock className="text-orange-500" />
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-card rounded-3xl p-6 border shadow-sm flex flex-col"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
+              <Clock className="text-orange-500" />
+            </div>
+            <h2 className="text-lg font-bold">Pending Loan Requests</h2>
           </div>
-          <h2 className="text-lg font-bold">Pending Loan Requests</h2>
-        </div>
         
         <div className="overflow-x-auto custom-scrollbar">
           {pendingLoanRequests.length > 0 ? (
@@ -339,13 +397,13 @@ const Dashboard = () => {
               </tbody>
             </table>
           ) : (
-            <div className="h-40 flex flex-col items-center justify-center opacity-50">
-               <Receipt className="w-10 h-10 mb-3 text-muted-foreground" />
-               <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40 uppercase">No Pending Requests</p>
-            </div>
-          )}
-        </div>
-      </motion.div>
+              <div className="h-40 flex flex-col items-center justify-center opacity-50">
+                 <Receipt className="w-10 h-10 mb-3 text-muted-foreground" />
+                 <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40 uppercase">No Pending Requests</p>
+              </div>
+            )}
+          </div>
+        </motion.div>
     </div>
   );
 };

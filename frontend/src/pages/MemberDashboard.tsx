@@ -17,14 +17,9 @@ const MemberDashboard = () => {
   const [myLoans, setMyLoans] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [myContributions, setMyContributions] = useState<any[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [myPledges, setMyPledges] = useState<any[]>([]);
-  
   const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
-  const [isPledgeModalOpen, setIsPledgeModalOpen] = useState(false);
   
   const [newLoan, setNewLoan] = useState({ principal: '', ruleId: '', fundType: 'SHARE' });
-  const [newPledge, setNewPledge] = useState({ month: new Date().getMonth() + 1, year: new Date().getFullYear(), shareAmount: '', loanRepaymentAmount: '', id: '' });
 
   const rules = settings.loanDurationRules || [];
 
@@ -46,10 +41,6 @@ const MemberDashboard = () => {
       const merged = [...contribs, ...shares];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setMyContributions(merged.filter((c: any) => c.memberId === me.id && c.status === 'CONFIRMED'));
-      
-      const pledges = await getSetting('pledges') || [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setMyPledges(pledges.filter((p: any) => p.memberId === me.id));
     }
   };
 
@@ -126,26 +117,6 @@ const MemberDashboard = () => {
     if (isOnline) performSync();
   };
 
-  const handleSavePledge = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!memberRecord) return;
-    
-    const pledgeData = {
-      id: newPledge.id || Date.now().toString(),
-      memberId: memberRecord.id,
-      month: Number(newPledge.month),
-      year: Number(newPledge.year),
-      shareAmount: parseFloat(newPledge.shareAmount) || 0,
-      loanRepaymentAmount: parseFloat(newPledge.loanRepaymentAmount) || 0,
-      timestamp: new Date().toISOString()
-    };
-    
-    await addToSyncQueue(newPledge.id ? 'UPDATE' : 'CREATE', 'pledges', pledgeData);
-    toast.success('Pledge saved successfully.');
-    setIsPledgeModalOpen(false);
-    loadData();
-    if (isOnline) performSync();
-  };
 
   return (
     <div className="w-full max-w-none space-y-8 pb-12 px-4 lg:px-8 pt-4 lg:pt-8">
@@ -160,18 +131,12 @@ const MemberDashboard = () => {
         }} className="flex-1 py-4 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-transform active:scale-95">
           <Banknote className="w-5 h-5" /> Request Loan
         </button>
-        <button onClick={() => {
-          setNewPledge({ month: new Date().getMonth() + 1, year: new Date().getFullYear(), shareAmount: '', loanRepaymentAmount: '', id: '' });
-          setIsPledgeModalOpen(true);
-        }} className="flex-1 py-4 bg-secondary text-secondary-foreground font-bold rounded-2xl shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-95">
-          <Calendar className="w-5 h-5" /> Make a Pledge
-        </button>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         
-        {/* Left Column: Share Fund & Emergency Fund Cards */}
-        <div className="xl:col-span-2 space-y-8">
+        {/* Share Fund & Emergency Fund Cards */}
+        <div className="space-y-8">
           
           {/* Share Fund Card */}
           <div className="glass p-8 rounded-[2.5rem] space-y-6 relative overflow-hidden group border border-emerald-500/10">
@@ -224,48 +189,6 @@ const MemberDashboard = () => {
           </div>
 
         </div>
-
-        {/* Right Column: Pledges Module (Edge-to-Edge feel within the grid) */}
-        <div className="xl:col-span-1">
-          <div className="glass p-8 rounded-[2.5rem] h-full flex flex-col space-y-6">
-            <h2 className="text-xl font-bold tracking-tight flex items-center gap-3">
-              <Calendar className="text-primary" /> My Pledges
-            </h2>
-            <div className="flex-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
-              {myPledges.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center opacity-50 space-y-4 py-12">
-                  <Calendar className="w-12 h-12" />
-                  <p className="text-sm font-semibold tracking-widest uppercase">No Active Pledges</p>
-                </div>
-              ) : (
-                myPledges.sort((a,b) => (b.year - a.year) || (b.month - a.month)).map(p => (
-                  <div key={p.id} className="group relative overflow-hidden p-5 bg-secondary/30 rounded-2xl border border-transparent hover:border-primary/20 transition-all shadow-sm">
-                    <div className="flex justify-between items-start mb-3">
-                      <p className="font-black text-xl tracking-tight">{p.month}/{p.year}</p>
-                      <button onClick={() => {
-                        setNewPledge({ month: p.month, year: p.year, shareAmount: String(p.shareAmount), loanRepaymentAmount: String(p.loanRepaymentAmount), id: p.id });
-                        setIsPledgeModalOpen(true);
-                      }} className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary text-primary hover:text-white transition-colors">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground font-semibold">Shares</span>
-                        <span className="font-bold">{settings.currency} {p.shareAmount.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground font-semibold">Loan Repayment</span>
-                        <span className="font-bold">{settings.currency} {p.loanRepaymentAmount.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
       </div>
 
       <AnimatePresence>
@@ -306,37 +229,6 @@ const MemberDashboard = () => {
           </div>
         )}
 
-        {isPledgeModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={() => setIsPledgeModalOpen(false)}>
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-md bg-background rounded-[2.5rem] p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
-              <h2 className="text-2xl font-bold mb-6 tracking-tight">{newPledge.id ? 'Edit' : 'Make'} Pledge</h2>
-              <form onSubmit={handleSavePledge} className="space-y-5">
-                <div className="flex gap-4">
-                  <div className="flex-1 space-y-2">
-                    <label className="text-[10px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">Month (1-12)</label>
-                    <input required type="number" min="1" max="12" value={newPledge.month} onChange={e => setNewPledge({...newPledge, month: Number(e.target.value)})} className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none font-bold focus:ring-2 focus:ring-primary" />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <label className="text-[10px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">Year</label>
-                    <input required type="number" value={newPledge.year} onChange={e => setNewPledge({...newPledge, year: Number(e.target.value)})} className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none font-bold focus:ring-2 focus:ring-primary" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">Share Amount</label>
-                  <input type="number" value={newPledge.shareAmount} onChange={e => setNewPledge({...newPledge, shareAmount: e.target.value})} className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none font-bold focus:ring-2 focus:ring-primary" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">Loan Repayment Amount</label>
-                  <input type="number" value={newPledge.loanRepaymentAmount} onChange={e => setNewPledge({...newPledge, loanRepaymentAmount: e.target.value})} className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none font-bold focus:ring-2 focus:ring-primary" />
-                </div>
-                <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setIsPledgeModalOpen(false)} className="flex-1 py-4 bg-secondary hover:bg-secondary/80 rounded-xl font-bold transition-colors">Cancel</button>
-                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg hover:shadow-xl transition-all">Save Pledge</button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
       </AnimatePresence>
     </div>
   );

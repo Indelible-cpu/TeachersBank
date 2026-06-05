@@ -83,7 +83,6 @@ const DashboardLayout = () => {
 
     { to: '/dashboard/total-earnings', label: 'Total Earnings', icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
     { to: '/dashboard/emergency', label: 'Emergency Fund', icon: Shield, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
-    { to: '/dashboard/pledges', label: 'Pledges', icon: FileText, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
     
     { to: '/dashboard/reports', label: t('reports.title'), icon: FileText, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
     { to: '/dashboard/audit-trail', label: t('audit.title'), icon: HistoryIcon, roles: ['ADMIN'] },

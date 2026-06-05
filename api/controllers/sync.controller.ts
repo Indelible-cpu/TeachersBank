@@ -147,6 +147,12 @@ export const syncData = async (req: Request, res: Response) => {
             delete cleanLoanData.memberName;
             delete cleanLoanData.shareInterest;
             delete cleanLoanData.memberShares;
+
+            if (cleanLoanData.dueDate) {
+              try {
+                cleanLoanData.dueDate = new Date(cleanLoanData.dueDate).toISOString();
+              } catch (e) {}
+            }
             
             if (action === 'CREATE') {
               cleanLoanData.recordedBy = userId;
@@ -197,11 +203,15 @@ export const syncData = async (req: Request, res: Response) => {
               }
             }
             if (action === 'UPDATE') {
+              const updateContribData = { ...cleanContribData };
+              delete updateContribData.id;
+              delete updateContribData.memberId;
+              
               if (data.type === 'SHARE') {
-                await prisma.shareContribution.update({ where: { id: data.id }, data: cleanContribData });
+                await prisma.shareContribution.update({ where: { id: data.id }, data: updateContribData });
                 auditDetails = `Updated share contribution status: ${data.status} for ID: ${data.id}`;
               } else {
-                await prisma.emergencyContribution.update({ where: { id: data.id }, data: cleanContribData });
+                await prisma.emergencyContribution.update({ where: { id: data.id }, data: updateContribData });
                 auditDetails = `Updated emergency contribution status: ${data.status} for ID: ${data.id}`;
               }
             }
@@ -275,23 +285,7 @@ export const syncData = async (req: Request, res: Response) => {
             auditDetails = `Successfully saved updated global system and loan configurations`;
             break;
 
-          case 'pledges':
-            const cleanPledgeData = { ...data };
-            delete cleanPledgeData.timestamp;
-            
-            if (action === 'CREATE') {
-              await prisma.pledge.create({ data: cleanPledgeData });
-              auditDetails = `Created pledge for member ID: ${data.memberId} for ${data.month}/${data.year}`;
-            }
-            if (action === 'UPDATE') {
-              await prisma.pledge.update({ where: { id: data.id }, data: cleanPledgeData });
-              auditDetails = `Updated pledge ID: ${data.id}`;
-            }
-            if (action === 'DELETE') {
-              await prisma.pledge.delete({ where: { id: data.id } });
-              auditDetails = `Deleted pledge ID: ${data.id}`;
-            }
-            break;
+
             
           default:
             throw new Error(`Unknown table: ${table}`);
@@ -378,7 +372,6 @@ export const syncData = async (req: Request, res: Response) => {
       loans: await prisma.loan.findMany(),
       repayments: await prisma.repayment.findMany(),
       receipts: await prisma.receipt.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
-      pledges: await prisma.pledge.findMany(),
       shareContributions: await prisma.shareContribution.findMany(),
       emergencyContributions: await prisma.emergencyContribution.findMany(),
       settings: cleanSettings,
