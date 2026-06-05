@@ -189,8 +189,32 @@ export const syncData = async (req: Request, res: Response) => {
             }
             break;
 
+          case 'pledges':
+            // Deprecated table, ignore sync requests gracefully
+            auditDetails = `Ignored sync request for deprecated pledges table`;
+            break;
+
           case 'contributions':
             const cleanContribData = formatContribution(data);
+            
+            // Assign to active cycle if cycleId is missing from frontend
+            if (!cleanContribData.cycleId) {
+              const activeCycle = await prisma.contributionCycle.findFirst({ where: { isActive: true } });
+              if (activeCycle) {
+                cleanContribData.cycleId = activeCycle.id;
+              } else {
+                const newCycle = await prisma.contributionCycle.create({
+                  data: {
+                    name: `Auto Cycle ${new Date().getFullYear()}`,
+                    startDate: new Date(),
+                    endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+                    maturityMonths: 12,
+                    isActive: true
+                  }
+                });
+                cleanContribData.cycleId = newCycle.id;
+              }
+            }
             
             if (action === 'CREATE') {
               cleanContribData.recordedBy = userId;
@@ -405,6 +429,6 @@ export const syncData = async (req: Request, res: Response) => {
 
 // Helper to strip frontend-only fields before sending to Prisma
 function formatContribution(data: any) {
-  const { type, memberName, ...rest } = data;
+  const { type, memberName, monthName, timestamp, ...rest } = data;
   return rest;
 }
