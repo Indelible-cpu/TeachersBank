@@ -15,6 +15,26 @@ interface AuditLog {
   user?: { name: string; email: string };
 }
 
+const sanitizeLogDetails = (details: string | undefined, action: string) => {
+  if (!details) return 'No additional detail recorded.';
+  
+  if (details.trim().startsWith('{')) {
+    if (action.includes('SYNC')) return 'System data synchronized successfully.';
+    return 'System processed structured data payload.';
+  }
+  
+  if (details.includes('Invalid `prisma.') || details.includes('invocation:')) {
+    const context = details.split(':')[0];
+    return `${context}: Operation blocked due to data schema validation.`;
+  }
+  
+  if (details.length > 120) {
+    return details.substring(0, 120).trim() + '...';
+  }
+  
+  return details;
+};
+
 const AuditTrail = () => {
   const { user: currentUser } = useAuth();
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -101,7 +121,7 @@ const AuditTrail = () => {
                       </span>
                     </h4>
                     <p className="text-xs font-black text-muted-foreground mt-0.5 flex items-center gap-1.5 uppercase tracking-wide">
-                      Action: {log.action.replace('_', ' ')}
+                      Action: {log.action.replace(/_/g, ' ')}
                     </p>
                   </div>
                 </div>
@@ -123,7 +143,7 @@ const AuditTrail = () => {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground italic max-w-md md:text-right font-medium">
-                    {log.details || 'No additional detail recorded.'}
+                    {sanitizeLogDetails(log.details, log.action)}
                   </p>
                 </div>
               </motion.div>
