@@ -89,12 +89,23 @@ const Dashboard = () => {
       d.setMonth(d.getMonth() - (5 - i));
       return { month: d.getMonth() + 1, year: d.getFullYear(), label: d.toLocaleString('default', { month: 'short' }) };
     });
-    const chartAmounts = last6Months.map(m =>
-      confirmedContribs.filter(c => {
+    const firstMonthDate = new Date();
+    firstMonthDate.setMonth(firstMonthDate.getMonth() - 5);
+    firstMonthDate.setDate(1);
+    firstMonthDate.setHours(0, 0, 0, 0);
+    
+    let runningTotal = confirmedContribs.filter(c => {
+      return c.timestamp && new Date(c.timestamp).getTime() < firstMonthDate.getTime();
+    }).reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
+
+    const chartAmounts = last6Months.map(m => {
+      const monthTotal = confirmedContribs.filter(c => {
         if (c.timestamp) { const date = new Date(c.timestamp); return date.getMonth() + 1 === m.month && date.getFullYear() === m.year; }
         return false;
-      }).reduce((acc, c) => acc + (Number(c.amount) || 0), 0)
-    );
+      }).reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
+      runningTotal += monthTotal;
+      return runningTotal;
+    });
     const maxAmount = Math.max(...chartAmounts, 1);
     const chartData = chartAmounts.map((amount, i) => ({ label: last6Months[i].label, height: Math.max(5, Math.round((amount / maxAmount) * 100)), amount }));
 
