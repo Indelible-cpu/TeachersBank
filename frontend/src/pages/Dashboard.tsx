@@ -242,7 +242,7 @@ const Dashboard = () => {
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <TrendingUp className="text-primary" />
             </div>
-            <h2 className="text-lg font-bold">{t('dashboard.performance_overview')}</h2>
+            <h2 className="text-lg font-bold">{t('dashboard_stats.performance_overview')}</h2>
           </div>
           <div className="h-[300px] w-full">
             <div className="h-48 flex items-end gap-4 px-4">
@@ -266,7 +266,7 @@ const Dashboard = () => {
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
               <CheckCircle2 className="text-emerald-500" />
             </div>
-            <h2 className="text-lg font-bold">{t('dashboard.recent_verifications')}</h2>
+            <h2 className="text-lg font-bold">{t('dashboard_stats.recent_verifications')}</h2>
           </div>
           
           <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
@@ -288,7 +288,7 @@ const Dashboard = () => {
             )) : (
               <div className="h-full flex flex-col items-center justify-center opacity-50">
                  <Clock className="w-12 h-12 mb-3 text-muted-foreground" />
-                 <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40 uppercase">{t('dashboard.no_recent_activity')}</p>
+                 <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40 uppercase">{t('dashboard_stats.no_recent_activity')}</p>
               </div>
             )}
           </div>
