@@ -95,6 +95,19 @@ router.delete('/:id', authenticate, authorize(['ADMIN']), trackActivity('DELETE_
 // Audit Logs (Admin, Secretary, Treasurer)
 router.get('/audit-logs', authenticate, authorize(['ADMIN', 'SECRETARY', 'TREASURER']), async (req, res) => {
   try {
+    // Lazily clear logs older than 30 days to auto-clean the database
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    // Fire-and-forget deletion so it doesn't heavily block the request, but await it just in case
+    await prisma.auditLog.deleteMany({
+      where: {
+        createdAt: {
+          lt: thirtyDaysAgo
+        }
+      }
+    }).catch(console.error);
+
     const logs = await prisma.auditLog.findMany({
       include: { user: { select: { name: true, email: true } } },
       orderBy: { createdAt: 'desc' },
