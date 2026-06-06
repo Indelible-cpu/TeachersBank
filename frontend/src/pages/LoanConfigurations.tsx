@@ -19,12 +19,21 @@ const LoanConfigurations = () => {
   
   const isAdmin = user?.role === 'ADMIN';
 
-  const [loanRules, setLoanRules] = useState<LoanRule[]>(settings.loanDurationRules || [
+  const [activeTab, setActiveTab] = useState<'SHARE' | 'EMERGENCY'>('SHARE');
+  const [shareRules, setShareRules] = useState<LoanRule[]>(settings.loanDurationRules || [
     { id: '1', minAmount: 5000, maxAmount: 50000, durationMonths: 3 },
     { id: '2', minAmount: 50001, maxAmount: 100000, durationMonths: 6 },
     { id: '3', minAmount: 100001, maxAmount: 500000, durationMonths: 12 },
     { id: '4', minAmount: 500001, maxAmount: 9999999, durationMonths: 24 }
   ]);
+  const [emergencyRules, setEmergencyRules] = useState<LoanRule[]>(settings.emergencyLoanDurationRules || [
+    { id: '1', minAmount: 5000, maxAmount: 20000, durationMonths: 1 },
+    { id: '2', minAmount: 20001, maxAmount: 50000, durationMonths: 2 },
+    { id: '3', minAmount: 50001, maxAmount: 100000, durationMonths: 3 }
+  ]);
+
+  const currentRules = activeTab === 'SHARE' ? shareRules : emergencyRules;
+  const setCurrentRules = activeTab === 'SHARE' ? setShareRules : setEmergencyRules;
 
   // Inline editing state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -39,7 +48,11 @@ const LoanConfigurations = () => {
 
   const saveRules = async (updatedRules: LoanRule[], successMsg: string) => {
     try {
-      await updateSettings({ ...settings, loanDurationRules: updatedRules });
+      await updateSettings({
+        ...settings,
+        loanDurationRules: activeTab === 'SHARE' ? updatedRules : shareRules,
+        emergencyLoanDurationRules: activeTab === 'EMERGENCY' ? updatedRules : emergencyRules
+      });
       toast.success(successMsg);
     } catch (err) {
       console.error(err);
@@ -64,8 +77,8 @@ const LoanConfigurations = () => {
       toast.error('Invalid range or duration. Max amount must exceed min amount.');
       return;
     }
-    const updatedRules = loanRules.map(r => r.id === editDraft.id ? { ...editDraft } : r);
-    setLoanRules(updatedRules);
+    const updatedRules = currentRules.map(r => r.id === editDraft.id ? { ...editDraft } : r);
+    setCurrentRules(updatedRules);
     setEditingId(null);
     setEditDraft(null);
     await saveRules(updatedRules, 'Loan range updated successfully');
@@ -89,16 +102,16 @@ const LoanConfigurations = () => {
       durationMonths: durVal
     };
 
-    const updatedRules = [...loanRules, rule];
-    setLoanRules(updatedRules);
+    const updatedRules = [...currentRules, rule];
+    setCurrentRules(updatedRules);
     setNewRule({ minAmount: '', maxAmount: '', durationMonths: '' });
     await saveRules(updatedRules, 'Loan duration range added successfully');
   };
 
   // ─── Remove rule handler ────────────────────────────────────────────────
   const handleRemoveRule = async (ruleId: string) => {
-    const updatedRules = loanRules.filter(r => r.id !== ruleId);
-    setLoanRules(updatedRules);
+    const updatedRules = currentRules.filter(r => r.id !== ruleId);
+    setCurrentRules(updatedRules);
     await saveRules(updatedRules, 'Loan range removed successfully');
   };
 
@@ -115,6 +128,21 @@ const LoanConfigurations = () => {
         <p className="text-muted-foreground font-medium italic">Configure range-based term limits and monthly durations. All rules are fully editable.</p>
       </div>
 
+      <div className="flex bg-secondary/50 p-1 rounded-xl w-fit">
+        <button
+          onClick={() => setActiveTab('SHARE')}
+          className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'SHARE' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+        >
+          Share Fund Rules
+        </button>
+        <button
+          onClick={() => setActiveTab('EMERGENCY')}
+          className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'EMERGENCY' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+        >
+          Emergency Fund Rules
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* ── Rules Table ── */}
         <motion.div
@@ -125,7 +153,7 @@ const LoanConfigurations = () => {
           <div className="flex items-center justify-between border-b border-border/50 pb-4">
             <h2 className="text-xl font-semibold">Active Term & Range Rules</h2>
             <span className="text-[10px] font-bold bg-primary/10 text-primary px-3 py-1 rounded-full tracking-widest">
-              {loanRules.length} Active Rules
+              {currentRules.length} Active Rules
             </span>
           </div>
 
@@ -140,7 +168,7 @@ const LoanConfigurations = () => {
                 </tr>
               </thead>
               <tbody>
-                {loanRules.map((rule, idx) => {
+                {currentRules.map((rule, idx) => {
                   const isEditing = editingId === rule.id;
                   return (
                     <tr key={rule.id || idx} className="border-b border-border/20 hover:bg-secondary/10">
@@ -220,7 +248,7 @@ const LoanConfigurations = () => {
                     </tr>
                   );
                 })}
-                {loanRules.length === 0 && (
+                {currentRules.length === 0 && (
                   <tr>
                     <td colSpan={4} className="py-12 text-center text-muted-foreground italic font-semibold">
                       No range-based term rules currently defined.

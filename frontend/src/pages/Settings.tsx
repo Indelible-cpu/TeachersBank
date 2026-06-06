@@ -68,6 +68,7 @@ const Settings = () => {
       const sanitized = {
         ...formData,
         interestPercentage: Number(formData.interestPercentage) || 0,
+        emergencyInterestPercentage: Number(formData.emergencyInterestPercentage) || 0,
         maturityMonths: Number(formData.maturityMonths) || 0
       };
       await updateSettings(sanitized);
@@ -425,6 +426,21 @@ const Settings = () => {
                 onChange={(e) => {
                   const val = e.target.value;
                   setFormData({ ...formData, interestPercentage: val === '' ? '' : parseFloat(val) } as any);
+                }}
+                className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="emergencyInterestPercentage" className="text-sm font-medium">Emergency Loan Interest Rate (%)</label>
+              <input
+                id="emergencyInterestPercentage"
+                type="number"
+                name="emergencyInterestPercentage"
+                value={formData.emergencyInterestPercentage === undefined || formData.emergencyInterestPercentage === null || Number.isNaN(formData.emergencyInterestPercentage) ? '' : formData.emergencyInterestPercentage}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({ ...formData, emergencyInterestPercentage: val === '' ? '' : parseFloat(val) } as any);
                 }}
                 className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
               />

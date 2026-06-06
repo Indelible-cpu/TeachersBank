@@ -9,6 +9,7 @@ export interface Settings {
   emergencyInterestPercentage?: number;
   maturityMonths: number;
   loanDurationRules?: Array<{ id: string; minAmount: number; maxAmount: number; durationMonths: number; }>;
+  emergencyLoanDurationRules?: Array<{ id: string; minAmount: number; maxAmount: number; durationMonths: number; }>;
   showProfileInHeader: boolean;
   currency: string;
   baseShareAmount: number;

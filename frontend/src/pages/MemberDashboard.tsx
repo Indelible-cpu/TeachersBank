@@ -24,7 +24,9 @@ const MemberDashboard = () => {
   
   const [newLoan, setNewLoan] = useState({ principal: '', ruleId: '', fundType: 'SHARE' });
 
-  const rules = settings.loanDurationRules || [];
+  const shareRules = settings.loanDurationRules || [];
+  const emergencyRules = settings.emergencyLoanDurationRules || [];
+  const activeRules = newLoan.fundType === 'SHARE' ? shareRules : emergencyRules;
 
   const loadData = async () => {
     if (!user) return;
@@ -101,7 +103,7 @@ const MemberDashboard = () => {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rule = rules.find((r: any) => r.id === newLoan.ruleId);
+    const rule = activeRules.find((r: any) => r.id === newLoan.ruleId);
     if (!rule) { toast.error('Select a loan rule'); return; }
     
     const principal = parseFloat(newLoan.principal);
@@ -271,7 +273,7 @@ const MemberDashboard = () => {
                   <select required value={newLoan.ruleId} onChange={e => setNewLoan({...newLoan, ruleId: e.target.value})} className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none font-bold focus:ring-2 focus:ring-primary">
                     <option value="">Select Range</option>
                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {rules.map((r: any) => <option key={r.id} value={r.id}>{r.minAmount} - {r.maxAmount} ({r.durationMonths}m)</option>)}
+                    {activeRules.map((r: any) => <option key={r.id} value={r.id}>{r.minAmount} - {r.maxAmount} ({r.durationMonths}m)</option>)}
                   </select>
                 </div>
                 
