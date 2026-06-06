@@ -35,6 +35,7 @@ model User {
   member    Member?
   auditLogs AuditLog[]
   authenticators Authenticator[]
+  notifications Notification[]
 }
 
 model Authenticator {
@@ -76,7 +77,6 @@ model Member {
   loans                  Loan[]
   repayments             Repayment[]
   disbursements          Disbursement[]
-  pledges                Pledge[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -108,7 +108,6 @@ model ContributionCycle {
   shareContributions     ShareContribution[]
   emergencyContributions EmergencyContribution[]
   disbursements          Disbursement[]
-  pledges                Pledge[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -162,7 +161,7 @@ model EmergencyContribution {
   year            Int
   isAdvance       Boolean  @default(false)
   recordedBy      String
-
+ 
   // Treasurer Confirmation
   status          ConfirmationStatus @default(PENDING)
   confirmedBy     String?  // Treasurer ID
@@ -274,20 +273,12 @@ model Receipt {
   createdAt DateTime @default(now())
 }
 
-model Pledge {
-  id                           String   @id @default(uuid())
-  memberId                     String
-  member                       Member   @relation(fields: [memberId], references: [id])
-  cycleId                      String
-  cycle                        ContributionCycle @relation(fields: [cycleId], references: [id])
-  month                        Int
-  year                         Int
-  shareAmount                  Float    @default(0)
-  loanRepaymentAmount          Float    @default(0)
-  emergencyLoanRepaymentAmount Float    @default(0)
-  
-  createdAt                    DateTime @default(now())
-  updatedAt                    DateTime @updatedAt
-
-  @@unique([memberId, month, year])
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
