@@ -192,6 +192,7 @@ model Loan {
   memberShares   Float?
   confirmedBy    String?
   confirmedAt    DateTime?
+  isTopUp        Boolean @default(false)
   
   repayments     Repayment[]
   receipts       Receipt[]

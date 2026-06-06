@@ -16,13 +16,14 @@ interface Loan {
   expectedReturn: number;
   balance: number;
   dueDate: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'FULLY_PAID';
+  status: 'PENDING' | 'VERIFIED' | 'APPROVED' | 'REJECTED' | 'FULLY_PAID';
   fundType?: 'SHARE' | 'EMERGENCY';
   timestamp: string;
   shareInterest?: number;    // Interest accumulated from member's share pool (for disbursement reports)
   memberShares?: number;     // Total confirmed shares at time of loan issuance
   confirmedBy?: string;
   confirmedAt?: string;
+  isTopUp?: boolean;
 }
 
 const Loans = () => {
@@ -35,6 +36,8 @@ const Loans = () => {
   const [contributions, setContributions] = useState<Array<{ memberId: string; type: string; status: string; amount: number | string }>>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rejectingLoanId, setRejectingLoanId] = useState<string | null>(null);
+  const [grantingLoan, setGrantingLoan] = useState<Loan | null>(null);
+  const [grantPrincipal, setGrantPrincipal] = useState<string>('');
   const [activeView, setActiveView] = useState<'history' | 'verify'>('history');
   
   const rules = settings.loanDurationRules || [
@@ -125,6 +128,22 @@ const Loans = () => {
     }
   }, [isModalOpen]);
 
+  const createNotification = async (memberId: string, title: string, message: string) => {
+    const member = members.find(m => m.id === memberId) as any;
+    if (!member || !member.userId) return;
+    const notification = {
+      id: Date.now().toString(),
+      userId: member.userId,
+      title,
+      message,
+      isRead: false,
+      createdAt: new Date().toISOString()
+    };
+    await addToSyncQueue('CREATE', 'notifications', notification);
+    const currentNotifs = await getSetting('notifications') || [];
+    await setSetting('notifications', [notification, ...currentNotifs]);
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isReadOnly || !canWriteFinance) return;
@@ -200,17 +219,53 @@ const Loans = () => {
     setNewLoan({ memberId: '', principal: '', dueDate: '', fundType: 'SHARE' });
   };
 
-  const handleApproveLoan = async (loanId: string) => {
+  const handleVerifyLoan = async (loanId: string) => {
     if (isReadOnly || !canConfirm) return;
-    const updated = loans.map(l => l.id === loanId ? { ...l, status: 'APPROVED' as const, confirmedBy: user?.name, confirmedAt: new Date().toISOString() } : l);
+    const updated = loans.map(l => l.id === loanId ? { ...l, status: 'VERIFIED' as const, confirmedBy: user?.name, confirmedAt: new Date().toISOString() } : l);
     setLoans(updated);
     await setSetting('loans', updated);
     
     const loan = updated.find(l => l.id === loanId);
     if (loan) {
       await addToSyncQueue('UPDATE', 'loans', loan);
+      await createNotification(loan.memberId, 'Loan Verified', `Your loan request of ${settings.currency} ${loan.principal.toLocaleString()} has been verified by the Secretary and is pending Treasurer approval.`);
     }
-    toast.success('Loan confirmed and approved successfully');
+    toast.success('Loan verified successfully');
+  };
+
+  const handleInitiateGrant = (loan: Loan) => {
+    setGrantingLoan(loan);
+    setGrantPrincipal(String(loan.principal));
+  };
+
+  const handleFinalGrant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!grantingLoan || isReadOnly || !canConfirm) return;
+    
+    const finalPrincipal = parseFloat(grantPrincipal);
+    const loanInterestAmount = finalPrincipal * (grantingLoan.interestRate / 100);
+    const expectedReturn = finalPrincipal + loanInterestAmount;
+    
+    const updated = loans.map(l => l.id === grantingLoan.id ? { 
+      ...l, 
+      status: 'APPROVED' as const, 
+      principal: finalPrincipal,
+      expectedReturn,
+      balance: expectedReturn,
+      confirmedBy: user?.name, 
+      confirmedAt: new Date().toISOString() 
+    } : l);
+    
+    setLoans(updated);
+    await setSetting('loans', updated);
+    
+    const loan = updated.find(l => l.id === grantingLoan.id);
+    if (loan) {
+      await addToSyncQueue('UPDATE', 'loans', loan);
+      await createNotification(loan.memberId, 'Loan Granted', `Your loan request has been granted with a principal of ${settings.currency} ${finalPrincipal.toLocaleString()}.`);
+    }
+    toast.success('Loan granted successfully');
+    setGrantingLoan(null);
   };
 
   const handleRejectLoan = async (loanId: string) => {
@@ -222,8 +277,9 @@ const Loans = () => {
     return <div className="p-8 text-center font-black text-rose-500 text-lg">Access Denied: Administrators do not have access to the Loan Management page.</div>;
   }
 
-  const pendingCount = loans.filter(l => l.status === 'PENDING').length;
-  const filteredLoans = activeView === 'verify' ? loans.filter(l => l.status === 'PENDING') : loans;
+  const verificationStatuses = user?.role === 'SECRETARY' ? ['PENDING'] : user?.role === 'TREASURER' ? ['VERIFIED'] : ['PENDING', 'VERIFIED'];
+  const pendingCount = loans.filter(l => verificationStatuses.includes(l.status)).length;
+  const filteredLoans = activeView === 'verify' ? loans.filter(l => verificationStatuses.includes(l.status)) : loans;
 
   return (
     <div className="w-full max-w-none px-4 lg:px-8 pt-4 pb-8 lg:pt-8 lg:pb-12 space-y-6">
@@ -279,9 +335,9 @@ const Loans = () => {
                 Fully paid
               </div>
             )}
-            {loan.status === 'PENDING' && (
+            {['PENDING', 'VERIFIED'].includes(loan.status) && (
               <div className="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-semibold px-4 py-1.5 rounded-bl-2xl capitalize tracking-widest animate-pulse">
-                Pending Confirmation
+                {loan.status === 'PENDING' ? 'Pending Verification' : 'Pending Grant'}
               </div>
             )}
             {loan.status === 'REJECTED' && (
@@ -294,8 +350,15 @@ const Loans = () => {
               <div className={`p-4 rounded-2xl ${loan.balance > 0 ? 'bg-blue-500/10 text-blue-500' : 'bg-emerald-500/10 text-emerald-500'} shadow-inner`}>
                 <CreditCard className="w-7 h-7" />
               </div>
-              <div className="overflow-hidden">
-                <h3 className="font-bold text-lg leading-tight truncate">{loan.memberName}</h3>
+              <div className="overflow-hidden flex flex-col gap-1 items-start">
+                <h3 className="font-bold text-lg leading-tight truncate flex items-center gap-2">
+                  {loan.memberName}
+                  {loan.isTopUp && (
+                    <span className="bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-purple-500/20">
+                      Top Up
+                    </span>
+                  )}
+                </h3>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize tracking-widest ${
                   loan.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600' : 
                   loan.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600' : 
@@ -331,13 +394,29 @@ const Loans = () => {
                 <span className="font-semibold capitalize tracking-tight">Due: {new Date(loan.dueDate).toLocaleDateString()}</span>
               </div>
               
-              {loan.status === 'PENDING' && canConfirm && (
+              {loan.status === 'PENDING' && canConfirm && user?.role === 'SECRETARY' && (
                 <div className="flex gap-2 pt-3 border-t border-border/50 mt-3">
                   <button 
-                    onClick={() => handleApproveLoan(loan.id)}
+                    onClick={() => handleVerifyLoan(loan.id)}
                     className="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-emerald-500/10 active:scale-[0.97]"
                   >
-                    Confirm
+                    Verify
+                  </button>
+                  <button 
+                    onClick={() => handleRejectLoan(loan.id)}
+                    className="flex-1 py-2 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-rose-500/10 active:scale-[0.97]"
+                  >
+                    Reject
+                  </button>
+                </div>
+              )}
+              {loan.status === 'VERIFIED' && canConfirm && user?.role === 'TREASURER' && (
+                <div className="flex gap-2 pt-3 border-t border-border/50 mt-3">
+                  <button 
+                    onClick={() => handleInitiateGrant(loan)}
+                    className="flex-1 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl transition-all shadow-md active:scale-[0.97]"
+                  >
+                    Grant
                   </button>
                   <button 
                     onClick={() => handleRejectLoan(loan.id)}
@@ -539,6 +618,7 @@ const Loans = () => {
                     const loan = updated.find(l => l.id === rejectingLoanId);
                     if (loan) {
                       await addToSyncQueue('UPDATE', 'loans', loan);
+                      await createNotification(loan.memberId, 'Loan Rejected', `Your loan request was rejected.`);
                     }
                     toast.success('Loan rejected successfully');
                     setRejectingLoanId(null);
@@ -548,6 +628,71 @@ const Loans = () => {
                   Yes, Reject
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Granting Loan Modal */}
+        {grantingLoan && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+            onClick={() => setGrantingLoan(null)}
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-background rounded-[2.5rem] p-8 shadow-2xl border border-white/5"
+              onClick={e => e.stopPropagation()}
+            >
+              <h2 className="text-2xl font-bold mb-6 tracking-tight flex items-center gap-2">
+                <Banknote className="text-primary w-6 h-6" /> Grant Loan
+              </h2>
+              <p className="text-muted-foreground text-sm font-semibold mb-6">
+                Review and finalize the granted principal amount. You may adjust the requested amount below if there are insufficient funds.
+              </p>
+              
+              <form onSubmit={handleFinalGrant} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">Granted Principal ({settings.currency})</label>
+                  <input 
+                    required type="number" min="0" max={grantingLoan.principal}
+                    value={grantPrincipal} 
+                    onChange={e => setGrantPrincipal(e.target.value)} 
+                    className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none font-bold focus:ring-2 focus:ring-primary" 
+                  />
+                  <p className="text-[10px] text-muted-foreground font-semibold ml-1">
+                    Requested amount was {settings.currency} {grantingLoan.principal.toLocaleString()}.
+                  </p>
+                </div>
+                
+                {grantPrincipal && parseFloat(grantPrincipal) > 0 && (() => {
+                  const p = parseFloat(grantPrincipal);
+                  const interest = p * (grantingLoan.interestRate / 100);
+                  const total = p + interest;
+                  return (
+                    <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 text-xs font-bold space-y-2">
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Adjusted Interest ({grantingLoan.interestRate}%):</span>
+                        <span className="text-rose-500">+{settings.currency} {interest.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between border-t border-border/30 pt-2">
+                        <span className="text-foreground">New Total Repayable:</span>
+                        <span className="text-primary font-black">{settings.currency} {total.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div className="flex gap-4 pt-4">
+                  <button type="button" onClick={() => setGrantingLoan(null)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all">
+                    Cancel
+                  </button>
+                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
+                    Finalize Grant
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}

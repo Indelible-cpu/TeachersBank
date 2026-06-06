@@ -246,6 +246,24 @@ export const syncData = async (req: Request, res: Response) => {
             }
             break;
 
+          case 'notifications':
+            const cleanNotificationData = { ...data };
+            delete cleanNotificationData.timestamp;
+            
+            if (action === 'CREATE') {
+              await prisma.notification.create({ data: cleanNotificationData });
+              auditDetails = `Created notification for user ID: ${data.userId}`;
+            }
+            if (action === 'UPDATE') {
+              await prisma.notification.update({ where: { id: data.id }, data: cleanNotificationData });
+              auditDetails = `Updated notification ID: ${data.id}`;
+            }
+            if (action === 'DELETE') {
+              await prisma.notification.delete({ where: { id: data.id } });
+              auditDetails = `Deleted notification ID: ${data.id}`;
+            }
+            break;
+
           case 'settings':
             const { loanDurationRules, ...settingsData } = data;
             
@@ -384,6 +402,7 @@ export const syncData = async (req: Request, res: Response) => {
       receipts: await prisma.receipt.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
       shareContributions: await prisma.shareContribution.findMany(),
       emergencyContributions: await prisma.emergencyContribution.findMany(),
+      notifications: await prisma.notification.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
       settings: cleanSettings,
       staffCount: await prisma.user.count({
         where: {

@@ -4,7 +4,7 @@ import { useSettings } from '../context/useSettings';
 import { useToast } from '../context/useToast';
 import { getSetting, addToSyncQueue, performSync } from '../services/db';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, CreditCard, Banknote, Calendar, Edit2, ShieldAlert, TrendingUp } from 'lucide-react';
+import { Wallet, CreditCard, Banknote, Calendar, Edit2, ShieldAlert, TrendingUp, Bell } from 'lucide-react';
 
 const MemberDashboard = () => {
   const { user } = useAuth();
@@ -17,7 +17,10 @@ const MemberDashboard = () => {
   const [myLoans, setMyLoans] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [myContributions, setMyContributions] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   
   const [newLoan, setNewLoan] = useState({ principal: '', ruleId: '', fundType: 'SHARE' });
 
@@ -41,6 +44,10 @@ const MemberDashboard = () => {
       const merged = [...contribs, ...shares];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setMyContributions(merged.filter((c: any) => c.memberId === me.id && c.status === 'CONFIRMED'));
+      
+      const notifs = await getSetting('notifications') || [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setNotifications(notifs.filter((n: any) => n.userId === user.id).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     }
   };
 
@@ -54,13 +61,15 @@ const MemberDashboard = () => {
   const memberShares = myContributions.filter(c => c.type === 'SHARE').reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
   const shareInterestRate = settings.interestPercentage || 10;
   const shareEarnings = memberShares + (memberShares * (shareInterestRate / 100));
-  const activeShareLoan = myLoans.find(l => ['PENDING', 'VERIFIED', 'APPROVED'].includes(l.status) && l.fundType !== 'EMERGENCY');
+  const appliedShareLoan = myLoans.find(l => ['PENDING', 'VERIFIED'].includes(l.status) && l.fundType !== 'EMERGENCY');
+  const activeShareLoan = myLoans.find(l => ['APPROVED'].includes(l.status) && l.fundType !== 'EMERGENCY');
 
   // Emergency Calculations
   const memberEmergency = myContributions.filter(c => c.type === 'EMERGENCY').reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
   const emergencyInterestRate = settings.emergencyInterestPercentage || 0;
   const emergencyEarnings = memberEmergency + (memberEmergency * (emergencyInterestRate / 100));
-  const activeEmergencyLoan = myLoans.find(l => ['PENDING', 'VERIFIED', 'APPROVED'].includes(l.status) && l.fundType === 'EMERGENCY');
+  const appliedEmergencyLoan = myLoans.find(l => ['PENDING', 'VERIFIED'].includes(l.status) && l.fundType === 'EMERGENCY');
+  const activeEmergencyLoan = myLoans.find(l => ['APPROVED'].includes(l.status) && l.fundType === 'EMERGENCY');
 
   const handleRequestLoan = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,14 +77,27 @@ const MemberDashboard = () => {
     
     const isEmergency = newLoan.fundType === 'EMERGENCY';
     
-    if (isEmergency && activeEmergencyLoan) {
-      toast.error('System Rejected: You already have an active loan from the Emergency Fund.');
+    if (isEmergency && appliedEmergencyLoan) {
+      toast.error('System Rejected: You already have a pending/applied loan from the Emergency Fund.');
       return;
     }
     
-    if (!isEmergency && activeShareLoan) {
-      toast.error('System Rejected: You already have an active loan from the Share Fund.');
+    if (!isEmergency && appliedShareLoan) {
+      toast.error('System Rejected: You already have a pending/applied loan from the Share Fund.');
       return;
+    }
+
+    let isTopUp = false;
+    const activeLoan = isEmergency ? activeEmergencyLoan : activeShareLoan;
+
+    if (activeLoan) {
+      const repaidAmount = activeLoan.expectedReturn - activeLoan.balance;
+      const repaidRatio = repaidAmount / activeLoan.expectedReturn;
+      if (repaidRatio < 0.75) {
+        toast.error('System Rejected: You must repay at least 75% of your active loan before requesting a top-up.');
+        return;
+      }
+      isTopUp = true;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -106,6 +128,7 @@ const MemberDashboard = () => {
       dueDate: dueDate.toISOString().split('T')[0],
       status: 'PENDING',
       fundType: newLoan.fundType,
+      isTopUp,
       timestamp: new Date().toISOString()
     };
     
@@ -125,12 +148,39 @@ const MemberDashboard = () => {
         <p className="text-muted-foreground font-medium italic">Welcome back, {user?.name}</p>
       </div>
 
-      <div className="flex gap-4 mb-8 max-w-4xl">
+      <div className="flex flex-col md:flex-row gap-4 mb-8 max-w-4xl">
         <button onClick={() => {
           setIsLoanModalOpen(true);
         }} className="flex-1 py-4 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-transform active:scale-95">
           <Banknote className="w-5 h-5" /> Request Loan
         </button>
+        <div className="relative flex-1">
+          <button onClick={() => setShowNotifications(!showNotifications)} className="w-full h-full py-4 bg-secondary text-secondary-foreground font-bold rounded-2xl flex items-center justify-center gap-2 transition-transform active:scale-95 border border-border">
+            <Bell className="w-5 h-5" /> Notifications 
+            {notifications.filter(n => !n.isRead).length > 0 && (
+              <span className="bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full">{notifications.filter(n => !n.isRead).length}</span>
+            )}
+          </button>
+          
+          <AnimatePresence>
+            {showNotifications && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full mt-2 left-0 right-0 bg-background border border-border rounded-2xl shadow-2xl z-40 max-h-80 overflow-y-auto p-4 custom-scrollbar">
+                <h3 className="font-bold mb-3 text-lg">Notifications</h3>
+                <div className="space-y-2">
+                  {notifications.length > 0 ? notifications.map(n => (
+                    <div key={n.id} className="p-3 bg-secondary/30 rounded-xl border border-border/50 text-sm">
+                      <p className="font-bold">{n.title}</p>
+                      <p className="text-muted-foreground mt-1">{n.message}</p>
+                      <p className="text-[10px] text-muted-foreground mt-2 opacity-60">{new Date(n.createdAt).toLocaleString()}</p>
+                    </div>
+                  )) : (
+                    <p className="text-muted-foreground text-sm italic text-center py-4">No new notifications</p>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-8">
@@ -144,7 +194,7 @@ const MemberDashboard = () => {
             <h2 className="text-2xl font-bold tracking-tight flex items-center gap-3">
               <Wallet className="text-emerald-500" /> Shares & Earnings
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="p-5 bg-secondary/30 rounded-2xl">
                 <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Total Shares</p>
                 <h3 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{settings.currency} {memberShares.toLocaleString()}</h3>
@@ -154,6 +204,11 @@ const MemberDashboard = () => {
                 <h3 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4" /> {settings.currency} {shareEarnings.toLocaleString()}
                 </h3>
+              </div>
+              <div className="p-5 bg-secondary/30 rounded-2xl border border-amber-500/10">
+                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Applied Loan</p>
+                <h3 className="text-2xl font-bold text-amber-500">{settings.currency} {appliedShareLoan?.principal?.toLocaleString() || 0}</h3>
+                {appliedShareLoan && <p className="text-[10px] font-bold uppercase mt-1 text-amber-500/70">{appliedShareLoan.status} {appliedShareLoan.isTopUp ? '(TOP UP)' : ''}</p>}
               </div>
               <div className="p-5 bg-secondary/30 rounded-2xl border border-rose-500/10">
                 <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Active Loan</p>
@@ -169,7 +224,7 @@ const MemberDashboard = () => {
             <h2 className="text-2xl font-bold tracking-tight flex items-center gap-3">
               <ShieldAlert className="text-amber-500" /> Emergency Fund
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="p-5 bg-secondary/30 rounded-2xl">
                 <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Total Emergency</p>
                 <h3 className="text-2xl font-bold text-amber-600 dark:text-amber-400">{settings.currency} {memberEmergency.toLocaleString()}</h3>
@@ -179,6 +234,11 @@ const MemberDashboard = () => {
                 <h3 className="text-2xl font-bold text-amber-600 dark:text-amber-400 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4" /> {settings.currency} {emergencyEarnings.toLocaleString()}
                 </h3>
+              </div>
+              <div className="p-5 bg-secondary/30 rounded-2xl border border-amber-500/10">
+                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Applied Loan</p>
+                <h3 className="text-2xl font-bold text-amber-500">{settings.currency} {appliedEmergencyLoan?.principal?.toLocaleString() || 0}</h3>
+                {appliedEmergencyLoan && <p className="text-[10px] font-bold uppercase mt-1 text-amber-500/70">{appliedEmergencyLoan.status} {appliedEmergencyLoan.isTopUp ? '(TOP UP)' : ''}</p>}
               </div>
               <div className="p-5 bg-secondary/30 rounded-2xl border border-rose-500/10">
                 <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Active Loan</p>

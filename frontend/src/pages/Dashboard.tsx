@@ -80,7 +80,17 @@ const Dashboard = () => {
     const pendingRepayments = repaymentsList.filter((r) => r.status === 'PENDING');
     
     const activeLoansList = loansList.filter((l) => l.status === 'APPROVED');
-    const pendingLoansList = loansList.filter((l) => l.status === 'PENDING');
+    const pendingLoansList = loansList
+      .filter((l) => ['PENDING', 'VERIFIED'].includes(l.status as string))
+      .map((l: any) => {
+        const member = membersList.find((m: any) => m.id === l.memberId);
+        return {
+          ...l,
+          memberName: member?.fullname || 'Unknown',
+          timestamp: l.timestamp || l.createdAt,
+          isTopUp: l.isTopUp
+        };
+      });
     
     const accumulatedInterest = activeLoansList.reduce((acc, l) => acc + ((l.expectedReturn || 0) - (l.principal || 0)), 0);
 
@@ -336,7 +346,14 @@ const Dashboard = () => {
                     <td className="py-4 text-muted-foreground">
                       {loan.timestamp ? new Date(loan.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
                     </td>
-                    <td className="py-4">{loan.memberName}</td>
+                    <td className="py-4 flex items-center gap-2">
+                      {loan.memberName}
+                      {loan.isTopUp && (
+                        <span className="bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-purple-500/20">
+                          Top Up
+                        </span>
+                      )}
+                    </td>
                     <td className="py-4">
                       <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest ${loan.fundType === 'EMERGENCY' ? 'bg-amber-500/10 text-amber-600' : 'bg-emerald-500/10 text-emerald-600'}`}>
                         {loan.fundType}
