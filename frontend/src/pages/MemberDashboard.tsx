@@ -4,7 +4,9 @@ import { useSettings } from '../context/useSettings';
 import { useToast } from '../context/useToast';
 import { getSetting, addToSyncQueue, performSync } from '../services/db';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, CreditCard, Banknote, Calendar, Edit2, ShieldAlert, TrendingUp, Bell } from 'lucide-react';
+import { Wallet, CreditCard, Banknote, Calendar, Edit2, ShieldAlert, TrendingUp, Camera, Trash2 } from 'lucide-react';
+import { storage } from '../services/firebase';
+import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 const MemberDashboard = () => {
   const { user } = useAuth();
@@ -17,12 +19,11 @@ const MemberDashboard = () => {
   const [myLoans, setMyLoans] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [myContributions, setMyContributions] = useState<any[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [notifications, setNotifications] = useState<any[]>([]);
   const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   
   const [newLoan, setNewLoan] = useState({ principal: '', ruleId: '', fundType: 'SHARE' });
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [showRemoveOption, setShowRemoveOption] = useState(false);
 
   const shareRules = settings.loanDurationRules || [];
   const emergencyRules = settings.emergencyLoanDurationRules || [];
@@ -47,17 +48,101 @@ const MemberDashboard = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setMyContributions(merged.filter((c: any) => c.memberId === me.id && c.status === 'CONFIRMED'));
       
-      const notifs = await getSetting('notifications') || [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setNotifications(notifs.filter((n: any) => n.userId === user.id).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      const photo = await getSetting(`profile_photo_${user.id}`);
+      if (photo) setProfilePhoto(photo as string);
     }
   };
 
   useEffect(() => {
     loadData();
     const interval = setInterval(loadData, 30000);
-    return () => clearInterval(interval);
+    
+    const handleSyncCompleted = () => loadData();
+    window.addEventListener('sync-completed', handleSyncCompleted);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('sync-completed', handleSyncCompleted);
+    };
   }, [user]);
+
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 500;
+          const MAX_HEIGHT = 500;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+          } else {
+            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
+          } else resolve(event.target?.result as string);
+        };
+        img.onerror = (error) => reject(error);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && user?.id) {
+      toast.success("Uploading photo...");
+      try {
+        const base64Data = await compressImage(file);
+        const response = await fetch(base64Data);
+        const blob = await response.blob();
+
+        if (storage && storage.app) {
+          const fileRef = storageRef(storage, `profile_photos/${user.id}_${Date.now()}.jpg`);
+          await uploadBytes(fileRef, blob);
+          const downloadUrl = await getDownloadURL(fileRef);
+          
+          setProfilePhoto(downloadUrl);
+          await setSetting(`profile_photo_${user.id}`, downloadUrl);
+          await addToSyncQueue('UPDATE', 'users', { id: user.id, photo: downloadUrl });
+          
+          toast.success("Profile photo updated");
+          window.dispatchEvent(new CustomEvent('sync-completed'));
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to upload image.");
+      }
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    if (user?.id) {
+      if (profilePhoto && profilePhoto.includes('firebasestorage')) {
+        try {
+          const photoRef = storageRef(storage, profilePhoto);
+          await deleteObject(photoRef).catch(() => {});
+        } catch (e) { console.warn(e); }
+      }
+      setProfilePhoto(null);
+      await setSetting(`profile_photo_${user.id}`, null);
+      setShowRemoveOption(false);
+      toast.success("Profile photo removed");
+      window.dispatchEvent(new CustomEvent('sync-completed'));
+    }
+  };
 
   // Shares Calculations
   const memberShares = myContributions.filter(c => c.type === 'SHARE').reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
@@ -145,9 +230,42 @@ const MemberDashboard = () => {
 
   return (
     <div className="w-full max-w-none space-y-8 pb-12 px-4 lg:px-8 pt-4 lg:pt-8">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">My Account</h1>
-        <p className="text-muted-foreground font-medium italic">Welcome back, {user?.name}</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">My Account</h1>
+          <p className="text-muted-foreground font-medium italic">Welcome back, {user?.name}</p>
+        </div>
+        
+        <div className="relative group shrink-0">
+          <div 
+            onClick={() => profilePhoto && setShowRemoveOption(!showRemoveOption)}
+            className={`w-20 h-20 rounded-full bg-primary/10 border-4 border-background shadow-xl overflow-hidden flex items-center justify-center cursor-pointer transition-all ${profilePhoto ? 'hover:opacity-80' : ''}`}
+          >
+            {profilePhoto ? (
+              <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-2xl font-bold text-primary">{user?.name?.charAt(0)}</span>
+            )}
+          </div>
+          <label className="absolute bottom-0 right-0 p-1.5 bg-primary text-primary-foreground rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform">
+            <Camera className="w-3.5 h-3.5" />
+            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+          </label>
+          
+          <AnimatePresence>
+            {showRemoveOption && profilePhoto && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                onClick={handleRemovePhoto}
+                className="absolute -top-2 -right-2 p-1.5 bg-rose-500 text-white rounded-full shadow-lg hover:bg-rose-600 transition-colors z-10"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 mb-8 max-w-4xl">
@@ -157,31 +275,6 @@ const MemberDashboard = () => {
           <Banknote className="w-5 h-5" /> Request Loan
         </button>
         <div className="relative flex-1">
-          <button onClick={() => setShowNotifications(!showNotifications)} className="w-full h-full py-4 bg-secondary text-secondary-foreground font-bold rounded-2xl flex items-center justify-center gap-2 transition-transform active:scale-95 border border-border">
-            <Bell className="w-5 h-5" /> Notifications 
-            {notifications.filter(n => !n.isRead).length > 0 && (
-              <span className="bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full">{notifications.filter(n => !n.isRead).length}</span>
-            )}
-          </button>
-          
-          <AnimatePresence>
-            {showNotifications && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full mt-2 left-0 right-0 bg-background border border-border rounded-2xl shadow-2xl z-40 max-h-80 overflow-y-auto p-4 custom-scrollbar">
-                <h3 className="font-bold mb-3 text-lg">Notifications</h3>
-                <div className="space-y-2">
-                  {notifications.length > 0 ? notifications.map(n => (
-                    <div key={n.id} className="p-3 bg-secondary/30 rounded-xl border border-border/50 text-sm">
-                      <p className="font-bold">{n.title}</p>
-                      <p className="text-muted-foreground mt-1">{n.message}</p>
-                      <p className="text-[10px] text-muted-foreground mt-2 opacity-60">{new Date(n.createdAt).toLocaleString()}</p>
-                    </div>
-                  )) : (
-                    <p className="text-muted-foreground text-sm italic text-center py-4">No new notifications</p>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </div>
 
