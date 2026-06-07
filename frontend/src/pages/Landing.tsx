@@ -70,7 +70,7 @@ const Landing = () => {
           </h1>
 
           <p className="text-lg text-muted-foreground font-medium max-w-2xl leading-relaxed">
-            A secure digital platform built to facilitate transparent operations, efficient workflow management, and reliable organizational record tracking.
+            {t('landing.hero_subtitle')}
           </p>
 
           <motion.button
@@ -95,20 +95,20 @@ const Landing = () => {
             {/* Left: Brand */}
             <div className="flex flex-col items-center text-center md:items-start md:text-left gap-1">
               <span className="text-sm font-black text-foreground tracking-tight">Indelible Technologies</span>
-              <p className="text-xs font-semibold text-muted-foreground opacity-80">Secure • Reliable • Built for scale</p>
+              <p className="text-xs font-semibold text-muted-foreground opacity-80">{t('landing.footer_slogan')}</p>
             </div>
 
             {/* Middle: Navigation */}
             <div className="flex flex-row items-center justify-center gap-4 md:gap-6 flex-wrap">
-              <Link to="/about" className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors duration-200 whitespace-nowrap">About</Link>
-              <Link to="/privacy" className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors duration-200 whitespace-nowrap">Privacy Policy</Link>
-              <Link to="/terms" className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors duration-200 whitespace-nowrap">Terms of Service</Link>
-              <Link to="/faq" className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors duration-200 whitespace-nowrap">FAQ</Link>
+              <Link to="/about" className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors duration-200 whitespace-nowrap">{t('landing.about')}</Link>
+              <Link to="/privacy" className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors duration-200 whitespace-nowrap">{t('landing.privacy')}</Link>
+              <Link to="/terms" className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors duration-200 whitespace-nowrap">{t('landing.terms')}</Link>
+              <Link to="/faq" className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors duration-200 whitespace-nowrap">{t('landing.faq')}</Link>
             </div>
 
             {/* Right: Support */}
             <div className="flex items-center gap-2 flex-wrap md:justify-end w-full md:w-auto pb-1 md:pb-0">
-              <span className="text-[11px] font-black text-muted-foreground opacity-60 whitespace-nowrap shrink-0">For Support:</span>
+              <span className="text-[11px] font-black text-muted-foreground opacity-60 whitespace-nowrap shrink-0">{t('landing.support')}</span>
                 <a
                   href="mailto:indelibletechnologiesmw@gmail.com"
                   className="text-xs font-bold text-blue-500 hover:text-blue-600 hover:underline transition-all duration-200 whitespace-nowrap"
@@ -147,7 +147,7 @@ const Landing = () => {
 
           <div className="border-t border-border/10 pt-4 flex items-center justify-center overflow-hidden">
             <p className="text-[10px] sm:text-[11px] md:text-xs font-bold text-muted-foreground opacity-60 tracking-wide whitespace-nowrap">
-              © 2026 Indelible Technologies. All rights reserved.
+              {t('landing.rights')}
             </p>
           </div>
 

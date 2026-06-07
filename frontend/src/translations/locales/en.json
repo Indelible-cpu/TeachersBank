@@ -1,4 +1,16 @@
 {
+  "landing": {
+    "hero_title_1": "Teachers Bank",
+    "hero_title_2": "Management System",
+    "hero_subtitle": "A secure digital platform built to facilitate transparent operations, efficient workflow management, and reliable organizational record tracking.",
+    "footer_slogan": "Secure • Reliable • Built for scale",
+    "about": "About",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "faq": "FAQ",
+    "support": "For Support:",
+    "rights": "© 2026 Indelible Technologies. All rights reserved."
+  },
   "login": {
     "title": "Welcome Back",
     "subtitle": "Sign in to continue",

@@ -356,8 +356,9 @@ const DashboardLayout = () => {
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    className="fixed top-20 left-1/2 -translate-x-1/2 mt-2 w-[90vw] max-w-sm bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
+                    className="fixed top-20 left-1/2 -translate-x-1/2 mt-2 w-full max-w-md px-4 z-50 flex flex-col items-center"
                   >
+                   <div className="w-full bg-background border border-border rounded-2xl shadow-2xl overflow-hidden">
                     <div className="p-4 border-b border-border/50">
                       <h3 className="font-black text-sm">Notifications</h3>
                     </div>
@@ -372,6 +373,7 @@ const DashboardLayout = () => {
                         <p className="text-xs text-muted-foreground italic text-center py-6">No notifications yet</p>
                       )}
                     </div>
+                   </div>
                   </motion.div>
                 )}
               </AnimatePresence>

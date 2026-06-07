@@ -1,4 +1,16 @@
 {
+  "landing": {
+    "hero_title_1": "Bungwe la",
+    "hero_title_2": "Asambizi",
+    "hero_subtitle": "Pulatifomu yotetezeka ya digito yomangidwa kuti ithandizire magwiridwe antchito owonekera, kayendetsedwe kabwino ka ntchito, komanso kutsata kodalirika kwa zolemba zagulu.",
+    "footer_slogan": "Yotetezeka • Yodalirika • Yomangidwa Kuti Ikule",
+    "about": "Zambiri",
+    "privacy": "Ndondomeko ya Zinsinsi",
+    "terms": "Migwirizano",
+    "faq": "Mafunso Ofunsidwa Kawirikawiri",
+    "support": "Kuti Muthandizidwe:",
+    "rights": "© 2026 Indelible Technologies. Ufulu wonse ndi wotetezedwa."
+  },
   "login": {
     "title": "Takulandirani",
     "subtitle": "Lowani kuti mupitilize",

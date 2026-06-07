@@ -199,12 +199,6 @@ const Reports = () => {
               {showOnlyConfirmed ? <ShieldCheck className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
               {showOnlyConfirmed ? 'Verified Records' : 'Provisional Records'}
             </button>
-            <button 
-              onClick={toggleLanguage}
-              className="px-3 py-1.5 text-xs font-black tracking-widest border border-primary/20 rounded-full hover:bg-primary/10 transition-colors"
-            >
-              {i18n.language.startsWith('en') ? 'Eng' : 'Ny'}
-            </button>
             <button onClick={handlePrint} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-secondary text-secondary-foreground font-bold rounded-2xl hover:bg-secondary/80 transition-all">
               <Printer className="w-5 h-5" /> Print Report
             </button>
