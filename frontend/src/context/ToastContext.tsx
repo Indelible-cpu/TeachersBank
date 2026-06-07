@@ -46,7 +46,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <ToastContext.Provider value={{ showToast, success, error, info, warning }}>
       {children}
-      <div className="fixed bottom-5 right-5 z-[9999] flex flex-col gap-3 max-w-md w-full pointer-events-none">
+      <div className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-md w-full pointer-events-none">
         <AnimatePresence>
           {toasts.map((toast) => {
             const Icon = {
@@ -66,7 +66,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
             return (
               <motion.div
                 key={toast.id}
-                initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                initial={{ opacity: 0, y: -50, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
                 className={`glass pointer-events-auto p-4 rounded-2xl border flex items-start gap-3 shadow-xl transition-all ${colors}`}

@@ -96,6 +96,21 @@ const Members = () => {
       return;
     }
 
+    if (isOnline) {
+      try {
+        await api.get(`/users/check-email?email=${encodeURIComponent(newMember.email)}`);
+      } catch (err: any) {
+        toast.error(err.response?.data?.error || 'Email already exists.');
+        return;
+      }
+    } else {
+      // Basic local check for offline mode using cached members list
+      if (members.some((m: any) => m.email === newMember.email)) {
+        toast.error('Email already exists locally.');
+        return;
+      }
+    }
+
     // Generate temporary password
     const tempPassword = Math.random().toString(36).slice(-8);
 
@@ -344,7 +359,6 @@ const Members = () => {
                     >
                       <option value="MALE">Male</option>
                       <option value="FEMALE">Female</option>
-                      <option value="OTHER">Other</option>
                     </select>
                   </div>
                 </div>
@@ -467,7 +481,6 @@ const Members = () => {
                     >
                       <option value="MALE">Male</option>
                       <option value="FEMALE">Female</option>
-                      <option value="OTHER">Other</option>
                     </select>
                   </div>
                 </div>

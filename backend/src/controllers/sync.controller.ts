@@ -87,18 +87,20 @@ export const syncData = async (req: Request, res: Response) => {
                 where: { email: data.email || `${data.memberNumber.toLowerCase()}@teachersbank.com` }
               });
               
-              if (!userRecord) {
-                const hashedPassword = await bcrypt.hash(data.password || 'member123', 10);
-                userRecord = await prisma.user.create({
-                  data: {
-                    email: data.email || `${data.memberNumber.toLowerCase()}@teachersbank.com`,
-                    password: hashedPassword,
-                    name: data.fullname,
-                    role: 'MEMBER',
-                    requiresPasswordChange: true
-                  }
-                });
+              if (userRecord) {
+                throw new Error(`Email ${data.email} is already registered.`);
               }
+              
+              const hashedPassword = await bcrypt.hash(data.password || 'member123', 10);
+              userRecord = await prisma.user.create({
+                data: {
+                  email: data.email || `${data.memberNumber.toLowerCase()}@teachersbank.com`,
+                  password: hashedPassword,
+                  name: data.fullname,
+                  role: 'MEMBER',
+                  requiresPasswordChange: true
+                }
+              });
               
               // 2. Map user relation ID
               cleanMemberData.userId = userRecord.id;

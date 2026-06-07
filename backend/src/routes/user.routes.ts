@@ -7,6 +7,19 @@ import bcrypt from 'bcryptjs';
 
 const router = Router();
 
+// Check if email exists (Public or specific role? Let's make it authenticated at least)
+router.get('/check-email', authenticate, async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+    const user = await prisma.user.findUnique({ where: { email: email as string } });
+    if (user) return res.status(400).json({ error: 'Email already in use' });
+    return res.json({ available: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Get all users (Admin only)
 router.get('/', authenticate, authorize(['ADMIN']), async (req, res) => {
   try {
