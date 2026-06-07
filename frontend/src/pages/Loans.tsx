@@ -276,7 +276,7 @@ const Loans = () => {
   };
 
   if (user?.role === 'ADMIN') {
-    return <div className="p-8 text-center font-black text-rose-500 text-lg">Access Denied: Administrators do not have access to the Loan Management page.</div>;
+    return <div className="p-8 text-center font-black text-rose-500 text-lg">{t('loans.access_denied', 'Access Denied: Administrators do not have access to the Loan Management page.')}</div>;
   }
 
   const verificationStatuses = user?.role === 'SECRETARY' ? ['PENDING'] : user?.role === 'TREASURER' ? ['VERIFIED'] : ['PENDING', 'VERIFIED'];
@@ -288,7 +288,7 @@ const Loans = () => {
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-bold tracking-tight">{t('loans.title')}</h1>
-          <p className="text-muted-foreground font-medium">Official organization loan issuance and tracking.</p>
+          <p className="text-muted-foreground font-medium">{t('loans.subtitle', 'Official organization loan issuance and tracking.')}</p>
         </div>
         
         {canWriteFinance && (
@@ -297,7 +297,7 @@ const Loans = () => {
             className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-bold rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-primary/20"
           >
             <Plus className="w-5 h-5" />
-            {t('loans.create_loan')}
+            {t('loans.create_loan', 'Create Loan')}
           </button>
         )}
       </div>
@@ -307,14 +307,14 @@ const Loans = () => {
           onClick={() => setActiveView('history')}
           className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold text-xs transition-all ${activeView === 'history' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
         >
-          <History className="w-4 h-4" /> All Loans
+          <History className="w-4 h-4" /> {t('loans.all_loans', 'All Loans')}
         </button>
         {(canConfirm || canWriteFinance) && (
           <button 
             onClick={() => setActiveView('verify')}
             className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold text-xs transition-all relative ${activeView === 'verify' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
           >
-            <ShieldCheck className="w-4 h-4" /> Verification queue
+            <ShieldCheck className="w-4 h-4" /> {t('loans.verification_queue', 'Verification queue')}
             {pendingCount > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white rounded-full flex items-center justify-center text-[10px] font-black border-2 border-background">
                 {pendingCount}
@@ -334,17 +334,17 @@ const Loans = () => {
           >
             {loan.status === 'FULLY_PAID' && (
               <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-semibold px-4 py-1.5 rounded-bl-2xl capitalize tracking-widest">
-                Fully paid
+                {t('loans.fully_paid', 'Fully paid')}
               </div>
             )}
             {['PENDING', 'VERIFIED'].includes(loan.status) && (
               <div className="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-semibold px-4 py-1.5 rounded-bl-2xl capitalize tracking-widest animate-pulse">
-                {loan.status === 'PENDING' ? 'Pending Verification' : 'Pending Grant'}
+                {loan.status === 'PENDING' ? t('loans.pending_verification', 'Pending Verification') : t('loans.pending_grant', 'Pending Grant')}
               </div>
             )}
             {loan.status === 'REJECTED' && (
               <div className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-semibold px-4 py-1.5 rounded-bl-2xl capitalize tracking-widest">
-                Rejected
+                {t('loans.rejected', 'Rejected')}
               </div>
             )}
             
@@ -357,7 +357,7 @@ const Loans = () => {
                   {loan.memberName}
                   {loan.isTopUp && (
                     <span className="bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-purple-500/20">
-                      Top Up
+                      {t('loans.top_up', 'Top Up')}
                     </span>
                   )}
                 </h3>
@@ -374,26 +374,26 @@ const Loans = () => {
             
             <div className="space-y-3 pt-4 border-t border-border/50 text-sm">
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">{t('loans.principal')}</span>
+                <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">{t('loans.principal', 'Principal')}</span>
                 <span className="font-semibold text-foreground">{settings.currency} {loan.principal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">Loan Interest ({loan.interestRate}%)</span>
+                <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">{t('loans.loan_interest', 'Loan Interest')} ({loan.interestRate}%)</span>
                 <span className="font-semibold text-rose-500">+{settings.currency} {(loan.principal * (loan.interestRate / 100)).toLocaleString()}</span>
               </div>
               {loan.shareInterest !== undefined && loan.shareInterest > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">Share Pool Interest ({loan.interestRate}%)</span>
+                  <span className="text-muted-foreground font-semibold capitalize text-[10px] tracking-wider">{t('loans.share_pool_interest', 'Share Pool Interest')} ({loan.interestRate}%)</span>
                   <span className="font-semibold text-emerald-600 dark:text-emerald-400">+{settings.currency} {loan.shareInterest.toLocaleString()}</span>
                 </div>
               )}
               <div className="flex justify-between items-center pt-2 border-t border-border/50">
-                <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">Total To Repay</p>
+                <p className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest mb-1">{t('loans.total_repay', 'Total To Repay')}</p>
                 <span className="font-semibold text-xl text-rose-600 dark:text-rose-400">{settings.currency} {loan.balance.toLocaleString()}</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 bg-secondary/30 p-2 rounded-xl">
                 <Calendar className="w-4 h-4 text-primary" />
-                <span className="font-semibold capitalize tracking-tight">Due: {new Date(loan.dueDate).toLocaleDateString()}</span>
+                <span className="font-semibold capitalize tracking-tight">{t('loans.due', 'Due:')} {new Date(loan.dueDate).toLocaleDateString()}</span>
               </div>
               
               {loan.status === 'PENDING' && canWriteFinance && user?.role === 'SECRETARY' && (
@@ -402,13 +402,13 @@ const Loans = () => {
                     onClick={() => handleVerifyLoan(loan.id)}
                     className="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-emerald-500/10 active:scale-[0.97]"
                   >
-                    Verify
+                    {t('loans.verify', 'Verify')}
                   </button>
                   <button 
                     onClick={() => handleRejectLoan(loan.id)}
                     className="flex-1 py-2 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-rose-500/10 active:scale-[0.97]"
                   >
-                    Reject
+                    {t('loans.reject', 'Reject')}
                   </button>
                 </div>
               )}
@@ -418,7 +418,7 @@ const Loans = () => {
                     onClick={() => handleInitiateGrant(loan)}
                     className="w-full py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl transition-all shadow-md active:scale-[0.97]"
                   >
-                    Grant Loan
+                    {t('loans.grant_loan', 'Grant Loan')}
                   </button>
                 </div>
               )}
@@ -438,20 +438,20 @@ const Loans = () => {
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold tracking-tight">Issue organization loan</h2>
+                <h2 className="text-2xl font-bold tracking-tight">{t('loans.issue_loan', 'Issue organization loan')}</h2>
                 <ShieldAlert className="w-8 h-8 text-primary/20" />
               </div>
 
               <form onSubmit={handleSave} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold capitalize tracking-widest text-muted-foreground ml-1" htmlFor="loan-member">Member</label>
+                  <label className="text-xs font-semibold capitalize tracking-widest text-muted-foreground ml-1" htmlFor="loan-member">{t('loans.member', 'Member')}</label>
                   <select 
                     id="loan-member" title="Select Member" required
                     value={newLoan.memberId}
                     onChange={e => setNewLoan({...newLoan, memberId: e.target.value})}
                     className="w-full px-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
                   >
-                    <option value="">Choose Member</option>
+                    <option value="">{t('loans.choose_member', 'Choose Member')}</option>
                     {members.map(m => <option key={String(m.id)} value={String(m.id)}>{String(m.fullname)}</option>)}
                   </select>
                 </div>
@@ -470,29 +470,29 @@ const Loans = () => {
                   return (
                     <div className="space-y-2">
                       <div className="p-4 bg-blue-500/5 rounded-2xl border border-blue-500/10 text-xs font-bold space-y-2">
-                        <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Share Pool (Disbursement Report)</p>
+                        <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">{t('loans.share_pool_report', 'Share Pool (Disbursement Report)')}</p>
                         <div className="flex justify-between items-center text-muted-foreground">
-                          <span>Total Confirmed Shares:</span>
+                          <span>{t('loans.total_confirmed_shares', 'Total Confirmed Shares:')}</span>
                           <span className="text-foreground">{settings.currency} {memberShares.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center text-muted-foreground">
-                          <span>Share Pool Interest ({interestRate}%):</span>
+                          <span>{t('loans.share_pool_interest', 'Share Pool Interest')} ({interestRate}%):</span>
                           <span className="text-emerald-600 dark:text-emerald-400">+{settings.currency} {shareInterest.toLocaleString()}</span>
                         </div>
                       </div>
                       {previewPrincipal > 0 && (
                         <div className="p-4 bg-rose-500/5 rounded-2xl border border-rose-500/10 text-xs font-bold space-y-2">
-                          <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">Loan Repayment Breakdown</p>
+                          <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">{t('loans.repayment_breakdown', 'Loan Repayment Breakdown')}</p>
                           <div className="flex justify-between items-center text-muted-foreground">
-                            <span>Principal:</span>
+                            <span>{t('loans.principal', 'Principal')}:</span>
                             <span className="text-foreground">{settings.currency} {previewPrincipal.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between items-center text-muted-foreground">
-                            <span>Interest on Loan ({interestRate}%):</span>
+                            <span>{t('loans.interest_on_loan', 'Interest on Loan')} ({interestRate}%):</span>
                             <span className="text-rose-500">+{settings.currency} {loanInterest.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between items-center border-t border-border/30 pt-2">
-                            <span className="text-foreground">Total To Repay:</span>
+                            <span className="text-foreground">{t('loans.total_repay', 'Total To Repay')}:</span>
                             <span className="text-rose-600 dark:text-rose-400 font-black">{settings.currency} {totalRepayable.toLocaleString()}</span>
                           </div>
                         </div>
@@ -502,37 +502,37 @@ const Loans = () => {
                 })()}
 
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold capitalize tracking-widest text-muted-foreground ml-1" htmlFor="loan-fund-type">Fund Type</label>
+                  <label className="text-xs font-semibold capitalize tracking-widest text-muted-foreground ml-1" htmlFor="loan-fund-type">{t('loans.fund_type', 'Fund Type')}</label>
                   <select 
                     id="loan-fund-type" title="Select Fund Type" required
                     value={newLoan.fundType}
                     onChange={e => setNewLoan({...newLoan, fundType: e.target.value})}
                     className="w-full px-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
                   >
-                    <option value="SHARE">Share Fund</option>
-                    <option value="EMERGENCY">Emergency Fund</option>
+                    <option value="SHARE">{t('loans.share_fund', 'Share Fund')}</option>
+                    <option value="EMERGENCY">{t('loans.emergency_fund', 'Emergency Fund')}</option>
                   </select>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground ml-1" htmlFor="loan-term-range">Select Loan Range & Term</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1" htmlFor="loan-term-range">{t('loans.select_range_term', 'Select Loan Range & Term')}</label>
                   <select 
                     id="loan-term-range" required
                     value={selectedRuleId}
                     onChange={e => handleRuleChange(e.target.value)}
                     className="w-full px-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
                   >
-                    <option value="">Choose Loan Range / Duration</option>
+                    <option value="">{t('loans.choose_range', 'Choose Loan Range / Duration')}</option>
                     {rules.map(r => (
                       <option key={r.id} value={r.id}>
-                        {settings.currency} {r.minAmount.toLocaleString()} - {r.maxAmount.toLocaleString()} ({r.durationMonths} Months)
+                        {settings.currency} {r.minAmount.toLocaleString()} - {r.maxAmount.toLocaleString()} ({r.durationMonths} {t('loans.months', 'Months')})
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="loan-amount">Principal Amount</label>
+                  <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="loan-amount">{t('loans.principal_amount', 'Principal Amount')}</label>
                   <div className="relative">
                     <Banknote className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground opacity-40" />
                     <input 
@@ -540,33 +540,33 @@ const Loans = () => {
                       value={newLoan.principal}
                       onChange={handlePrincipalChange}
                       className={`w-full pl-12 pr-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 font-black ${isPrincipalInvalid ? 'border border-destructive focus:ring-destructive/10' : 'focus:ring-primary/10'}`}
-                      placeholder={selectedRule ? `Range: ${selectedRule.minAmount} - ${selectedRule.maxAmount}` : "0"}
+                      placeholder={selectedRule ? `${t('loans.range', 'Range:')} ${selectedRule.minAmount} - ${selectedRule.maxAmount}` : "0"}
                     />
                   </div>
                   {isPrincipalInvalid && selectedRule && (
                     <p className="text-[10px] text-rose-500 font-bold ml-2">
-                      Error: Amount must be between {settings.currency} {selectedRule.minAmount.toLocaleString()} and {settings.currency} {selectedRule.maxAmount.toLocaleString()}!
+                      {t('loans.amount_error', 'Error: Amount must be between')} {settings.currency} {selectedRule.minAmount.toLocaleString()} {t('loans.and', 'and')} {settings.currency} {selectedRule.maxAmount.toLocaleString()}!
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-muted-foreground ml-1">Loan Duration & Term Limit</label>
+                  <label className="text-xs font-black text-muted-foreground ml-1">{t('loans.duration_limit', 'Loan Duration & Term Limit')}</label>
                   <div className="px-5 py-4 bg-secondary/30 rounded-2xl border border-border/50 text-sm font-bold flex flex-col gap-1">
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground text-xs font-semibold">Term Duration:</span>
-                      <span className="text-primary">{selectedRule ? `${selectedRule.durationMonths} Months` : 'N/A'}</span>
+                      <span className="text-muted-foreground text-xs font-semibold">{t('loans.term_duration', 'Term Duration:')}</span>
+                      <span className="text-primary">{selectedRule ? `${selectedRule.durationMonths} ${t('loans.months', 'Months')}` : t('loans.na', 'N/A')}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground text-xs font-semibold">Automatic Due Date:</span>
-                      <span className="text-foreground">{newLoan.dueDate ? new Date(newLoan.dueDate).toLocaleDateString() : 'N/A'}</span>
+                      <span className="text-muted-foreground text-xs font-semibold">{t('loans.auto_due_date', 'Automatic Due Date:')}</span>
+                      <span className="text-foreground">{newLoan.dueDate ? new Date(newLoan.dueDate).toLocaleDateString() : t('loans.na', 'N/A')}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black">Cancel</button>
-                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black shadow-xl shadow-primary/20">Issue & Record</button>
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black">{t('loans.cancel', 'Cancel')}</button>
+                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black shadow-xl shadow-primary/20">{t('loans.issue_record', 'Issue & Record')}</button>
                 </div>
               </form>
             </motion.div>
@@ -590,17 +590,17 @@ const Loans = () => {
                 <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto text-destructive">
                   <XCircle className="w-8 h-8" />
                 </div>
-                <h2 className="text-2xl font-black tracking-tight">Reject Loan Application</h2>
+                <h2 className="text-2xl font-black tracking-tight">{t('loans.reject_title', 'Reject Loan Application')}</h2>
                 <p className="text-muted-foreground text-sm font-semibold">
-                  Are you sure you want to reject this loan application? This action will set the loan status to REJECTED.
+                  {t('loans.reject_confirm', 'Are you sure you want to reject this loan application? This action will set the loan status to REJECTED.')}
                 </p>
                 <div className="text-left mt-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Reason for Rejection</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t('loans.reason_reject', 'Reason for Rejection')}</label>
                   <textarea 
                     required
                     value={rejectionReason}
                     onChange={e => setRejectionReason(e.target.value)}
-                    placeholder="Provide a reason for rejecting this loan..."
+                    placeholder={t('loans.reject_placeholder', 'Provide a reason for rejecting this loan...')}
                     className="w-full px-5 py-3 mt-2 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold resize-none"
                     rows={3}
                   />
@@ -613,7 +613,7 @@ const Loans = () => {
                   onClick={() => { setRejectingLoanId(null); setRejectionReason(''); }}
                   className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all"
                 >
-                  Cancel
+                  {t('loans.cancel', 'Cancel')}
                 </button>
                 <button 
                   type="button" 
@@ -658,7 +658,7 @@ const Loans = () => {
                   }}
                   className="flex-1 py-4 bg-destructive text-destructive-foreground rounded-[1.25rem] font-black hover:bg-destructive/90 transition-all"
                 >
-                  Yes, Reject
+                  {t('loans.yes_reject', 'Yes, Reject')}
                 </button>
               </div>
             </motion.div>
@@ -679,15 +679,15 @@ const Loans = () => {
               onClick={e => e.stopPropagation()}
             >
               <h2 className="text-2xl font-bold mb-6 tracking-tight flex items-center gap-2">
-                <Banknote className="text-primary w-6 h-6" /> Grant Loan
+                <Banknote className="text-primary w-6 h-6" /> {t('loans.grant_loan', 'Grant Loan')}
               </h2>
               <p className="text-muted-foreground text-sm font-semibold mb-6">
-                Review and finalize the granted principal amount. You may adjust the requested amount below if there are insufficient funds.
+                {t('loans.grant_desc', 'Review and finalize the granted principal amount. You may adjust the requested amount below if there are insufficient funds.')}
               </p>
               
               <form onSubmit={handleFinalGrant} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">Granted Principal ({settings.currency})</label>
+                  <label className="text-[10px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">{t('loans.granted_principal', 'Granted Principal')} ({settings.currency})</label>
                   <input 
                     required type="number" min="0" max={grantingLoan.principal}
                     value={grantPrincipal} 
@@ -695,7 +695,7 @@ const Loans = () => {
                     className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none font-bold focus:ring-2 focus:ring-primary" 
                   />
                   <p className="text-[10px] text-muted-foreground font-semibold ml-1">
-                    Requested amount was {settings.currency} {grantingLoan.principal.toLocaleString()}.
+                    {t('loans.requested_amount', 'Requested amount was')} {settings.currency} {grantingLoan.principal.toLocaleString()}.
                   </p>
                 </div>
                 
@@ -706,11 +706,11 @@ const Loans = () => {
                   return (
                     <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 text-xs font-bold space-y-2">
                       <div className="flex justify-between text-muted-foreground">
-                        <span>Adjusted Interest ({grantingLoan.interestRate}%):</span>
+                        <span>{t('loans.adjusted_interest', 'Adjusted Interest')} ({grantingLoan.interestRate}%):</span>
                         <span className="text-rose-500">+{settings.currency} {interest.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between border-t border-border/30 pt-2">
-                        <span className="text-foreground">New Total Repayable:</span>
+                        <span className="text-foreground">{t('loans.new_total', 'New Total Repayable:')}</span>
                         <span className="text-primary font-black">{settings.currency} {total.toLocaleString()}</span>
                       </div>
                     </div>
@@ -719,10 +719,10 @@ const Loans = () => {
 
                 <div className="flex gap-4 pt-4">
                   <button type="button" onClick={() => setGrantingLoan(null)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all">
-                    Cancel
+                    {t('loans.cancel', 'Cancel')}
                   </button>
                   <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
-                    Finalize Grant
+                    {t('loans.finalize_grant', 'Finalize Grant')}
                   </button>
                 </div>
               </form>

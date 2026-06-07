@@ -169,8 +169,8 @@ const DashboardLayout = () => {
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary mb-4">
               <Shield className="w-8 h-8" />
             </div>
-            <h1 className="text-2xl font-black tracking-tight">Security Required</h1>
-            <p className="text-sm text-muted-foreground font-medium">For your security, please change your temporary password before accessing the system.</p>
+            <h1 className="text-2xl font-black tracking-tight">{t('dashboard_layout.security_required')}</h1>
+            <p className="text-sm text-muted-foreground font-medium">{t('dashboard_layout.security_desc')}</p>
           </div>
 
           <form onSubmit={handleForceChangePassword} className="space-y-4 relative">
@@ -181,7 +181,7 @@ const DashboardLayout = () => {
             )}
             
             <div className="space-y-1.5">
-              <label className="text-xs font-black text-muted-foreground ml-1">Current Password</label>
+              <label className="text-xs font-black text-muted-foreground ml-1">{t('dashboard_layout.current_password')}</label>
               <input 
                 type="password" 
                 placeholder="••••••••" 
@@ -193,7 +193,7 @@ const DashboardLayout = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-black text-muted-foreground ml-1">New Password</label>
+              <label className="text-xs font-black text-muted-foreground ml-1">{t('dashboard_layout.new_password')}</label>
               <input 
                 type="password" 
                 placeholder="••••••••" 
@@ -206,7 +206,7 @@ const DashboardLayout = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-black text-muted-foreground ml-1">Confirm New Password</label>
+              <label className="text-xs font-black text-muted-foreground ml-1">{t('dashboard_layout.confirm_password')}</label>
               <input 
                 type="password" 
                 placeholder="••••••••" 
@@ -223,7 +223,7 @@ const DashboardLayout = () => {
               disabled={isChangingPassword}
               className="w-full py-4 bg-primary text-primary-foreground font-black rounded-[1.25rem] hover:shadow-xl hover:shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100 mt-2"
             >
-              {isChangingPassword ? 'Securing Account...' : 'Update Password & Continue'}
+              {isChangingPassword ? t('dashboard_layout.securing_account') : t('dashboard_layout.update_password')}
             </button>
             
             <button 
@@ -231,7 +231,7 @@ const DashboardLayout = () => {
               onClick={handleLogout}
               className="w-full py-3 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
             >
-              Sign Out
+              {t('dashboard_layout.sign_out')}
             </button>
           </form>
         </motion.div>
@@ -265,18 +265,11 @@ const DashboardLayout = () => {
               <Link 
                 key={item.to}
                 to={item.to} 
-                className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-medium ${isActive ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]' : 'hover:bg-primary/10'}`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${isActive ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]' : 'hover:bg-primary/10'}`}
                 onClick={closeSidebar}
               >
-                <div className="flex items-center gap-3">
-                  <item.icon className={`w-5 h-5 ${isActive ? 'text-primary-foreground' : 'text-primary'}`} />
-                  {item.label}
-                </div>
-                {item.badge !== undefined && item.badge > 0 ? (
-                  <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-white bg-rose-500 rounded-full shadow-md animate-pulse">
-                    {item.badge}
-                  </span>
-                ) : null}
+                <item.icon className={`w-5 h-5 ${isActive ? 'text-primary-foreground' : 'text-primary'}`} />
+                {item.label}
               </Link>
             );
           })}
@@ -306,7 +299,7 @@ const DashboardLayout = () => {
           >
             <span className="flex items-center gap-2">
               {theme === 'dark' ? <Moon className="w-4 h-4 text-primary" /> : <Sun className="w-4 h-4 text-primary" />}
-              {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
+              {theme === 'dark' ? t('dashboard_layout.dark_mode') : t('dashboard_layout.light_mode')}
             </span>
             <div className={`w-8 h-5 rounded-full p-0.5 transition-colors ${theme === 'dark' ? 'bg-primary' : 'bg-secondary'}`}>
               <div className={`w-3.5 h-3.5 rounded-full bg-white transition-transform ${theme === 'dark' ? 'translate-x-3' : 'translate-x-0'}`} />
@@ -358,7 +351,7 @@ const DashboardLayout = () => {
                   >
                    <div className="w-full bg-background border border-border rounded-2xl shadow-2xl overflow-hidden">
                     <div className="p-4 border-b border-border/50">
-                      <h3 className="font-black text-sm">Notifications</h3>
+                      <h3 className="font-black text-sm">{t('dashboard_layout.notifications')}</h3>
                     </div>
                     <div className="max-h-[60vh] overflow-y-auto">
                       {notifications.length > 0 ? notifications.map(n => (
@@ -368,7 +361,7 @@ const DashboardLayout = () => {
                           <p className="text-[10px] text-muted-foreground/60 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
                         </div>
                       )) : (
-                        <p className="text-xs text-muted-foreground italic text-center py-6">No notifications yet</p>
+                        <p className="text-xs text-muted-foreground italic text-center py-6">{t('dashboard_layout.no_notifications')}</p>
                       )}
                     </div>
                    </div>
@@ -450,15 +443,15 @@ const DashboardLayout = () => {
                 <LogOut className="w-6 h-6" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-xl font-black">Sign Out</h3>
-                <p className="text-sm text-muted-foreground font-medium">Are you sure you want to sign out of Teachers Bank Management System?</p>
+                <h3 className="text-xl font-black">{t('dashboard_layout.sign_out')}</h3>
+                <p className="text-sm text-muted-foreground font-medium">{t('dashboard_layout.sign_out_confirm')}</p>
               </div>
               <div className="flex gap-4">
                 <button 
                   onClick={() => setShowSignoutConfirm(false)}
                   className="flex-1 py-3 bg-secondary hover:bg-secondary/80 font-bold rounded-xl transition-all"
                 >
-                  Cancel
+                  {t('dashboard_layout.cancel')}
                 </button>
                 <button 
                   onClick={async () => {
@@ -468,7 +461,7 @@ const DashboardLayout = () => {
                   }}
                   className="flex-1 py-3 bg-destructive hover:bg-destructive/90 text-white font-bold rounded-xl transition-all shadow-lg shadow-destructive/20"
                 >
-                  Yes, Signout
+                  {t('dashboard_layout.yes_signout')}
                 </button>
               </div>
             </motion.div>

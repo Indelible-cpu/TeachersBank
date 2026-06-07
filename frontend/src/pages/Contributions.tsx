@@ -243,7 +243,7 @@ const Contributions = () => {
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-black tracking-tight">{t('contributions.title')}</h1>
-          <p className="text-muted-foreground font-medium">Verified Financial Pool Management.</p>
+          <p className="text-muted-foreground font-medium">{t('contributions.subtitle', 'Verified Financial Pool Management.')}</p>
         </div>
         
         {canWriteFinance && (
@@ -252,7 +252,7 @@ const Contributions = () => {
             className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-bold rounded-2xl hover:opacity-90 shadow-xl shadow-primary/20 transition-all"
           >
             <Plus className="w-5 h-5" />
-            Record New Payment
+            {t('contributions.record_payment', 'Record New Payment')}
           </button>
         )}
 
@@ -264,14 +264,14 @@ const Contributions = () => {
           onClick={() => setActiveView('history')}
           className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold text-xs transition-all ${activeView === 'history' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
         >
-          <History className="w-4 h-4" /> All history
+          <History className="w-4 h-4" /> {t('contributions.history_tab', 'All history')}
         </button>
         {canConfirm && (
           <button 
             onClick={() => setActiveView('verify')}
             className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold text-xs transition-all relative ${activeView === 'verify' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
           >
-            <ShieldCheck className="w-4 h-4" /> Verification queue
+            <ShieldCheck className="w-4 h-4" /> {t('contributions.verify_queue', 'Verification queue')}
             {pendingCount > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white rounded-full flex items-center justify-center text-[10px] font-black border-2 border-background">
                 {pendingCount}
@@ -286,7 +286,7 @@ const Contributions = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
             <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
               {activeView === 'verify' ? <ShieldAlert className="text-rose-500" /> : <Wallet className="text-primary" />}
-              {activeView === 'verify' ? 'Action required' : 'Contribution ledger'}
+              {activeView === 'verify' ? t('contributions.action_required', 'Action required') : t('contributions.ledger', 'Contribution ledger')}
             </h2>
             <div className="flex items-center gap-3 w-full sm:w-auto">
               {activeView === 'verify' && pendingCount > 0 && (
@@ -294,14 +294,14 @@ const Contributions = () => {
                   onClick={handleVerifyAll}
                   className="text-[10px] font-bold capitalize tracking-widest px-4 py-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 shrink-0"
                 >
-                  Confirm total pool ({settings.currency} {contributions.filter(c => c.status === 'PENDING').reduce((acc, c) => acc + c.amount, 0).toLocaleString()})
+                  {t('contributions.confirm_pool', 'Confirm total pool')} ({settings.currency} {contributions.filter(c => c.status === 'PENDING').reduce((acc, c) => acc + c.amount, 0).toLocaleString()})
                 </button>
               )}
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Search by member name..."
+                  placeholder={t('contributions.search_placeholder', 'Search by member name...')}
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary font-medium text-sm"
@@ -329,7 +329,7 @@ const Contributions = () => {
                         {c.status?.toLowerCase() || ''}
                       </span>
                     </h4>
-                    <p className="text-xs font-medium text-muted-foreground">{c.type === 'SHARE' ? 'Share' : 'Emergency'} • {c.monthName} {c.year}</p>
+                    <p className="text-xs font-medium text-muted-foreground">{c.type === 'SHARE' ? t('contributions.type_share', 'Share') : t('contributions.type_emergency', 'Emergency')} • {c.monthName} {c.year}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
@@ -355,24 +355,24 @@ const Contributions = () => {
         <div className="space-y-6">
           <div className="glass p-6 rounded-[2.5rem] bg-primary/5 border border-primary/10">
             <h3 className="font-semibold text-lg mb-6 flex items-center gap-2">
-              <HandCoins className="text-primary" /> Verified Pool
+              <HandCoins className="text-primary" /> {t('contributions.verified_pool', 'Verified Pool')}
             </h3>
             <div className="space-y-4">
               <div className="p-5 rounded-[2rem] bg-background border border-border">
-                <p className="text-[10px] font-semibold tracking-widest mb-1 text-muted-foreground">Confirmed shares</p>
+                <p className="text-[10px] font-semibold tracking-widest mb-1 text-muted-foreground">{t('contributions.confirmed_shares', 'Confirmed shares')}</p>
                 <h4 className="text-2xl font-semibold text-emerald-600">
                   {settings.currency} {contributions.filter(c => c.type === 'SHARE' && c.status === 'CONFIRMED').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}
                 </h4>
               </div>
               <div className="p-5 rounded-[2rem] bg-background border border-border">
-                <p className="text-[10px] font-semibold tracking-widest mb-1 text-muted-foreground">Confirmed emergency</p>
+                <p className="text-[10px] font-semibold tracking-widest mb-1 text-muted-foreground">{t('contributions.confirmed_emergency', 'Confirmed emergency')}</p>
                 <h4 className="text-2xl font-semibold text-rose-600">
                   {settings.currency} {contributions.filter(c => c.type === 'EMERGENCY' && c.status === 'CONFIRMED').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}
                 </h4>
               </div>
               <div className="pt-4 mt-4 border-t border-dashed">
                 <div className="flex justify-between items-center text-amber-600">
-                  <span className="text-[10px] font-semibold tracking-widest">Pending verification</span>
+                  <span className="text-[10px] font-semibold tracking-widest">{t('contributions.pending_verification', 'Pending verification')}</span>
                   <span className="font-bold">{settings.currency} {contributions.filter(c => c.status === 'PENDING').reduce((acc, c) => acc + c.amount, 0).toLocaleString()}</span>
                 </div>
               </div>
@@ -380,9 +380,9 @@ const Contributions = () => {
           </div>
           {user?.role === 'TREASURER' && (
             <div className="glass p-6 rounded-[2.5rem] border border-blue-500/10 bg-blue-500/5">
-              <h3 className="font-semibold text-blue-600 text-sm mb-2 flex items-center gap-2"><Clock className="w-4 h-4" /> Treasurer note</h3>
+              <h3 className="font-semibold text-blue-600 text-sm mb-2 flex items-center gap-2"><Clock className="w-4 h-4" /> {t('contributions.treasurer_note', 'Treasurer note')}</h3>
               <p className="text-xs text-muted-foreground leading-relaxed italic">
-                Verification ensures accountability. As Treasurer, your confirmation marks the official receipt of funds into the physical bank/pool.
+                {t('contributions.treasurer_desc', 'Verification ensures accountability. As Treasurer, your confirmation marks the official receipt of funds into the physical bank/pool.')}
               </p>
             </div>
           )}
@@ -399,23 +399,23 @@ const Contributions = () => {
               className="w-full max-w-xl bg-background rounded-[2.5rem] p-8 border border-white/10"
               onClick={e => e.stopPropagation()}
             >
-              <h2 className="text-2xl font-semibold mb-8">Record member payment</h2>
+              <h2 className="text-2xl font-semibold mb-8">{t('contributions.record_title', 'Record member payment')}</h2>
               <form onSubmit={handleSave} className="space-y-6">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="block text-[10px] font-semibold tracking-widest mb-2 text-muted-foreground ml-1">Member</label>
+                    <label className="block text-[10px] font-semibold tracking-widest mb-2 text-muted-foreground ml-1">{t('contributions.member_label', 'Member')}</label>
                     <select 
                       required title="Select Member"
                       value={newContrib.memberId}
                       onChange={e => handleMemberChange(e.target.value)}
                       className="w-full px-5 py-3.5 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/20 font-bold"
                     >
-                      <option value="">Choose Member</option>
+                      <option value="">{t('contributions.choose_member', 'Choose Member')}</option>
                       {members.map(m => <option key={m.id} value={m.id}>{m.fullname}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-semibold capitalize text-muted-foreground ml-1">Month</label>
+                    <label className="text-[10px] font-semibold capitalize text-muted-foreground ml-1">{t('contributions.month_label', 'Month')}</label>
                     <select 
                       required title="Select Month"
                       value={newContrib.month}
@@ -429,7 +429,7 @@ const Contributions = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-5 rounded-3xl bg-emerald-500/5 border border-emerald-500/10">
-                    <label className="text-[10px] font-semibold text-emerald-600 capitalize mb-2 block">Share amount</label>
+                    <label className="text-[10px] font-semibold text-emerald-600 capitalize mb-2 block">{t('contributions.share_amount', 'Share amount')}</label>
                     <input 
                       type="number" title="Share Amount"
                       value={newContrib.shareAmount}
@@ -438,7 +438,7 @@ const Contributions = () => {
                     />
                   </div>
                   <div className="p-5 rounded-3xl bg-rose-500/5 border border-rose-500/10">
-                    <label className="text-[10px] font-semibold text-rose-600 capitalize mb-2 block">Emergency amount</label>
+                    <label className="text-[10px] font-semibold text-rose-600 capitalize mb-2 block">{t('contributions.emergency_amount', 'Emergency amount')}</label>
                     <input 
                       type="number" title="Emergency Amount"
                       value={newContrib.emergencyAmount}
@@ -449,8 +449,8 @@ const Contributions = () => {
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-2xl font-bold capitalize tracking-widest">Cancel</button>
-                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-2xl font-bold capitalize tracking-widest shadow-xl shadow-primary/20">Submit for verification</button>
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-2xl font-bold capitalize tracking-widest">{t('contributions.cancel', 'Cancel')}</button>
+                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-2xl font-bold capitalize tracking-widest shadow-xl shadow-primary/20">{t('contributions.submit', 'Submit for verification')}</button>
                 </div>
               </form>
             </motion.div>

@@ -277,7 +277,7 @@ const Settings = () => {
     <div className="w-full max-w-none px-4 lg:px-8 pt-4 pb-8 lg:pt-8 lg:pb-12 space-y-8 pb-12">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
-        <p className="text-muted-foreground">Configure global system parameters and security.</p>
+        <p className="text-muted-foreground">{t('settings.configure_subtitle', 'Configure global system parameters and security.')}</p>
       </div>
 
       {!isOnline && (
@@ -339,13 +339,13 @@ const Settings = () => {
       >
         <div className="flex items-center gap-3 mb-6">
           <Eye className="w-6 h-6 text-primary" />
-          <h2 className="text-xl font-semibold">Preferences</h2>
+          <h2 className="text-xl font-semibold">{t('settings.preferences', 'Preferences')}</h2>
         </div>
 
         <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-xl border border-border/50">
           <div>
-            <p className="text-sm font-bold">Header Profile Card</p>
-            <p className="text-[10px] text-muted-foreground">Show your name and photo in the top bar.</p>
+            <p className="text-sm font-bold">{t('settings.header_profile_card', 'Header Profile Card')}</p>
+            <p className="text-[10px] text-muted-foreground">{t('settings.header_profile_desc', 'Show your name and photo in the top bar.')}</p>
           </div>
           <button
             type="button"
@@ -371,7 +371,7 @@ const Settings = () => {
       >
         <div className="flex items-center gap-3 mb-6">
           <Save className="w-6 h-6 text-primary" />
-          <h2 className="text-xl font-semibold">General Settings</h2>
+          <h2 className="text-xl font-semibold">{t('settings.general', 'General Settings')}</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -403,21 +403,21 @@ const Settings = () => {
 
 
             <div className="space-y-2">
-              <label htmlFor="themeSelect" className="text-sm font-medium">Theme</label>
+              <label htmlFor="themeSelect" className="text-sm font-medium">{t('settings.theme', 'Theme')}</label>
               <select
                 id="themeSelect"
                 value={theme}
                 onChange={(e) => setTheme(e.target.value)}
                 className="w-full px-4 py-3 bg-secondary/50 border-0 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all appearance-none"
               >
-                <option value="system">System Default</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
+                <option value="system">{t('settings.theme_system', 'System Default')}</option>
+                <option value="light">{t('settings.theme_light', 'Light')}</option>
+                <option value="dark">{t('settings.theme_dark', 'Dark')}</option>
               </select>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="interestPercentage" className="text-sm font-medium">Loan Interest Rate (%)</label>
+              <label htmlFor="interestPercentage" className="text-sm font-medium">{t('settings.loan_interest_rate', 'Loan Interest Rate (%)')}</label>
               <input
                 id="interestPercentage"
                 type="number"
@@ -432,7 +432,7 @@ const Settings = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="emergencyInterestPercentage" className="text-sm font-medium">Emergency Loan Interest Rate (%)</label>
+              <label htmlFor="emergencyInterestPercentage" className="text-sm font-medium">{t('settings.emergency_interest_rate', 'Emergency Loan Interest Rate (%)')}</label>
               <input
                 id="emergencyInterestPercentage"
                 type="number"
@@ -447,7 +447,7 @@ const Settings = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="maturityMonths" className="text-sm font-medium">Cycle Maturity (Months)</label>
+              <label htmlFor="maturityMonths" className="text-sm font-medium">{t('settings.cycle_maturity', 'Cycle Maturity (Months)')}</label>
               <input
                 id="maturityMonths"
                 type="number"
@@ -462,7 +462,7 @@ const Settings = () => {
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="currency" className="text-sm font-medium">Currency symbol</label>
+              <label htmlFor="currency" className="text-sm font-medium">{t('settings.currency_symbol', 'Currency symbol')}</label>
               <input
                 id="currency"
                 type="text"
@@ -482,7 +482,7 @@ const Settings = () => {
               className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-medium rounded-xl hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {isSaving ? 'Saving...' : t('settings.save')}
+              {isSaving ? t('settings.saving', 'Saving...') : t('settings.save')}
             </button>
           </div>
         </form>
@@ -519,7 +519,7 @@ const Settings = () => {
       >
         <div className="flex items-center gap-3 mb-6">
           <Lock className="w-6 h-6 text-primary" />
-          <h2 className="text-xl font-semibold">Security & Password</h2>
+          <h2 className="text-xl font-semibold">{t('settings.security_title', 'Security & Password')}</h2>
         </div>
 
         {passwordError && (
@@ -539,7 +539,7 @@ const Settings = () => {
         <form onSubmit={handlePasswordChange} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <label htmlFor="settingsCurrentPassword" className="text-sm font-medium">Current Password</label>
+              <label htmlFor="settingsCurrentPassword" className="text-sm font-medium">{t('settings.current_password', 'Current Password')}</label>
               <div className="relative">
                 <input
                   id="settingsCurrentPassword"
@@ -562,7 +562,7 @@ const Settings = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="settingsNewPassword" className="text-sm font-medium">New Password</label>
+              <label htmlFor="settingsNewPassword" className="text-sm font-medium">{t('settings.new_password', 'New Password')}</label>
               <div className="relative">
                 <input
                   id="settingsNewPassword"
@@ -585,7 +585,7 @@ const Settings = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="settingsConfirmPassword" className="text-sm font-medium">Confirm New Password</label>
+              <label htmlFor="settingsConfirmPassword" className="text-sm font-medium">{t('settings.confirm_password', 'Confirm New Password')}</label>
               <div className="relative">
                 <input
                   id="settingsConfirmPassword"
@@ -615,7 +615,7 @@ const Settings = () => {
               className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-medium rounded-xl hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
             >
               <Lock className="w-5 h-5" />
-              {isChangingPassword ? 'Updating...' : 'Update Password'}
+              {isChangingPassword ? t('settings.updating', 'Updating...') : t('settings.update_password', 'Update Password')}
             </button>
           </div>
         </form>
@@ -633,7 +633,7 @@ const Settings = () => {
             Biometric Sign-in
           </h2>
           <p className="text-sm text-muted-foreground">
-            Set up Fingerprint, Face ID, or Windows Hello to sign in instantly without a password.
+            {t('settings.biometric_desc', 'Set up Fingerprint, Face ID, or Windows Hello to sign in instantly without a password.')}
           </p>
         </div>
         <button
@@ -642,7 +642,7 @@ const Settings = () => {
           className="flex-shrink-0 flex items-center gap-2 px-6 py-3 bg-secondary text-foreground font-medium rounded-xl hover:bg-secondary/80 active:scale-[0.98] transition-all disabled:opacity-50"
         >
           <Fingerprint className="w-5 h-5" />
-          {isRegisteringBiometric ? 'Setting up...' : 'Set up Biometric'}
+          {isRegisteringBiometric ? t('settings.setting_up', 'Setting up...') : t('settings.setup_biometric', 'Set up Biometric')}
         </button>
       </motion.div>
 
@@ -701,20 +701,20 @@ const Settings = () => {
                 </div>
                 
                 <div className="flex gap-4 pt-4">
-                  <button 
+                   <button 
                     type="button"
                     onClick={() => setShowMasterReset(false)}
                     disabled={isResetting}
                     className="flex-1 py-3 bg-secondary hover:bg-secondary/80 font-bold rounded-xl transition-all"
                   >
-                    Cancel
+                    {t('settings.cancel', 'Cancel')}
                   </button>
                   <button 
                     type="submit"
                     disabled={isResetting || !resetData.reason || !resetData.password}
                     className="flex-1 py-3 bg-destructive hover:bg-destructive/90 text-white font-bold rounded-xl transition-all shadow-lg shadow-destructive/20 disabled:opacity-50"
                   >
-                    {isResetting ? 'Resetting...' : 'Confirm Reset'}
+                    {isResetting ? t('settings.resetting', 'Resetting...') : t('settings.confirm_reset', 'Confirm Reset')}
                   </button>
                 </div>
               </form>
