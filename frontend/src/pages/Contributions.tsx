@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Wallet, HeartPulse, History, CheckCircle2, ShieldCheck, ShieldAlert, Clock, HandCoins } from 'lucide-react';
+import { Plus, Wallet, HeartPulse, History, CheckCircle2, ShieldCheck, ShieldAlert, Clock, HandCoins, Search } from 'lucide-react';
 import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
 import { getSetting, setSetting, addToSyncQueue, performSync } from '../services/db';
@@ -45,6 +45,7 @@ const Contributions = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeView, setActiveView] = useState<'history' | 'verify'>('history');
+  const [search, setSearch] = useState('');
   
   const currentMonthIdx = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -231,7 +232,11 @@ const Contributions = () => {
   };
 
   const pendingCount = contributions.filter(c => c.status === 'PENDING').length;
-  const filteredContribs = activeView === 'verify' ? contributions.filter(c => c.status === 'PENDING') : contributions;
+  const viewFiltered = activeView === 'verify' ? contributions.filter(c => c.status === 'PENDING') : contributions;
+  const filteredContribs = viewFiltered.filter(c =>
+    !search ||
+    (c.contributorName || c.memberName || '').toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="w-full max-w-none px-4 lg:px-8 pt-4 pb-8 lg:pt-8 lg:pb-12 space-y-6">
@@ -278,19 +283,31 @@ const Contributions = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
             <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
               {activeView === 'verify' ? <ShieldAlert className="text-rose-500" /> : <Wallet className="text-primary" />}
               {activeView === 'verify' ? 'Action required' : 'Contribution ledger'}
             </h2>
-            {activeView === 'verify' && pendingCount > 0 && (
-              <button 
-                onClick={handleVerifyAll}
-                className="text-[10px] font-bold capitalize tracking-widest px-4 py-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
-              >
-                Confirm total pool ({settings.currency} {contributions.filter(c => c.status === 'PENDING').reduce((acc, c) => acc + c.amount, 0).toLocaleString()})
-              </button>
-            )}
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              {activeView === 'verify' && pendingCount > 0 && (
+                <button 
+                  onClick={handleVerifyAll}
+                  className="text-[10px] font-bold capitalize tracking-widest px-4 py-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 shrink-0"
+                >
+                  Confirm total pool ({settings.currency} {contributions.filter(c => c.status === 'PENDING').reduce((acc, c) => acc + c.amount, 0).toLocaleString()})
+                </button>
+              )}
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search by member name..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary font-medium text-sm"
+                />
+              </div>
+            </div>
           </div>
           
           <div className="space-y-3">
