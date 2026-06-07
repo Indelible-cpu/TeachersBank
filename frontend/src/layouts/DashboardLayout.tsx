@@ -314,49 +314,7 @@ const DashboardLayout = () => {
             </div>
           </button>
 
-          {/* Notification Bell */}
-          <div className="relative">
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-primary/10 transition-colors text-xs font-bold"
-            >
-              <span className="flex items-center gap-2">
-                <Bell className="w-4 h-4 text-primary" />
-                Notifications
-              </span>
-              {notifications.filter(n => !n.isRead).length > 0 && (
-                <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-white bg-rose-500 rounded-full shadow-md animate-pulse">
-                  {notifications.filter(n => !n.isRead).length}
-                </span>
-              )}
-            </button>
 
-            <AnimatePresence>
-              {showNotifications && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  className="absolute bottom-full left-0 right-0 mb-2 bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
-                >
-                  <div className="p-4 border-b border-border/50">
-                    <h3 className="font-black text-sm">Notifications</h3>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    {notifications.length > 0 ? notifications.map(n => (
-                      <div key={n.id} className={`px-4 py-3 border-b border-border/30 last:border-0 ${!n.isRead ? 'bg-primary/5' : ''}`}>
-                        <p className="text-xs font-bold">{n.title}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
-                        <p className="text-[10px] text-muted-foreground/60 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
-                      </div>
-                    )) : (
-                      <p className="text-xs text-muted-foreground italic text-center py-6">No notifications yet</p>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
         </div>
       </aside>
 
@@ -374,10 +332,53 @@ const DashboardLayout = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            
+            {/* Notification Bell (Header) */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="p-2.5 rounded-full border border-primary/20 hover:bg-primary/10 transition-all relative"
+                title="Notifications"
+              >
+                <Bell className="w-4 h-4 text-primary" />
+                {notifications.filter(n => !n.isRead).length > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-bold text-white bg-rose-500 rounded-full shadow-md animate-pulse border-2 border-background">
+                    {notifications.filter(n => !n.isRead).length}
+                  </span>
+                )}
+              </button>
+
+              <AnimatePresence>
+                {showNotifications && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className="absolute top-full right-0 mt-2 w-72 sm:w-80 bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
+                  >
+                    <div className="p-4 border-b border-border/50">
+                      <h3 className="font-black text-sm">Notifications</h3>
+                    </div>
+                    <div className="max-h-[60vh] overflow-y-auto">
+                      {notifications.length > 0 ? notifications.map(n => (
+                        <div key={n.id} className={`px-4 py-3 border-b border-border/30 last:border-0 ${!n.isRead ? 'bg-primary/5' : ''}`}>
+                          <p className="text-xs font-bold">{n.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                          <p className="text-[10px] text-muted-foreground/60 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
+                        </div>
+                      )) : (
+                        <p className="text-xs text-muted-foreground italic text-center py-6">No notifications yet</p>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <button 
               onClick={toggleLanguage}
-              className="px-3 py-1.5 text-xs font-black tracking-widest border border-primary/20 rounded-full hover:bg-primary/10 transition-colors"
+              className="hidden sm:block px-3 py-1.5 text-xs font-black tracking-widest border border-primary/20 rounded-full hover:bg-primary/10 transition-colors"
             >
               {i18n.language.startsWith('en') ? 'Eng' : 'Ny'}
             </button>
