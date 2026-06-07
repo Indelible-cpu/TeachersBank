@@ -53,6 +53,11 @@ interface TEBAMSDB extends DBSchema {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any[];
   };
+  translations: {
+    key: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    value: any[];
+  };
   sync_queue: {
     key: number;
     value: {
@@ -82,6 +87,7 @@ export const initDB = () => {
       db.createObjectStore('loans');
       db.createObjectStore('repayments');
       db.createObjectStore('receipts');
+      db.createObjectStore('translations');
       
       const syncQueue = db.createObjectStore('sync_queue', {
         keyPath: 'id',
@@ -149,6 +155,7 @@ const applyServerState = async (serverState: any) => {
   if (serverState.shareContributions) await setSetting('shareContributions', serverState.shareContributions);
   if (serverState.emergencyContributions) await setSetting('emergencyContributions', serverState.emergencyContributions);
   if (serverState.receipts) await setSetting('receipts', serverState.receipts);
+  if (serverState.translations) await setSetting('translations', serverState.translations);
   if (serverState.settings) {
     const currentLocal = await getSetting('global_settings') || {};
     await setSetting('global_settings', { ...currentLocal, ...serverState.settings });

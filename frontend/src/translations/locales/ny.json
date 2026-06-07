@@ -23,7 +23,20 @@
     "receipts": "Malisiti",
     "logout": "Tulukani",
     "connected": "Wamalumikizidwa",
-    "offline_mode": "Ofulaini"
+    "offline_mode": "Ofulaini",
+    "my_account": "Akaunti Yanga",
+    "total_earnings": "Zopeza Zonse",
+    "emergency_fund": "Thumba Langozi",
+    "pending_loan_requests": "Ngongole Zodikirira",
+    "date_requested": "Tsiku Lopempha",
+    "member_name": "Dzina la Membala",
+    "fund_type": "Mtundu wa Thumba",
+    "requested_amount": "Ndalama Zopemphedwa",
+    "top_up": "Kuwonjezera",
+    "no_pending_requests": "Palibe Ngongole Zodikirira",
+    "attention_secretary": "Chenjezo kwa Mlembi",
+    "pending_records": "Zolemba Zodikirira",
+    "unknown": "Osadziwika"
   },
   "members": {
     "title": "Ndandanda wa Mamembala",
@@ -36,7 +49,7 @@
     "save": "Sungani Membala"
   },
   "contributions": {
-    "title": "Zosonkhanitsa",
+    "title": "Ndalama Zosungidwa",
     "record_new": "Lembani Ndalama",
     "type": "Mtundu wa Ndalama",
     "share": "Gawo la Mwezi",
@@ -52,17 +65,17 @@
     "title": "Kusamalira Ngongole",
     "create_loan": "Pangani Ngongole",
     "principal": "Ndalama za Ngongole",
-    "interest": "Chiungwe (%)",
+    "interest": "Chiwongola Dzanja (%)",
     "expected_return": "Ndalama Zobwezera",
     "due_date": "Tsiku Lobweza",
     "status": "Mene Zilili",
-    "member": "Sankhani Membala",
+    "member": "Sankhani Mamembala",
     "save": "Vomerezani",
     "history": "Ngongole Zonse",
-    "balance": "Ndalama Zotsala"
+    "balance": "Ndalama Zatsala"
   },
   "repayments": {
-    "title": "Zobweza",
+    "title": "Kubweza Ngongole",
     "record": "Lembani Zobweza",
     "amount": "Ndalama Zobweza",
     "loan": "Sankhani Ngongole",
@@ -201,10 +214,10 @@
   "dashboard_stats": {
     "verified_capital": "Magawo otsimikizika",
     "active_loan_book": "Buku la ngongole zomwe zilipo",
-    "accumulated_interest": "Chiwongolero chomwe chasonkhanitsidwa",
+    "accumulated_interest": "Chiwongola Dzanja chomwe chasonkhanitsidwa",
     "in_transit": "Zodikirira kutsimikiziridwa",
     "welcome_back": "Takulandirani kachiwiri, ",
-    "command_center_ready": ". Your financial command center is ready.",
+    "command_center_ready": ". Likulu lanu loyendetsera chuma lakonzeka.",
     "attention_treasurer": "Chenjezo kwa Msungichuma",
     "awaiting_verification": "zinthu zomwe zikudikira kutsimikiziridwa",
     "performance_overview": "Kuunika momwe ntchito ikuyendera",
@@ -216,5 +229,12 @@
     "emergency_contrib": "Ndalama Zadzidzidzi Zosonkhanitsa",
     "share_contrib": "Gawo la Mwezi Losonkha",
     "verified_emergency": "Mthumba wadzidzidzi otsimikizika"
+  },
+  "dynamic_messages": {
+    "translation_saved": "Zosintha zasungidwa bwino",
+    "loan_approved": "Ngongole yavomerezedwa bwino",
+    "loan_rejected": "Ngongole yakanidwa",
+    "user_created": "Wogwiritsa ntchito wapangidwa bwino",
+    "report_generated": "Lipoti lapangidwa bwino"
   }
 }

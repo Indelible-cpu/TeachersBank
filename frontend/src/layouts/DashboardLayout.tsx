@@ -3,7 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
-import { LogOut, Home, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wallet, CreditCard, Receipt, FileText, Shield, User as UserIcon, Moon, Sun, History as HistoryIcon, Sliders, Bell } from 'lucide-react';
+import { LogOut, Home, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wallet, CreditCard, Receipt, FileText, Shield, User as UserIcon, Moon, Sun, History as HistoryIcon, Sliders, Bell, Languages } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSetting } from '../services/db';
@@ -99,20 +99,21 @@ const DashboardLayout = () => {
 
   const navItems = [
     { to: '/dashboard', label: t('dashboard.title'), icon: Home, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
-    { to: '/dashboard/my-account', label: 'My Account', icon: UserIcon, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
+    { to: '/dashboard/my-account', label: t('dashboard.my_account'), icon: UserIcon, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
     { to: '/dashboard/members', label: t('members.title'), icon: Users, roles: ['TREASURER', 'SECRETARY'], badge: pendingStats.members },
     { to: '/dashboard/contributions', label: t('contributions.title'), icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'], badge: pendingStats.contributions },
     { to: '/dashboard/loans', label: t('loans.title'), icon: CreditCard, roles: ['TREASURER', 'SECRETARY'], badge: pendingStats.loans },
     { to: '/dashboard/repayments', label: t('repayments.title'), icon: Receipt, roles: ['ADMIN', 'TREASURER', 'SECRETARY'], badge: pendingStats.repayments },
 
-    { to: '/dashboard/total-earnings', label: 'Total Earnings', icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
-    { to: '/dashboard/emergency', label: 'Emergency Fund', icon: Shield, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/total-earnings', label: t('dashboard.total_earnings'), icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/emergency', label: t('dashboard.emergency_fund'), icon: Shield, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
     
     { to: '/dashboard/reports', label: t('reports.title'), icon: FileText, roles: ['ADMIN'] },
     { to: '/dashboard/audit-trail', label: t('audit.title'), icon: HistoryIcon, roles: ['ADMIN'] },
     { to: '/dashboard/users', label: t('users.title'), icon: Shield, roles: ['ADMIN'] },
     { to: '/dashboard/loan-configurations', label: t('loan_configs.title'), icon: Sliders, roles: ['ADMIN'] },
-    { to: '/dashboard/settings', label: t('settings.title'), icon: SettingsIcon, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] }
+    { to: '/dashboard/settings', label: t('settings.title'), icon: SettingsIcon, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
+    { to: '/dashboard/translations', label: t('translations.title', 'Translation Management'), icon: Languages, roles: ['ADMIN'] }
   ].filter(item => item.roles.includes(user?.role || ''));
 
   const closeSidebar = () => setIsSidebarOpen(false);

@@ -18,7 +18,7 @@ const Reports = () => {
   const [selectedMonth, setSelectedMonth] = useState('ALL');
   const [selectedMember, setSelectedMember] = useState('');
   const [showOnlyConfirmed, setShowOnlyConfirmed] = useState(true);
-  const [secretarySignature, setSecretarySignature] = useState<string | null>(null);
+  const [adminSignature, setAdminSignature] = useState<string | null>(null);
   
   const [members, setMembers] = useState<any[]>([]);
   const [contributions, setContributions] = useState<any[]>([]);
@@ -91,8 +91,9 @@ const Reports = () => {
 
   const currentMember = members.find(m => m.id === selectedMember);
 
-  const secretaryUser = users.find(u => u.role === 'SECRETARY' && u.isActive) || users.find(u => u.role === 'SECRETARY');
-  const secretaryName = secretaryUser ? secretaryUser.name : '';
+  const adminUser = users.find(u => u.role === 'ADMIN' && u.isActive) || users.find(u => u.role === 'ADMIN');
+  const adminName = adminUser ? adminUser.name : 'Admin';
+  const signatureLabel = adminUser && adminUser.name ? `${adminUser.name} (Chairperson)` : 'Chairperson';
 
   const treasurerUser = users.find(u => u.role === 'TREASURER' && u.isActive) || users.find(u => u.role === 'TREASURER');
   const treasurerName = treasurerUser ? treasurerUser.name : 'Not Designated';
@@ -151,7 +152,7 @@ const Reports = () => {
   return (
     <div className="w-full max-w-none space-y-6 pt-4 pb-8 lg:pt-8 lg:pb-12">
       <div className="print:hidden space-y-4 px-4 sm:px-6 md:px-8 pt-4 w-full">
-        <h1 className="text-3xl font-black tracking-tight">{t('reports.title')}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t('reports.title')}</h1>
         <p className="text-muted-foreground font-medium text-sm sm:text-base">Verified audit reports and financial statements.</p>
         
         {/* Controls Layout Request: verified, print, share all be in one row. reportscope and timeframe be in one row. */}
@@ -316,15 +317,15 @@ const Reports = () => {
         <div className="mt-20 pt-16 border-t border-foreground/20 print:border-foreground print:border-black/20 flex flex-col sm:flex-row items-center sm:items-end justify-between relative gap-8 sm:gap-0">
           <div className="hidden sm:block flex-1"></div>
           <div className="space-y-4 flex flex-col items-center flex-1">
-            <SignaturePad onSave={setSecretarySignature} label="Secretary Signature" />
-            {!secretarySignature && (
+            <SignaturePad onSave={setAdminSignature} label={signatureLabel} />
+            {!adminSignature && (
               <div className="hidden print:block space-y-1">
                 <div className="w-48 h-px bg-foreground print:bg-black/30"></div>
-                <p className="text-[10px] font-bold text-foreground print:text-black text-center">Secretary Signature</p>
+                <p className="text-[10px] font-bold text-foreground print:text-black text-center uppercase">{signatureLabel}</p>
               </div>
             )}
-            {secretarySignature && (
-               <p className="text-[10px] font-bold text-foreground print:text-black print:block text-center uppercase tracking-widest">Secretary Signature</p>
+            {adminSignature && (
+               <p className="text-[10px] font-bold text-foreground print:text-black print:block text-center uppercase tracking-widest">{signatureLabel}</p>
             )}
           </div>
           <div className="flex-1 sm:text-right pb-1">

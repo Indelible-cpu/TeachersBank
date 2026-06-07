@@ -106,10 +106,10 @@ const MemberDashboard = () => {
       toast.success("Uploading photo...");
       try {
         const base64Data = await compressImage(file);
-        const response = await fetch(base64Data);
-        const blob = await response.blob();
 
-        if (storage && storage.app) {
+        if (storage && storage.app && storage.app.options && storage.app.options.projectId && !storage.app.options.projectId.includes('placeholder')) {
+          const response = await fetch(base64Data);
+          const blob = await response.blob();
           const fileRef = storageRef(storage, `profile_photos/${user.id}_${Date.now()}.jpg`);
           await uploadBytes(fileRef, blob);
           const downloadUrl = await getDownloadURL(fileRef);
@@ -119,6 +119,11 @@ const MemberDashboard = () => {
           await addToSyncQueue('UPDATE', 'users', { id: user.id, photo: downloadUrl });
           
           toast.success("Profile photo updated");
+          window.dispatchEvent(new CustomEvent('sync-completed'));
+        } else {
+          setProfilePhoto(base64Data);
+          await setSetting(`profile_photo_${user.id}`, base64Data);
+          toast.success("Profile photo saved locally");
           window.dispatchEvent(new CustomEvent('sync-completed'));
         }
       } catch (error) {

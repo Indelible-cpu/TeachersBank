@@ -86,7 +86,7 @@ const Dashboard = () => {
         const member = membersList.find((m: any) => m.id === l.memberId);
         return {
           ...l,
-          memberName: member?.fullname || 'Unknown',
+          memberName: member?.fullname || t('dashboard.unknown'),
           timestamp: l.timestamp || l.createdAt,
           isTopUp: l.isTopUp
         };
@@ -221,10 +221,10 @@ const Dashboard = () => {
             <ShieldAlert className="w-6 h-6 animate-pulse" />
             <div>
               <p className="text-[10px] font-semibold tracking-widest leading-none mb-1 text-amber-100">
-                {user?.role === 'TREASURER' ? t('dashboard_stats.attention_treasurer') : 'Attention Secretary'}
+                {user?.role === 'TREASURER' ? t('dashboard_stats.attention_treasurer') : t('dashboard.attention_secretary')}
               </p>
               <p className="text-sm font-bold">
-                {data.pendingVerification} {user?.role === 'TREASURER' ? t('dashboard_stats.awaiting_verification') : 'Pending Records'}
+                {data.pendingVerification} {user?.role === 'TREASURER' ? t('dashboard_stats.awaiting_verification') : t('dashboard.pending_records')}
               </p>
             </div>
           </motion.div>
@@ -326,7 +326,7 @@ const Dashboard = () => {
             <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
               <Clock className="text-orange-500" />
             </div>
-            <h2 className="text-lg font-bold">Pending Loan Requests</h2>
+            <h2 className="text-lg font-bold">{t('dashboard.pending_loan_requests')}</h2>
           </div>
         
         <div className="overflow-x-auto custom-scrollbar">
@@ -334,10 +334,10 @@ const Dashboard = () => {
             <table className="w-full text-left border-collapse min-w-[600px]">
               <thead>
                 <tr className="border-b-2 border-border text-[10px] font-black capitalize text-muted-foreground">
-                  <th className="py-4 pr-4">Date Requested</th>
-                  <th className="py-4 pr-4">Member Name</th>
-                  <th className="py-4 pr-4">Fund Type</th>
-                  <th className="py-4 text-right">Requested Amount</th>
+                  <th className="py-4 pr-4">{t('dashboard.date_requested')}</th>
+                  <th className="py-4 pr-4">{t('dashboard.member_name')}</th>
+                  <th className="py-4 pr-4">{t('dashboard.fund_type')}</th>
+                  <th className="py-4 text-right">{t('dashboard.requested_amount')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
@@ -350,7 +350,7 @@ const Dashboard = () => {
                       {loan.memberName}
                       {loan.isTopUp && (
                         <span className="bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-purple-500/20">
-                          Top Up
+                          {t('dashboard.top_up')}
                         </span>
                       )}
                     </td>
@@ -369,7 +369,7 @@ const Dashboard = () => {
           ) : (
               <div className="h-40 flex flex-col items-center justify-center opacity-50">
                  <Receipt className="w-10 h-10 mb-3 text-muted-foreground" />
-                 <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40 uppercase">No Pending Requests</p>
+                 <p className="text-[10px] font-semibold text-muted-foreground tracking-widest opacity-40 uppercase">{t('dashboard.no_pending_requests')}</p>
               </div>
             )}
           </div>

@@ -130,13 +130,13 @@ const Settings = () => {
       
       try {
         const base64Data = await compressImage(file);
-        
-        // Convert base64 back to Blob for Firebase upload
-        const response = await fetch(base64Data);
-        const blob = await response.blob();
 
         // Safe check to verify if Firebase Storage is actually configured
         if (storage && storage.app && storage.app.options && storage.app.options.projectId && !storage.app.options.projectId.includes('placeholder')) {
+          // Convert base64 back to Blob for Firebase upload
+          const response = await fetch(base64Data);
+          const blob = await response.blob();
+          
           const fileRef = storageRef(storage, `profile_photos/${user.id}_${Date.now()}.jpg`);
           await uploadBytes(fileRef, blob);
           const downloadUrl = await getDownloadURL(fileRef);

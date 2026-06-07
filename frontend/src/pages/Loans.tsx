@@ -36,6 +36,7 @@ const Loans = () => {
   const [contributions, setContributions] = useState<Array<{ memberId: string; type: string; status: string; amount: number | string }>>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rejectingLoanId, setRejectingLoanId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState<string>('');
   const [grantingLoan, setGrantingLoan] = useState<Loan | null>(null);
   const [grantPrincipal, setGrantPrincipal] = useState<string>('');
   const [activeView, setActiveView] = useState<'history' | 'verify'>('history');
@@ -220,7 +221,7 @@ const Loans = () => {
   };
 
   const handleVerifyLoan = async (loanId: string) => {
-    if (isReadOnly || !canConfirm) return;
+    if (isReadOnly || !canWriteFinance) return;
     const updated = loans.map(l => l.id === loanId ? { ...l, status: 'VERIFIED' as const, confirmedBy: user?.name, confirmedAt: new Date().toISOString() } : l);
     setLoans(updated);
     await setSetting('loans', updated);
@@ -269,8 +270,9 @@ const Loans = () => {
   };
 
   const handleRejectLoan = async (loanId: string) => {
-    if (isReadOnly || !canConfirm) return;
+    if (isReadOnly || !canWriteFinance) return;
     setRejectingLoanId(loanId);
+    setRejectionReason('');
   };
 
   if (user?.role === 'ADMIN') {
@@ -414,15 +416,9 @@ const Loans = () => {
                 <div className="flex gap-2 pt-3 border-t border-border/50 mt-3">
                   <button 
                     onClick={() => handleInitiateGrant(loan)}
-                    className="flex-1 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl transition-all shadow-md active:scale-[0.97]"
+                    className="w-full py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl transition-all shadow-md active:scale-[0.97]"
                   >
-                    Grant
-                  </button>
-                  <button 
-                    onClick={() => handleRejectLoan(loan.id)}
-                    className="flex-1 py-2 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-rose-500/10 active:scale-[0.97]"
-                  >
-                    Reject
+                    Grant Loan
                   </button>
                 </div>
               )}
@@ -598,12 +594,23 @@ const Loans = () => {
                 <p className="text-muted-foreground text-sm font-semibold">
                   Are you sure you want to reject this loan application? This action will set the loan status to REJECTED.
                 </p>
+                <div className="text-left mt-4">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Reason for Rejection</label>
+                  <textarea 
+                    required
+                    value={rejectionReason}
+                    onChange={e => setRejectionReason(e.target.value)}
+                    placeholder="Provide a reason for rejecting this loan..."
+                    className="w-full px-5 py-3 mt-2 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold resize-none"
+                    rows={3}
+                  />
+                </div>
               </div>
 
               <div className="flex gap-4 pt-8">
                 <button 
                   type="button" 
-                  onClick={() => setRejectingLoanId(null)}
+                  onClick={() => { setRejectingLoanId(null); setRejectionReason(''); }}
                   className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all"
                 >
                   Cancel
@@ -611,6 +618,10 @@ const Loans = () => {
                 <button 
                   type="button" 
                   onClick={async () => {
+                    if (!rejectionReason.trim()) {
+                      toast.error('Please provide a reason for rejection.');
+                      return;
+                    }
                     const updated = loans.map(l => l.id === rejectingLoanId ? { ...l, status: 'REJECTED' as const } : l);
                     setLoans(updated);
                     await setSetting('loans', updated);
@@ -618,10 +629,32 @@ const Loans = () => {
                     const loan = updated.find(l => l.id === rejectingLoanId);
                     if (loan) {
                       await addToSyncQueue('UPDATE', 'loans', loan);
-                      await createNotification(loan.memberId, 'Loan Rejected', `Your loan request was rejected.`);
+                      await createNotification(loan.memberId, 'Loan Rejected', `Your loan request was rejected. Reason: ${rejectionReason}`);
+                      
+                      try {
+                        const { default: api } = await import('../services/api');
+                        const res = await api.get('/users');
+                        const treasurer = res.data.find((u: any) => u.role === 'TREASURER' && u.isActive) || res.data.find((u: any) => u.role === 'TREASURER');
+                        if (treasurer) {
+                           const notif = {
+                             id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                             userId: treasurer.id,
+                             title: 'Loan Application Rejected',
+                             message: `A loan application for ${loan.memberName} was rejected by the Secretary. Reason: ${rejectionReason}`,
+                             isRead: false,
+                             createdAt: new Date().toISOString()
+                           };
+                           await addToSyncQueue('CREATE', 'notifications', notif);
+                           const currentNotifs = await getSetting('notifications') || [];
+                           await setSetting('notifications', [notif, ...currentNotifs]);
+                        }
+                      } catch (err) {
+                        console.error('Failed to notify treasurer', err);
+                      }
                     }
                     toast.success('Loan rejected successfully');
                     setRejectingLoanId(null);
+                    setRejectionReason('');
                   }}
                   className="flex-1 py-4 bg-destructive text-destructive-foreground rounded-[1.25rem] font-black hover:bg-destructive/90 transition-all"
                 >

@@ -30,6 +30,7 @@ export const masterReset = async (req: Request, res: Response) => {
     await prisma.emergencyContribution.deleteMany();
     await prisma.member.deleteMany();
     await prisma.auditLog.deleteMany();
+    await prisma.translation.deleteMany();
 
     // Log the action itself
     await prisma.auditLog.create({
@@ -318,6 +319,29 @@ export const syncData = async (req: Request, res: Response) => {
             auditDetails = `Successfully saved updated global system and loan configurations`;
             break;
 
+          case 'translations':
+            const cleanTranslationData = { ...data };
+            delete cleanTranslationData.timestamp;
+            
+            if (action === 'CREATE') {
+              // Upsert logic for translations to avoid unique key crashes
+              const existing = await prisma.translation.findUnique({ where: { key: cleanTranslationData.key } });
+              if (existing) {
+                await prisma.translation.update({ where: { key: cleanTranslationData.key }, data: { en: cleanTranslationData.en, ny: cleanTranslationData.ny }});
+              } else {
+                await prisma.translation.create({ data: cleanTranslationData });
+              }
+              auditDetails = `Added translation for key: ${data.key}`;
+            }
+            if (action === 'UPDATE') {
+              await prisma.translation.update({ where: { key: data.key }, data: cleanTranslationData });
+              auditDetails = `Updated translation for key: ${data.key}`;
+            }
+            if (action === 'DELETE') {
+              await prisma.translation.delete({ where: { key: data.key } });
+              auditDetails = `Deleted translation for key: ${data.key}`;
+            }
+            break;
 
             
           default:
@@ -408,6 +432,7 @@ export const syncData = async (req: Request, res: Response) => {
       shareContributions: await prisma.shareContribution.findMany(),
       emergencyContributions: await prisma.emergencyContribution.findMany(),
       notifications: await prisma.notification.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
+      translations: await prisma.translation.findMany(),
       settings: cleanSettings,
       staffCount: await prisma.user.count({
         where: {

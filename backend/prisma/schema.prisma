@@ -282,3 +282,12 @@ model Notification {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+model Translation {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  en        String
+  ny        String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
