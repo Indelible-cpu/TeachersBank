@@ -74,8 +74,7 @@ const DashboardLayout = () => {
     };
 
     const handleSyncError = (e: any) => {
-      // Use standard alert since toast might not be imported here
-      alert(`Sync Error: ${e.detail}`);
+      console.warn(`Sync Error: ${e.detail}`);
     };
 
     window.addEventListener('sync-completed', handleSyncCompleted);
@@ -98,12 +97,11 @@ const DashboardLayout = () => {
   };
 
   const navItems = [
-    { to: '/dashboard', label: t('dashboard.title'), icon: Home, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
     { to: '/dashboard/my-account', label: t('dashboard.my_account'), icon: UserIcon, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
-    { to: '/dashboard/members', label: t('members.title'), icon: Users, roles: ['TREASURER', 'SECRETARY'], badge: pendingStats.members },
-    { to: '/dashboard/contributions', label: t('contributions.title'), icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'], badge: pendingStats.contributions },
-    { to: '/dashboard/loans', label: t('loans.title'), icon: CreditCard, roles: ['TREASURER', 'SECRETARY'], badge: pendingStats.loans },
-    { to: '/dashboard/repayments', label: t('repayments.title'), icon: Receipt, roles: ['ADMIN', 'TREASURER', 'SECRETARY'], badge: pendingStats.repayments },
+    { to: '/dashboard/members', label: t('members.title'), icon: Users, roles: ['TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/contributions', label: t('contributions.title'), icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/loans', label: t('loans.title'), icon: CreditCard, roles: ['TREASURER', 'SECRETARY'] },
+    { to: '/dashboard/repayments', label: t('repayments.title'), icon: Receipt, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
 
     { to: '/dashboard/total-earnings', label: t('dashboard.total_earnings'), icon: Wallet, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
     { to: '/dashboard/emergency', label: t('dashboard.emergency_fund'), icon: Shield, roles: ['ADMIN', 'TREASURER', 'SECRETARY'] },
