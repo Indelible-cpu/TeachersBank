@@ -91,9 +91,15 @@ const Reports = () => {
 
   const currentMember = members.find(m => m.id === selectedMember);
 
+  // Helper: title-case a string, e.g. "john banda" => "John Banda"
+  const toTitleCase = (str: string) =>
+    str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+
   const adminUser = users.find(u => u.role === 'ADMIN' && u.isActive) || users.find(u => u.role === 'ADMIN');
-  const adminName = adminUser ? adminUser.name : 'Admin';
-  const signatureLabel = adminUser && adminUser.name ? `${adminUser.name} (Chairperson)` : 'Chairperson';
+  const adminName = adminUser ? toTitleCase(adminUser.name) : 'Admin';
+  const signatureLabel = adminUser && adminUser.name
+    ? `${toTitleCase(adminUser.name)} (Chairperson)`
+    : 'Chairperson';
 
   const treasurerUser = users.find(u => u.role === 'TREASURER' && u.isActive) || users.find(u => u.role === 'TREASURER');
   const treasurerName = treasurerUser ? treasurerUser.name : 'Not Designated';
@@ -192,6 +198,12 @@ const Reports = () => {
             >
               {showOnlyConfirmed ? <ShieldCheck className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
               {showOnlyConfirmed ? 'Verified Records' : 'Provisional Records'}
+            </button>
+            <button 
+              onClick={toggleLanguage}
+              className="px-3 py-1.5 text-xs font-black tracking-widest border border-primary/20 rounded-full hover:bg-primary/10 transition-colors"
+            >
+              {i18n.language.startsWith('en') ? 'Eng' : 'Ny'}
             </button>
             <button onClick={handlePrint} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-secondary text-secondary-foreground font-bold rounded-2xl hover:bg-secondary/80 transition-all">
               <Printer className="w-5 h-5" /> Print Report
@@ -321,11 +333,11 @@ const Reports = () => {
             {!adminSignature && (
               <div className="hidden print:block space-y-1">
                 <div className="w-48 h-px bg-foreground print:bg-black/30"></div>
-                <p className="text-[10px] font-bold text-foreground print:text-black text-center uppercase">{signatureLabel}</p>
+                <p className="text-[10px] font-bold text-foreground print:text-black text-center">{signatureLabel}</p>
               </div>
             )}
             {adminSignature && (
-               <p className="text-[10px] font-bold text-foreground print:text-black print:block text-center uppercase tracking-widest">{signatureLabel}</p>
+               <p className="text-[10px] font-bold text-foreground print:text-black print:block text-center tracking-widest">{signatureLabel}</p>
             )}
           </div>
           <div className="flex-1 sm:text-right pb-1">

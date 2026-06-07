@@ -379,7 +379,7 @@ const DashboardLayout = () => {
 
             <button 
               onClick={toggleLanguage}
-              className="hidden sm:block px-3 py-1.5 text-xs font-black tracking-widest border border-primary/20 rounded-full hover:bg-primary/10 transition-colors"
+              className="block px-3 py-1.5 text-xs font-black tracking-widest border border-primary/20 rounded-full hover:bg-primary/10 transition-colors"
             >
               {i18n.language.startsWith('en') ? 'Eng' : 'Ny'}
             </button>
