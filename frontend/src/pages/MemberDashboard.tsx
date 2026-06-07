@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/useSettings';
 import { useToast } from '../context/useToast';
-import { getSetting, addToSyncQueue, performSync } from '../services/db';
+import { getSetting, setSetting, addToSyncQueue, performSync } from '../services/db';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wallet, CreditCard, Banknote, Calendar, Edit2, ShieldAlert, TrendingUp, Camera, Trash2 } from 'lucide-react';
 import { storage } from '../services/firebase';
