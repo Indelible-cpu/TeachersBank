@@ -6,6 +6,7 @@ import { useSettings } from '../context/useSettings';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/useToast';
 import { getSetting, setSetting, addToSyncQueue } from '../services/db';
+import api from '../services/api';
 
 interface Member {
   id: string;
