@@ -83,18 +83,20 @@ export const syncData = async (req: Request, res: Response) => {
             
             if (action === 'CREATE') {
               // 1. Create a corresponding system User so they appear in users lists and can log in
-              let userRecord = await prisma.user.findUnique({
-                where: { email: data.email || `${data.memberNumber.toLowerCase()}@teachersbank.com` }
+              const normalizedEmail = (data.email || `${data.memberNumber.toLowerCase()}@teachersbank.com`).toLowerCase().trim();
+              
+              let userRecord = await prisma.user.findFirst({
+                where: { email: normalizedEmail }
               });
               
               if (userRecord) {
-                throw new Error(`Email ${data.email} is already registered.`);
+                throw new Error(`Email ${normalizedEmail} is already registered.`);
               }
               
               const hashedPassword = await bcrypt.hash(data.password || 'member123', 10);
               userRecord = await prisma.user.create({
                 data: {
-                  email: data.email || `${data.memberNumber.toLowerCase()}@teachersbank.com`,
+                  email: normalizedEmail,
                   password: hashedPassword,
                   name: data.fullname,
                   role: 'MEMBER',

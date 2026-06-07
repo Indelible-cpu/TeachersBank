@@ -7,13 +7,22 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    const user = await prisma.user.findUnique({
-      where: { email },
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Always look up by lowercase email to avoid case-mismatch issues
+    const user = await prisma.user.findFirst({
+      where: { email: email.toLowerCase().trim() },
       include: { member: true }
     });
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (user.isActive === false) {
+      return res.status(403).json({ error: 'Your account has been deactivated. Contact your administrator.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -50,7 +59,7 @@ export const register = async (req: Request, res: Response) => {
 
     const user = await prisma.user.create({
       data: {
-        email,
+        email: email.toLowerCase().trim(),
         password: hashedPassword,
         name,
         role: 'MEMBER',
