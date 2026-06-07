@@ -217,7 +217,7 @@ const Members = () => {
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-bold tracking-tight">{t('members.title')}</h1>
-          <p className="text-muted-foreground">Comprehensive member directory with dual phone support.</p>
+          <p className="text-muted-foreground">{t('members.subtitle', 'Comprehensive member directory with dual phone support.')}</p>
         </div>
         
         {canAddMember ? (
@@ -231,7 +231,7 @@ const Members = () => {
         ) : (
           <div className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-muted-foreground font-medium rounded-xl border border-dashed">
             <Lock className="w-4 h-4" />
-            View Only Access
+            {t('members.view_only', 'View Only Access')}
           </div>
         )}
       </div>
@@ -267,9 +267,9 @@ const Members = () => {
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-primary text-primary-foreground capitalize tracking-widest">
                     {member.memberNumber}
                   </span>
-                  <span className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest block mb-1">Status</span>
+                  <span className="text-[10px] font-semibold text-muted-foreground capitalize tracking-widest block mb-1">{t('members.status', 'Status')}</span>
                   <div className="flex items-center gap-1.5 text-emerald-500 font-bold text-xs capitalize">
-                    <ShieldCheck className="w-4 h-4" /> Active
+                    <ShieldCheck className="w-4 h-4" /> {t('members.active', 'Active')}
                   </div>
                 </div>
               </div>
@@ -293,7 +293,7 @@ const Members = () => {
               )}
               <div className="flex items-center gap-3">
                 <div className="p-1.5 rounded-lg bg-secondary/50"><Calendar className="w-4 h-4" /></div>
-                <span className="font-medium text-[12px] uppercase tracking-wide">Joined: {new Date(member.joinDate).toLocaleDateString()}</span>
+                <span className="font-medium text-[12px] uppercase tracking-wide">{t('members.joined', 'Joined')}: {new Date(member.joinDate).toLocaleDateString()}</span>
               </div>
             </div>
 
@@ -314,7 +314,7 @@ const Members = () => {
                   }}
                   className="text-[10px] font-semibold px-3 py-1.5 rounded-full capitalize tracking-widest border transition-all bg-secondary/80 text-foreground border-border hover:bg-secondary"
                 >
-                  Edit Info
+                  {t('members.edit_info', 'Edit Info')}
                 </button>
               </div>
             )}
@@ -343,7 +343,7 @@ const Members = () => {
               <form onSubmit={handleSave} className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="fullname">Full Name</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="fullname">{t('members.fullname')}</label>
                     <input 
                       id="fullname"
                       type="text" 
@@ -355,7 +355,7 @@ const Members = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="gender">Gender</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="gender">{t('members.gender', 'Gender')}</label>
                     <select 
                       id="gender"
                       title="Select Gender"
@@ -363,8 +363,8 @@ const Members = () => {
                       onChange={e => setNewMember({...newMember, gender: e.target.value})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none"
                     >
-                      <option value="MALE">Male</option>
-                      <option value="FEMALE">Female</option>
+                      <option value="MALE">{t('members.male', 'Male')}</option>
+                      <option value="FEMALE">{t('members.female', 'Female')}</option>
                     </select>
                   </div>
                 </div>
@@ -373,7 +373,7 @@ const Members = () => {
 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="address">Address</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="address">{t('members.address', 'Address')}</label>
                     <input 
                       id="address"
                       type="text" 
@@ -384,7 +384,7 @@ const Members = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="national-id">National ID (Optional)</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="national-id">{t('members.national_id', 'National ID (Optional)')}</label>
                     <input 
                       id="national-id"
                       type="text" 
@@ -399,7 +399,7 @@ const Members = () => {
 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="phone-1">Primary Phone</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="phone-1">{t('members.primary_phone', 'Primary Phone')}</label>
                     <input 
                       id="phone-1"
                       type="tel" 
@@ -411,7 +411,7 @@ const Members = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="member-email">Email Address</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="member-email">{t('members.email', 'Email Address')}</label>
                     <input 
                       id="member-email"
                       type="email" 
@@ -430,7 +430,7 @@ const Members = () => {
                     onClick={() => setIsModalOpen(false)}
                     className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all"
                   >
-                    Cancel
+                    {t('members.cancel', 'Cancel')}
                   </button>
                   <button 
                     type="submit" 
@@ -458,14 +458,14 @@ const Members = () => {
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-black tracking-tight">Edit Member Details</h2>
+                <h2 className="text-2xl font-black tracking-tight">{t('members.edit_member', 'Edit Member Details')}</h2>
                 <UserIcon className="w-8 h-8 text-primary/20" />
               </div>
 
               <form onSubmit={handleSaveEdit} className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-fullname">Full Name</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-fullname">{t('members.fullname')}</label>
                     <input 
                       id="edit-fullname"
                       type="text" 
@@ -477,7 +477,7 @@ const Members = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-gender">Gender</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-gender">{t('members.gender', 'Gender')}</label>
                     <select 
                       id="edit-gender"
                       title="Select Gender"
@@ -485,15 +485,15 @@ const Members = () => {
                       onChange={e => setEditForm({...editForm, gender: e.target.value})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none"
                     >
-                      <option value="MALE">Male</option>
-                      <option value="FEMALE">Female</option>
+                      <option value="MALE">{t('members.male', 'Male')}</option>
+                      <option value="FEMALE">{t('members.female', 'Female')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-address">Address</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-address">{t('members.address', 'Address')}</label>
                     <input 
                       id="edit-address"
                       type="text" 
@@ -504,7 +504,7 @@ const Members = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-national-id">National ID (Optional)</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-national-id">{t('members.national_id', 'National ID (Optional)')}</label>
                     <input 
                       id="edit-national-id"
                       type="text" 
@@ -519,7 +519,7 @@ const Members = () => {
 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-phone">Primary Phone</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-phone">{t('members.primary_phone', 'Primary Phone')}</label>
                     <input 
                       id="edit-phone"
                       type="tel" 
@@ -531,7 +531,7 @@ const Members = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-email">Email Address</label>
+                    <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-email">{t('members.email', 'Email Address')}</label>
                     <input 
                       id="edit-email"
                       type="email" 
@@ -545,7 +545,7 @@ const Members = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-password">New Password (Optional - Leave blank to keep current)</label>
+                  <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="edit-password">{t('members.new_password_optional', 'New Password (Optional - Leave blank to keep current)')}</label>
                   <div className="relative">
                     <input 
                       id="edit-password"
@@ -567,13 +567,13 @@ const Members = () => {
                     onClick={() => setEditingMember(null)}
                     className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:bg-secondary/80 transition-all"
                   >
-                    Cancel
+                    {t('members.cancel', 'Cancel')}
                   </button>
                   <button 
                     type="submit" 
                     className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black hover:shadow-xl hover:shadow-primary/20 transition-all"
                   >
-                    Save Changes
+                    {t('members.save_changes', 'Save Changes')}
                   </button>
                 </div>
               </form>
@@ -596,8 +596,8 @@ const Members = () => {
               <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <ShieldCheck className="w-8 h-8" />
               </div>
-              <h2 className="text-2xl font-black tracking-tight mb-2">Member Created!</h2>
-              <p className="text-sm text-muted-foreground mb-6">The account has been created. Click below to securely send the generated credentials directly to the user.</p>
+              <h2 className="text-2xl font-black tracking-tight mb-2">{t('members.member_created', 'Member Created!')}</h2>
+              <p className="text-sm text-muted-foreground mb-6">{t('members.member_created_desc', 'The account has been created. Click below to securely send the generated credentials directly to the user.')}</p>
               
               <div className="flex flex-col gap-3 mb-8">
                 <a
@@ -607,7 +607,7 @@ const Members = () => {
                   onClick={() => toast.success('Redirecting to WhatsApp...')}
                   className="w-full py-4 bg-[#25D366] text-white rounded-[1.25rem] font-black hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 >
-                  <Phone className="w-5 h-5" /> Send via WhatsApp
+                  <Phone className="w-5 h-5" /> {t('members.send_whatsapp', 'Send via WhatsApp')}
                 </a>
                 
                 <a
@@ -615,7 +615,7 @@ const Members = () => {
                   onClick={() => toast.success('Opening default email client...')}
                   className="w-full py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 >
-                  Send via Email
+                  {t('members.send_email', 'Send via Email')}
                 </a>
               </div>
 
@@ -623,7 +623,7 @@ const Members = () => {
                 onClick={() => setGeneratedCredentials(null)}
                 className="w-full py-3 text-sm font-bold text-muted-foreground hover:text-foreground transition-all"
               >
-                Close Window
+                {t('members.close', 'Close Window')}
               </button>
             </motion.div>
           </div>
