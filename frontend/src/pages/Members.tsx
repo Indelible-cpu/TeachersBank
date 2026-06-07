@@ -31,7 +31,6 @@ const Members = () => {
     phone: '',
     gender: 'MALE',
     address: '',
-    address: '',
     email: '',
     nationalId: ''
   });
