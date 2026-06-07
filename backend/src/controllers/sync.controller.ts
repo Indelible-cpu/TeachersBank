@@ -94,7 +94,8 @@ export const syncData = async (req: Request, res: Response) => {
                     email: data.email || `${data.memberNumber.toLowerCase()}@teachersbank.com`,
                     password: hashedPassword,
                     name: data.fullname,
-                    role: 'MEMBER'
+                    role: 'MEMBER',
+                    requiresPasswordChange: true
                   }
                 });
               }

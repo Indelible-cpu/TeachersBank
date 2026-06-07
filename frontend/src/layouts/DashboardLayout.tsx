@@ -7,9 +7,10 @@ import { LogOut, Home, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wal
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSetting } from '../services/db';
+import api from '../services/api';
 
 const DashboardLayout = () => {
-  const { logout, user } = useAuth();
+  const { logout, user, login } = useAuth();
   const { settings, isOnline } = useSettings();
   const { t, i18n } = useTranslation();
   const { theme, setTheme } = useTheme();
@@ -19,6 +20,13 @@ const DashboardLayout = () => {
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [showSignoutConfirm, setShowSignoutConfirm] = useState(false);
   const [pendingStats, setPendingStats] = useState({ contributions: 0, repayments: 0, loans: 0, members: 0 });
+
+  // Force Password Change States
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
     const fetchPhoto = async () => {
@@ -92,6 +100,129 @@ const DashboardLayout = () => {
   ].filter(item => item.roles.includes(user?.role || ''));
 
   const closeSidebar = () => setIsSidebarOpen(false);
+
+  const handleForceChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    
+    if (!currentPassword) {
+      setPasswordError('Please enter your current password');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters long');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    try {
+      setIsChangingPassword(true);
+      await api.post('/auth/change-password', {
+        currentPassword,
+        newPassword
+      });
+      
+      // Update local state and storage
+      if (user) {
+        const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token') || '';
+        const rememberMe = localStorage.getItem('remember_me') === 'true';
+        await login(token, { ...user, requiresPasswordChange: false }, rememberMe);
+      }
+    } catch (error: any) {
+      setPasswordError(error.response?.data?.error || 'Failed to change password. Please try again.');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  if (user?.requiresPasswordChange) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md glass p-8 rounded-[2.5rem] shadow-2xl border border-primary/20 space-y-6 relative overflow-hidden"
+        >
+          {/* Background decoration */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl -ml-10 -mb-10" />
+
+          <div className="relative text-center space-y-2">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary mb-4">
+              <Shield className="w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-black tracking-tight">Security Required</h1>
+            <p className="text-sm text-muted-foreground font-medium">For your security, please change your temporary password before accessing the system.</p>
+          </div>
+
+          <form onSubmit={handleForceChangePassword} className="space-y-4 relative">
+            {passwordError && (
+              <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-xl text-xs font-bold text-center animate-shake">
+                {passwordError}
+              </div>
+            )}
+            
+            <div className="space-y-1.5">
+              <label className="text-xs font-black text-muted-foreground ml-1">Current Password</label>
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                value={currentPassword}
+                onChange={e => setCurrentPassword(e.target.value)}
+                className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-black text-muted-foreground ml-1">New Password</label>
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                required
+                minLength={6}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-black text-muted-foreground ml-1">Confirm New Password</label>
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
+                required
+                minLength={6}
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={isChangingPassword}
+              className="w-full py-4 bg-primary text-primary-foreground font-black rounded-[1.25rem] hover:shadow-xl hover:shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100 mt-2"
+            >
+              {isChangingPassword ? 'Securing Account...' : 'Update Password & Continue'}
+            </button>
+            
+            <button 
+              type="button"
+              onClick={handleLogout}
+              className="w-full py-3 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Sign Out
+            </button>
+          </form>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex text-foreground">

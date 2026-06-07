@@ -7,6 +7,7 @@ interface User {
   name: string;
   email: string;
   role: 'ADMIN' | 'TREASURER' | 'SECRETARY' | 'MEMBER';
+  requiresPasswordChange?: boolean;
 }
 
 interface AuthContextType {

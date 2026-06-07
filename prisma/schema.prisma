@@ -29,6 +29,7 @@ model User {
   name      String
   role      Role     @default(MEMBER)
   isActive  Boolean  @default(true)
+  requiresPasswordChange Boolean @default(false)
   currentChallenge String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

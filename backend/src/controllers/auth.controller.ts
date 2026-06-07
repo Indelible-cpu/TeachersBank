@@ -34,6 +34,7 @@ export const login = async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        requiresPasswordChange: user.requiresPasswordChange,
         memberId: user.member?.id
       }
     });
@@ -52,7 +53,8 @@ export const register = async (req: Request, res: Response) => {
         email,
         password: hashedPassword,
         name,
-        role: role || 'MEMBER'
+        role: role || 'MEMBER',
+        requiresPasswordChange: true
       }
     });
 
@@ -98,7 +100,10 @@ export const changePassword = async (req: Request, res: Response) => {
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     await prisma.user.update({
       where: { id: userId },
-      data: { password: hashedNewPassword }
+      data: { 
+        password: hashedNewPassword,
+        requiresPasswordChange: false
+      }
     });
 
     res.json({ message: 'Password updated successfully' });
