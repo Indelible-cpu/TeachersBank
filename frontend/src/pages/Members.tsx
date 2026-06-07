@@ -99,15 +99,20 @@ const Members = () => {
 
     if (isOnline) {
       try {
-        await api.get(`/users/check-email?email=${encodeURIComponent(newMember.email)}`);
+        await api.get(`/users/check-email?email=${encodeURIComponent(newMember.email.toLowerCase().trim())}`);
       } catch (err: any) {
-        toast.error(err.response?.data?.error || 'Email already exists.');
-        return;
+        // Only block if the server explicitly says the email is taken (400)
+        if (err.response?.status === 400) {
+          toast.error(err.response.data?.error || 'This email address is already registered.');
+          return;
+        }
+        // On server errors (500) or network failures, allow proceeding — backend will enforce on sync
+        console.warn('Email check failed, proceeding anyway:', err.message);
       }
     } else {
       // Basic local check for offline mode using cached members list
-      if (members.some((m: any) => m.email === newMember.email)) {
-        toast.error('Email already exists locally.');
+      if (members.some((m: any) => (m.email || '').toLowerCase() === newMember.email.toLowerCase().trim())) {
+        toast.error('This email address is already registered locally.');
         return;
       }
     }

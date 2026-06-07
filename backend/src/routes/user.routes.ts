@@ -7,16 +7,17 @@ import bcrypt from 'bcryptjs';
 
 const router = Router();
 
-// Check if email exists (Public or specific role? Let's make it authenticated at least)
-router.get('/check-email', authenticate, async (req, res) => {
+// Check if email exists — no auth required, used during registration
+router.get('/check-email', async (req: any, res: any) => {
   try {
     const { email } = req.query;
     if (!email) return res.status(400).json({ error: 'Email required' });
-    const user = await prisma.user.findUnique({ where: { email: email as string } });
-    if (user) return res.status(400).json({ error: 'Email already in use' });
+    const user = await prisma.user.findFirst({ where: { email: (email as string).toLowerCase().trim() } });
+    if (user) return res.status(400).json({ error: 'This email address is already registered.' });
     return res.json({ available: true });
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('check-email error:', error);
+    res.status(500).json({ error: 'Server error checking email' });
   }
 });
 
