@@ -1,45 +1,57 @@
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { ShieldAlert, TrendingUp, DollarSign } from 'lucide-react';
+import { ShieldAlert, TrendingUp, DollarSign, Search } from 'lucide-react';
 import { getSetting } from '../services/db';
 import { useSettings } from '../context/useSettings';
 
 const Emergency = () => {
-  const { t } = useTranslation();
   const { settings } = useSettings();
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [members, setMembers] = useState<any[]>([]);
-  
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      const allMembers = await getSetting('members') || [];
-      const contribs = await getSetting('contributions') || [];
-      const emergency = await getSetting('emergencyContributions') || [];
-      const mergedContribs = [...contribs, ...emergency].filter((c: any) => c.status === 'CONFIRMED' && c.type === 'EMERGENCY');
-      
-      const enrichedMembers = allMembers.map((m: any) => {
-        const memberEmergency = mergedContribs
-          .filter((c: any) => c.memberId === m.id)
-          .reduce((sum: number, c: any) => sum + (Number(c.amount) || 0), 0);
-          
-        const emergencyInterestRate = settings.emergencyInterestPercentage || 0;
-        const memberInterest = memberEmergency * (emergencyInterestRate / 100);
+  const [search, setSearch] = useState('');
+
+  const loadData = async () => {
+    const allMembers = await getSetting('members') || [];
+    const contribs = await getSetting('contributions') || [];
+    const emergency = await getSetting('emergencyContributions') || [];
+    const mergedContribs = [...contribs, ...emergency].filter((c: any) => c.status === 'CONFIRMED' && c.type === 'EMERGENCY');
+    
+    const enrichedMembers = allMembers.map((m: any) => {
+      const memberEmergency = mergedContribs
+        .filter((c: any) => c.memberId === m.id)
+        .reduce((sum: number, c: any) => sum + (Number(c.amount) || 0), 0);
         
-        return {
-          ...m,
-          totalEmergency: memberEmergency,
-          earnedInterest: memberInterest,
-          totalEarnings: memberEmergency + memberInterest
-        };
-      });
+      const emergencyInterestRate = settings.emergencyInterestPercentage || 0;
+      const memberInterest = memberEmergency * (emergencyInterestRate / 100);
       
-      if (isMounted) setMembers(enrichedMembers);
-    })();
-    return () => { isMounted = false; };
+      return {
+        ...m,
+        totalEmergency: memberEmergency,
+        earnedInterest: memberInterest,
+        totalEarnings: memberEmergency + memberInterest
+      };
+    });
+    
+    setMembers(enrichedMembers);
+  };
+
+  useEffect(() => {
+    loadData();
+    const interval = setInterval(loadData, 5000);
+    const handleSync = () => loadData();
+    window.addEventListener('sync-completed', handleSync);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('sync-completed', handleSync);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.emergencyInterestPercentage]);
+
+  const filteredMembers = members.filter(m =>
+    m.fullname?.toLowerCase().includes(search.toLowerCase()) ||
+    m.memberNumber?.toLowerCase().includes(search.toLowerCase())
+  );
 
   const totalPool = members.reduce((sum, m) => sum + m.totalEmergency, 0);
   const totalInterest = members.reduce((sum, m) => sum + m.earnedInterest, 0);
@@ -79,6 +91,18 @@ const Emergency = () => {
         </div>
       </div>
 
+      {/* Search bar */}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search member by name or number..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="w-full pl-11 pr-4 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-2 focus:ring-primary font-medium text-sm"
+        />
+      </div>
+
       <div className="glass rounded-[2rem] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -92,12 +116,12 @@ const Emergency = () => {
               </tr>
             </thead>
             <tbody>
-              {members.map((m: any, idx: number) => (
+              {filteredMembers.map((m: any, idx: number) => (
                 <motion.tr 
                   key={m.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
+                  transition={{ delay: idx * 0.03 }}
                   className="border-b border-border/20 hover:bg-primary/5 transition-colors"
                 >
                   <td className="p-4 font-bold text-sm">{m.memberNumber}</td>
@@ -107,9 +131,11 @@ const Emergency = () => {
                   <td className="p-4 font-bold text-sm text-right text-emerald-500">{settings.currency} {m.totalEarnings.toLocaleString()}</td>
                 </motion.tr>
               ))}
-              {members.length === 0 && (
+              {filteredMembers.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-muted-foreground font-bold">No member records found.</td>
+                  <td colSpan={5} className="p-8 text-center text-muted-foreground font-bold">
+                    {search ? `No members matching "${search}"` : 'No member records found.'}
+                  </td>
                 </tr>
               )}
             </tbody>

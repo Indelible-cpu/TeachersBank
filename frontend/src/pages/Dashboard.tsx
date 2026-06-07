@@ -175,13 +175,13 @@ const Dashboard = () => {
       pullFromServer().then(() => loadData()).catch(console.warn);
     }
 
-    // 3. Auto-refresh every 30 seconds so any device stays live
+    // 3. Auto-refresh every 5 seconds so the dashboard stays live
     const interval = setInterval(() => {
       loadData();
       if (navigator.onLine) {
         pullFromServer().then(() => loadData()).catch(console.warn);
       }
-    }, 30000);
+    }, 5000);
 
     const handleSyncCompleted = () => {
       loadData();
