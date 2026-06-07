@@ -53,7 +53,7 @@ export const register = async (req: Request, res: Response) => {
         email,
         password: hashedPassword,
         name,
-        role: role || 'MEMBER',
+        role: 'MEMBER',
         requiresPasswordChange: true
       }
     });

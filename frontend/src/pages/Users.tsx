@@ -24,12 +24,8 @@ const Users = () => {
   const { user: currentUser } = useAuth();
   const toast = useToast();
   const [users, setUsers] = useState<User[]>([]);
-  const [activeTab, setActiveTab] = useState<'STAFF' | 'MEMBERS'>('STAFF');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'SECRETARY', nationalId: '' });
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editForm, setEditForm] = useState({ name: '', email: '', nationalId: '', password: '' });
-  const [showPassword, setShowPassword] = useState(false);
   const [showEditPassword, setShowEditPassword] = useState(false);
   const [resettingUser, setResettingUser] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState('');
@@ -80,34 +76,7 @@ const Users = () => {
       .join(' ');
   };
 
-  const handleAddUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const cleanNid = newUser.nationalId.trim().toUpperCase();
-    if (cleanNid && !/^[A-Z0-9]{8}$/.test(cleanNid)) {
-      toast.error('National ID must be exactly 8 alphanumeric characters in uppercase.');
-      return;
-    }
 
-    try {
-      const finalName = cleanNid ? `${toTitleCase(newUser.name)}|NID:${cleanNid}` : toTitleCase(newUser.name);
-      const payload = {
-        email: newUser.email,
-        password: newUser.password,
-        role: newUser.role,
-        name: finalName
-      };
-      await api.post('/auth/register', payload);
-      setIsModalOpen(false);
-      setNewUser({ name: '', email: '', password: '', role: 'SECRETARY', nationalId: '' });
-      setShowPassword(false);
-      toast.success('Staff user registered successfully');
-      fetchData(); // Refresh list
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } } };
-      toast.error(err.response?.data?.error || 'Failed to add user');
-    }
-  };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,13 +136,7 @@ const Users = () => {
     return <div className="p-8 text-center font-bold">Access Denied</div>;
   }
 
-  const filteredUsers = users.filter(u => {
-    if (activeTab === 'STAFF') {
-      return u.role !== 'MEMBER';
-    } else {
-      return true; // All system users are also cooperative members!
-    }
-  });
+  const filteredUsers = users;
 
   return (
     <div className="w-full max-w-none px-4 lg:px-8 pt-4 pb-8 lg:pt-8 lg:pb-12 space-y-8">
@@ -184,35 +147,8 @@ const Users = () => {
             <Shield className="w-8 h-8 text-primary" />
             System Users Directory
           </h1>
-          <p className="text-muted-foreground font-medium italic">Manage staff privileges and cooperative members credentials.</p>
+          <p className="text-muted-foreground font-medium italic">Manage user privileges and credentials.</p>
         </div>
-        {activeTab === 'STAFF' && (
-          <button 
-            onClick={() => {
-              setShowPassword(false);
-              setIsModalOpen(true);
-            }}
-            className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-xl shadow-primary/20"
-          >
-            + Add Staff User
-          </button>
-        )}
-      </div>
-
-      {/* Tabs */}
-      <div className="flex p-1.5 glass rounded-2xl w-fit">
-        <button 
-          onClick={() => setActiveTab('STAFF')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs transition-all ${activeTab === 'STAFF' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
-        >
-          <ShieldAlert className="w-4 h-4" /> Staff Members ({users.filter(u => u.role !== 'MEMBER').length})
-        </button>
-        <button 
-          onClick={() => setActiveTab('MEMBERS')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs transition-all ${activeTab === 'MEMBERS' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
-        >
-          <UsersIcon className="w-4 h-4" /> Cooperative Members ({users.length})
-        </button>
       </div>
 
       {/* Grid List */}
@@ -296,96 +232,27 @@ const Users = () => {
               })()}
             </div>
 
-            {activeTab === 'STAFF' && (
-              <div className="space-y-3 pt-4 border-t border-border/50">
-                <label className="text-[10px] font-semibold capitalize text-muted-foreground tracking-widest ml-1">Assign role</label>
-                <select 
-                  title="Change User Role"
-                  value={u.role}
-                  onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                  className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary font-bold text-sm appearance-none"
-                >
-                  <option value="ADMIN">Administrator</option>
-                  <option value="TREASURER">Treasurer</option>
-                  <option value="SECRETARY">Secretary</option>
-                </select>
-              </div>
-            )}
+            <div className="space-y-3 pt-4 border-t border-border/50">
+              <label className="text-[10px] font-semibold capitalize text-muted-foreground tracking-widest ml-1">Assign role</label>
+              <select 
+                title="Change User Role"
+                value={u.role}
+                onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                className="w-full px-4 py-2.5 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-primary font-bold text-sm appearance-none"
+              >
+                <option value="ADMIN">Administrator</option>
+                <option value="TREASURER">Treasurer</option>
+                <option value="SECRETARY">Secretary</option>
+                <option value="MEMBER">Member</option>
+              </select>
+            </div>
           </div>
         ))}
       </motion.div>
 
       {/* MODALS */}
       <AnimatePresence>
-        {/* Add system user Modal */}
-        {isModalOpen && (
-          <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
-            onClick={() => setIsModalOpen(false)}
-          >
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg bg-background rounded-[2.5rem] p-8 shadow-2xl border border-white/5"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-black tracking-tight">Add System Staff User</h2>
-                <UserIcon className="w-8 h-8 text-primary/20" />
-              </div>
 
-              <form onSubmit={handleAddUser} className="space-y-5">
-                 <div className="space-y-2">
-                  <label htmlFor="newUserName" className="text-xs font-black text-muted-foreground ml-1">Full Name</label>
-                  <input id="newUserName" type="text" placeholder="Full Name" required value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" autoComplete="name" />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="newUserNationalId" className="text-xs font-black text-muted-foreground ml-1">National ID (Optional)</label>
-                  <input id="newUserNationalId" type="text" placeholder="e.g. ABC12345" value={newUser.nationalId} onChange={e => setNewUser({...newUser, nationalId: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" maxLength={8} />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="newUserEmail" className="text-xs font-black text-muted-foreground ml-1">Email</label>
-                  <input id="newUserEmail" type="email" placeholder="Email Address" required value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" autoComplete="email" />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="newUserPassword" className="text-xs font-black text-muted-foreground ml-1">Password</label>
-                  <div className="relative">
-                    <input 
-                      id="newUserPassword" 
-                      type={showPassword ? 'text' : 'password'} 
-                      placeholder="••••••••" 
-                      required 
-                      value={newUser.password} 
-                      onChange={e => setNewUser({...newUser, password: e.target.value})} 
-                      className="w-full pl-5 pr-12 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold" 
-                      autoComplete="new-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground"
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="newUserRole" className="text-xs font-black text-muted-foreground ml-1">Role</label>
-                  <select id="newUserRole" title="Role" value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})} className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold appearance-none">
-                    <option value="ADMIN">Administrator</option>
-                    <option value="TREASURER">Treasurer</option>
-                    <option value="SECRETARY">Secretary</option>
-                  </select>
-                </div>
-                <div className="flex gap-4 pt-6">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black">Cancel</button>
-                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-[1.25rem] font-black">Add User</button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
 
         {/* Reset Password Modal */}
         {resettingUser && (

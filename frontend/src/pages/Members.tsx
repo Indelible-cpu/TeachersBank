@@ -31,10 +31,11 @@ const Members = () => {
     phone: '',
     gender: 'MALE',
     address: '',
+    address: '',
     email: '',
-    password: '',
     nationalId: ''
   });
+  const [generatedCredentials, setGeneratedCredentials] = useState<{ password: string; phone: string; email: string } | null>(null);
 
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [editForm, setEditForm] = useState({
@@ -90,15 +91,14 @@ const Members = () => {
       return;
     }
 
-    // Validate required email & password
+    // Validate required email
     if (!newMember.email || !newMember.email.includes('@')) {
       toast.error('Please enter a valid email address.');
       return;
     }
-    if (!newMember.password || newMember.password.length < 6) {
-      toast.error('Password must be at least 6 characters long.');
-      return;
-    }
+
+    // Generate temporary password
+    const tempPassword = Math.random().toString(36).slice(-8);
 
     // Generate auto-assigned Member Number
     const generatedMemberNo = `MBR-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -114,7 +114,7 @@ const Members = () => {
       joinDate: new Date().toISOString().split('T')[0],
       // Transient properties parsed by the sync route to register their User account
       email: newMember.email,
-      password: newMember.password
+      password: tempPassword
     } as any;
     
     const updated = [...members, member];
@@ -129,9 +129,10 @@ const Members = () => {
     
     toast.success(`Member registered successfully with ID: ${generatedMemberNo}`);
     setIsModalOpen(false);
+    setGeneratedCredentials({ password: tempPassword, phone: newMember.phone, email: newMember.email }); // Show modal with actions
     setNewMember({ 
       fullname: '', phone: '', gender: 'MALE', address: '', 
-      email: '', password: '', nationalId: ''
+      email: '', nationalId: ''
     });
   };
 
@@ -404,24 +405,6 @@ const Members = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black text-muted-foreground ml-1" htmlFor="member-password">Account Password</label>
-                  <div className="relative">
-                    <input 
-                      id="member-password"
-                      type={showNewPassword ? "text" : "password"}
-                      required
-                      value={newMember.password}
-                      onChange={e => setNewMember({...newMember, password: e.target.value})}
-                      className="w-full px-5 py-3 pr-12 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
-                      placeholder="Min 6 characters"
-                    />
-                    <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                      {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
-
                 <div className="flex gap-4 pt-6">
                   <button 
                     type="button" 
@@ -576,6 +559,54 @@ const Members = () => {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+        {/* Generated Password Modal */}
+        {generatedCredentials && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+            onClick={() => setGeneratedCredentials(null)}
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-sm bg-background rounded-[2.5rem] p-8 shadow-2xl border border-white/5 text-center"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <h2 className="text-2xl font-black tracking-tight mb-2">Member Created!</h2>
+              <p className="text-sm text-muted-foreground mb-6">The account has been created. Click below to securely send the generated credentials directly to the user.</p>
+              
+              <div className="flex flex-col gap-3 mb-8">
+                <a
+                  href={`https://wa.me/${generatedCredentials.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Welcome to TeachersBank!\n\nYour account has been created. Please use the details below to log in:\n\nEmail: ${generatedCredentials.email}\nTemporary Password: ${generatedCredentials.password}\n\nYou will be required to change your password upon your first login.`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => toast.success('Redirecting to WhatsApp...')}
+                  className="w-full py-4 bg-[#25D366] text-white rounded-[1.25rem] font-black hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                >
+                  <Phone className="w-5 h-5" /> Send via WhatsApp
+                </a>
+                
+                <a
+                  href={`mailto:${generatedCredentials.email}?subject=Your TeachersBank Account Details&body=${encodeURIComponent(`Welcome to TeachersBank!\n\nYour account has been created. Please use the details below to log in:\n\nEmail: ${generatedCredentials.email}\nTemporary Password: ${generatedCredentials.password}\n\nYou will be required to change your password upon your first login.`)}`}
+                  onClick={() => toast.success('Opening default email client...')}
+                  className="w-full py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                >
+                  Send via Email
+                </a>
+              </div>
+
+              <button 
+                onClick={() => setGeneratedCredentials(null)}
+                className="w-full py-3 text-sm font-bold text-muted-foreground hover:text-foreground transition-all"
+              >
+                Close Window
+              </button>
             </motion.div>
           </div>
         )}

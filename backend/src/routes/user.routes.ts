@@ -21,10 +21,13 @@ router.get('/', authenticate, authorize(['ADMIN']), async (req, res) => {
 });
 
 // Update user role or status or details (Admin only)
-router.patch('/:id', authenticate, authorize(['ADMIN']), trackActivity('UPDATE_USER'), async (req, res) => {
+router.patch('/:id', authenticate, authorize(['ADMIN']), async (req: any, res: any) => {
   try {
     const { id } = req.params;
     const { role, isActive, name, email } = req.body;
+
+    const oldUser = await prisma.user.findUnique({ where: { id: id as string } });
+    if (!oldUser) return res.status(404).json({ error: 'User not found' });
 
     const user = await prisma.user.update({
       where: { id: id as string },
@@ -35,6 +38,18 @@ router.patch('/:id', authenticate, authorize(['ADMIN']), trackActivity('UPDATE_U
         email: email as string
       }
     });
+
+    if (role && oldUser.role !== role) {
+      await prisma.auditLog.create({
+        data: {
+          userId: req.user.id,
+          userRole: req.user.role,
+          action: 'ROLE_CHANGE',
+          details: `Changed role for ${user.name} from ${oldUser.role} to ${role}`,
+          status: 'SUCCESS'
+        }
+      });
+    }
 
     res.json(user);
   } catch (error) {
