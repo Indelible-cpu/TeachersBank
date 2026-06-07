@@ -3,7 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
-import { LogOut, Home, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wallet, CreditCard, Receipt, FileText, Shield, User as UserIcon, Moon, Sun, History as HistoryIcon, Sliders } from 'lucide-react';
+import { LogOut, Home, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wallet, CreditCard, Receipt, FileText, Shield, User as UserIcon, Moon, Sun, History as HistoryIcon, Sliders, Bell } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSetting } from '../services/db';
@@ -20,6 +20,8 @@ const DashboardLayout = () => {
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [showSignoutConfirm, setShowSignoutConfirm] = useState(false);
   const [pendingStats, setPendingStats] = useState({ contributions: 0, repayments: 0, loans: 0, members: 0 });
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Force Password Change States
   const [currentPassword, setCurrentPassword] = useState('');
@@ -53,6 +55,19 @@ const DashboardLayout = () => {
     fetchPending();
     const interval = setInterval(fetchPending, 10000);
 
+    const fetchNotifications = async () => {
+      if (user?.id) {
+        const notifs = await getSetting('notifications') || [];
+        setNotifications(
+          notifs
+            .filter((n: any) => n.userId === user.id)
+            .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        );
+      }
+    };
+    fetchNotifications();
+    const notifInterval = setInterval(fetchNotifications, 10000);
+
     const handleSyncCompleted = () => {
       fetchPhoto();
       fetchPending();
@@ -68,6 +83,7 @@ const DashboardLayout = () => {
 
     return () => {
       clearInterval(interval);
+      clearInterval(notifInterval);
       window.removeEventListener('sync-completed', handleSyncCompleted);
       window.removeEventListener('sync-error', handleSyncError);
     };
@@ -297,6 +313,50 @@ const DashboardLayout = () => {
               <div className={`w-3.5 h-3.5 rounded-full bg-white transition-transform ${theme === 'dark' ? 'translate-x-3' : 'translate-x-0'}`} />
             </div>
           </button>
+
+          {/* Notification Bell */}
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-primary/10 transition-colors text-xs font-bold"
+            >
+              <span className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-primary" />
+                Notifications
+              </span>
+              {notifications.filter(n => !n.isRead).length > 0 && (
+                <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-white bg-rose-500 rounded-full shadow-md animate-pulse">
+                  {notifications.filter(n => !n.isRead).length}
+                </span>
+              )}
+            </button>
+
+            <AnimatePresence>
+              {showNotifications && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  className="absolute bottom-full left-0 right-0 mb-2 bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
+                >
+                  <div className="p-4 border-b border-border/50">
+                    <h3 className="font-black text-sm">Notifications</h3>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {notifications.length > 0 ? notifications.map(n => (
+                      <div key={n.id} className={`px-4 py-3 border-b border-border/30 last:border-0 ${!n.isRead ? 'bg-primary/5' : ''}`}>
+                        <p className="text-xs font-bold">{n.title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                        <p className="text-[10px] text-muted-foreground/60 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
+                      </div>
+                    )) : (
+                      <p className="text-xs text-muted-foreground italic text-center py-6">No notifications yet</p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </aside>
 
