@@ -307,7 +307,7 @@ const Loans = () => {
         >
           <History className="w-4 h-4" /> All Loans
         </button>
-        {canConfirm && (
+        {(canConfirm || canWriteFinance) && (
           <button 
             onClick={() => setActiveView('verify')}
             className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold text-xs transition-all relative ${activeView === 'verify' ? 'bg-primary text-primary-foreground shadow-lg' : 'hover:bg-primary/10'}`}
@@ -394,7 +394,7 @@ const Loans = () => {
                 <span className="font-semibold capitalize tracking-tight">Due: {new Date(loan.dueDate).toLocaleDateString()}</span>
               </div>
               
-              {loan.status === 'PENDING' && canConfirm && user?.role === 'SECRETARY' && (
+              {loan.status === 'PENDING' && canWriteFinance && user?.role === 'SECRETARY' && (
                 <div className="flex gap-2 pt-3 border-t border-border/50 mt-3">
                   <button 
                     onClick={() => handleVerifyLoan(loan.id)}
