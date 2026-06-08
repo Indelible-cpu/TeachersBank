@@ -286,7 +286,7 @@ const DashboardLayout = () => {
               )}
             </div>
             <div className="overflow-hidden">
-              <p className="text-xs font-bold truncate leading-tight">{user?.name}</p>
+              <p className="text-xs font-bold truncate leading-tight">{user?.name?.split('|')[0]?.split(' ')[0]}</p>
               <span className="text-[8px] font-bold capitalize tracking-wider px-1 py-0.25 rounded bg-primary text-primary-foreground inline-block mt-0.5">
                 {user?.role?.toLowerCase()}
               </span>
@@ -388,7 +388,7 @@ const DashboardLayout = () => {
             {settings.showProfileInHeader && (
               <div className="flex items-center gap-2 border-l border-border/50 pl-4 ml-2">
                 <div className="hidden md:block text-right">
-                  <p className="text-[10px] font-bold leading-tight">{user?.name}</p>
+                  <p className="text-[10px] font-bold leading-tight">{user?.name?.split('|')[0]?.split(' ')[0]}</p>
                   <p className="text-[8px] text-muted-foreground capitalize tracking-widest">{user?.role?.toLowerCase()}</p>
                 </div>
                 {profilePhoto ? (
