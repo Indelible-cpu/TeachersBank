@@ -114,6 +114,12 @@ const Members = () => {
       // Basic local check for offline mode using cached members list
       if (members.some((m: any) => (m.email || '').toLowerCase() === newMember.email.toLowerCase().trim())) {
         toast.error(t('members.email_registered_local', 'This email address is already registered locally.'));
+        return;
+      }
+    }
+
+    // Generate temporary password for the new member
+    const tempPassword = Math.random().toString(36).slice(-8) + 'A1';
 
     // Generate auto-assigned Member Number
     const generatedMemberNo = `MBR-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -586,50 +592,6 @@ const Members = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-sm bg-background rounded-[2.5rem] p-8 shadow-2xl border border-white/5 text-center"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <ShieldCheck className="w-8 h-8" />
-              </div>
-              <h2 className="text-2xl font-black tracking-tight mb-2">{t('members.member_created', 'Member Created!')}</h2>
-              <p className="text-sm text-muted-foreground mb-6">{t('members.member_created_desc', 'The account has been created. Click below to securely send the generated credentials directly to the user.')}</p>
-              
-              <div className="flex flex-col gap-3 mb-8">
-                <a
-                  href={`https://wa.me/${generatedCredentials.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Welcome to TeachersBank!\n\nYour account has been created. Please use the details below to log in:\n\nEmail: ${generatedCredentials.email}\nTemporary Password: ${generatedCredentials.password}\n\nYou will be required to change your password upon your first login.`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => toast.success('Redirecting to WhatsApp...')}
-                  className="w-full py-4 bg-[#25D366] text-white rounded-[1.25rem] font-black hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                >
-                  <Phone className="w-5 h-5" /> {t('members.send_whatsapp', 'Send via WhatsApp')}
-                </a>
-                
-                <a
-                  href={`mailto:${generatedCredentials.email}?subject=Your TeachersBank Account Details&body=${encodeURIComponent(`Welcome to TeachersBank!\n\nYour account has been created. Please use the details below to log in:\n\nEmail: ${generatedCredentials.email}\nTemporary Password: ${generatedCredentials.password}\n\nYou will be required to change your password upon your first login.`)}`}
-                  onClick={() => toast.success('Opening default email client...')}
-                  className="w-full py-4 bg-secondary text-secondary-foreground rounded-[1.25rem] font-black hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                >
-                  {t('members.send_email', 'Send via Email')}
-                </a>
-              </div>
-
-              <button 
-                onClick={() => setGeneratedCredentials(null)}
-                className="w-full py-3 text-sm font-bold text-muted-foreground hover:text-foreground transition-all"
-              >
-                {t('members.close', 'Close Window')}
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-export default Members;
               className="w-full max-w-sm bg-background rounded-[2.5rem] p-8 shadow-2xl border border-white/5 text-center"
               onClick={e => e.stopPropagation()}
             >
