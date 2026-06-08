@@ -76,7 +76,8 @@ interface TEBAMSDB extends DBSchema {
 let dbPromise: Promise<IDBPDatabase<TEBAMSDB>>;
 
 export const initDB = () => {
-  dbPromise = openDB<TEBAMSDB>('tebams-database', 1, {
+  if (!dbPromise) {
+    dbPromise = openDB<TEBAMSDB>('tebams-database', 1, {
     upgrade(db) {
       db.createObjectStore('settings');
       db.createObjectStore('users', { keyPath: 'id' });
@@ -94,24 +95,28 @@ export const initDB = () => {
         autoIncrement: true,
       });
       syncQueue.createIndex('by-timestamp', 'timestamp');
-    },
-  });
+    });
+  }
+  return dbPromise;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getSetting = async (key: string): Promise<any> => {
+  if (!dbPromise) initDB();
   const db = await dbPromise;
   return db.get('settings', key);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const setSetting = async (key: string, value: any) => {
+  if (!dbPromise) initDB();
   const db = await dbPromise;
   return db.put('settings', value, key);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const addToSyncQueue = async (action: 'CREATE' | 'UPDATE' | 'DELETE', entity: string, data: any) => {
+  if (!dbPromise) initDB();
   const db = await dbPromise;
   await db.add('sync_queue', {
     action,
@@ -127,11 +132,13 @@ export const addToSyncQueue = async (action: 'CREATE' | 'UPDATE' | 'DELETE', ent
 };
 
 export const getSyncQueue = async () => {
+  if (!dbPromise) initDB();
   const db = await dbPromise;
   return db.getAllFromIndex('sync_queue', 'by-timestamp');
 };
 
 export const clearSyncQueue = async () => {
+  if (!dbPromise) initDB();
   const db = await dbPromise;
   const tx = db.transaction('sync_queue', 'readwrite');
   await tx.store.clear();
@@ -282,6 +289,7 @@ export const performSync = async () => {
         const failedQueueIds = syncResults.errors.map((e: any) => e.item?.queueId).filter(Boolean);
         
         // Remove only successful items from the queue
+        if (!dbPromise) initDB();
         const db = await dbPromise;
         const tx = db.transaction('sync_queue', 'readwrite');
         const allInQueue = await tx.store.getAll();
@@ -315,6 +323,7 @@ async function hashPassword(message: string): Promise<string> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const cacheOfflineCredentials = async (email: string, passwordPlain: string, user: any, token: string) => {
+  if (!dbPromise) initDB();
   const db = await dbPromise;
   const hash = await hashPassword(email.toLowerCase() + ':' + passwordPlain);
   await db.put('users', {
@@ -326,6 +335,7 @@ export const cacheOfflineCredentials = async (email: string, passwordPlain: stri
 };
 
 export const verifyOfflineCredentials = async (email: string, passwordPlain: string) => {
+  if (!dbPromise) initDB();
   const db = await dbPromise;
   const record = await db.get('users', email.toLowerCase());
   if (!record) return null;
