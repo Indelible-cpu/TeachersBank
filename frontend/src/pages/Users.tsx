@@ -21,7 +21,7 @@ interface User {
 }
 
 const Users = () => {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, updateUser } = useAuth();
   const toast = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -116,6 +116,10 @@ const Users = () => {
         await api.post(`/users/${editingUser.id}/reset-password`, { password: editForm.password });
       }
       toast.success('Details updated successfully');
+      // If the user edited their own account, update the global auth context immediately
+      if (editingUser.id === currentUser?.id) {
+        await updateUser({ name: finalName, email: editForm.email });
+      }
       setEditingUser(null);
       fetchData();
     } catch (error: unknown) {

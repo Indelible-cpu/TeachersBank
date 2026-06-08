@@ -111,3 +111,17 @@
 .animate-infinite-loading {
   animation: infinite-loading 1.5s infinite linear;
 }
+
+/* Responsive page header — all page h1s become smaller on mobile */
+.page-header h1,
+h1.page-title {
+  font-size: clamp(1.25rem, 5vw, 1.875rem); /* scales from ~20px → 30px */
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+@media (max-width: 640px) {
+  /* Shrink text-3xl headings used as page titles on small screens */
+  .text-3xl { font-size: 1.375rem !important; }
+  .text-2xl { font-size: 1.2rem !important; }
+}

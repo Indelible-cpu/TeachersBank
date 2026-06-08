@@ -15,6 +15,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string, user: User, rememberMe?: boolean) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (updates: Partial<User>) => Promise<void>;
   isAuthenticated: boolean;
   isReadOnly: boolean; // General UI restriction
   canConfirm: boolean; // Treasurer verification power
@@ -100,6 +101,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('auth_token');
   };
 
+  const updateUser = async (updates: Partial<User>) => {
+    if (!user) return;
+    const updated = { ...user, ...updates };
+    setUser(updated);
+    // Persist to wherever the session is stored
+    const rememberMe = localStorage.getItem('remember_me') === 'true';
+    if (rememberMe) {
+      await setSetting('auth_user', updated);
+    } else {
+      sessionStorage.setItem('auth_user', JSON.stringify(updated));
+    }
+  };
+
   // ADMIN is now read-only for finance as per new requirement
   const isReadOnly = user?.role === 'ADMIN';
   
@@ -118,7 +132,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       user, 
       token, 
       login, 
-      logout, 
+      logout,
+      updateUser,
       isAuthenticated: !!token, 
       isReadOnly,
       canConfirm,

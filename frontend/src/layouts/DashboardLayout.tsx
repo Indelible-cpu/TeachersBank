@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/useSettings';
@@ -22,6 +22,7 @@ const DashboardLayout = () => {
   const [pendingStats, setPendingStats] = useState({ contributions: 0, repayments: 0, loans: 0, members: 0 });
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
 
   // Force Password Change States
   const [currentPassword, setCurrentPassword] = useState('');
@@ -80,11 +81,20 @@ const DashboardLayout = () => {
     window.addEventListener('sync-completed', handleSyncCompleted);
     window.addEventListener('sync-error', handleSyncError);
 
+    // Click-outside handler for notifications
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+
     return () => {
       clearInterval(interval);
       clearInterval(notifInterval);
       window.removeEventListener('sync-completed', handleSyncCompleted);
       window.removeEventListener('sync-error', handleSyncError);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [user?.id]);
 
@@ -327,7 +337,7 @@ const DashboardLayout = () => {
           <div className="flex items-center gap-3 sm:gap-4">
             
             {/* Notification Bell (Header) */}
-            <div className="relative">
+            <div className="relative" ref={notificationRef}>
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="p-2.5 rounded-full border border-primary/20 hover:bg-primary/10 transition-all relative"
@@ -347,7 +357,7 @@ const DashboardLayout = () => {
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    className="fixed top-20 left-1/2 -translate-x-1/2 mt-2 w-full max-w-md px-4 z-50 flex flex-col items-center"
+                    className="absolute right-0 mt-2 w-80 sm:w-96 z-50"
                   >
                    <div className="w-full bg-background border border-border rounded-2xl shadow-2xl overflow-hidden">
                     <div className="p-4 border-b border-border/50">
