@@ -20,6 +20,7 @@
     "hero_tag": "Kupatsa Mphamvu Magulu a Aphunzitsi",
     "hero_title_1": "Kuteteza Tsogolo,",
     "hero_title_2": "Mowonekera.",
+    "hero_subtitle": "Takulandirani ku tsamba lovomerezeka la gulu lathu. Timathandizira kusonkhanitsa ndalama pamodzi, kupereka ngongole za chiwongolero chochepa, komanso kuunika ndalama motetezeka pogwiritsa ntchito dongosolo loyang'aniridwa ndi anthu awiri.",
     "hero_desc": "Takulandirani ku tsamba lovomerezeka la gulu lathu. Timathandizira kusonkhanitsa ndalama pamodzi, kupereka ngongole za chiwongolero chochepa, komanso kuunika ndalama motetezeka pogwiritsa ntchito dongosolo loyang'aniridwa ndi anthu awiri.",
     "btn_learn_more": "Dziwani Zambiri",
     "btn_show_less": "Chepetsani Zambiri",
@@ -62,7 +63,14 @@
     "faq_q7": "Ndani ali oyenerera kugwiritsa ntchito sisitimuyi?",
     "faq_a7": "TEBAMS idapangidwa kuti izigwira ntchito ngakhale mulibe intaneti (PWA). Mutha kulembetsa mamembala, kulowetsa zosonkhanitsa popanda intaneti. Zochitika zanu zonse zimasungidwa mu IndexedDB ya chipangizo chanu ndipo zizitumizidwa pa intaneti yokha ngati intaneti yabwerako.",
     "faq_q8": "Kodi dongosolo la kayendetsedwe ka ntchito lili bwanji pa udindo uliwonse?",
-    "faq_a8": "Kagwiritsidwe ntchito katengera udindo wanu: 1) Admin amasintha zofunika za gulu ndikuyang'anira ogwiritsa ntchito ena. 2) Mlembi (Secretary) amalembetsa mamembala, kulemba zosonkhanitsa ndiponso ngongole monga zodikira (pending). 3) Msungichuma (Treasurer) amapenda ndikuvomereza ngongole kapena ndalama zolowa. 4) Membala amaona magawo ake, ngongole zake, komanso kutsitsa malisiti a chuma chake."
+    "faq_a8": "Kagwiritsidwe ntchito katengera udindo wanu: 1) Admin amasintha zofunika za gulu ndikuyang'anira ogwiritsa ntchito ena. 2) Mlembi (Secretary) amalembetsa mamembala, kulemba zosonkhanitsa ndiponso ngongole monga zodikira (pending). 3) Msungichuma (Treasurer) amapenda ndikuvomereza ngongole kapena ndalama zolowa. 4) Membala amaona magawo ake, ngongole zake, komanso kutsitsa malisiti a chuma chake.",
+    "footer_slogan": "Kupatsa mphamvu aphunzitsi kudzera muzachuma zamgwirizano.",
+    "about": "Za Ife",
+    "privacy": "Chinsinsi",
+    "terms": "Zofunika",
+    "faq": "Mafunso",
+    "support": "Thandizo:",
+    "rights": "© 2026 Teachers Bank Management System. Ufulu wonse ndi otetezedwa. Wopangidwa ndi Indelible Technologies."
   },
   "login": {
     "title": "Takulandirani",
