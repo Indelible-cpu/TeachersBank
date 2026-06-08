@@ -95,7 +95,8 @@ export const initDB = () => {
         autoIncrement: true,
       });
       syncQueue.createIndex('by-timestamp', 'timestamp');
-    });
+    },
+  });
   }
   return dbPromise;
 };
