@@ -137,6 +137,7 @@ const Emergency = () => {
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-muted-foreground font-bold">
                     {search ? `${t('emergency.no_matches', 'No members matching')} "${search}"` : t('emergency.no_records', 'No member records found.')}
+                  </td>
                 </tr>
               )}
             </tbody>
