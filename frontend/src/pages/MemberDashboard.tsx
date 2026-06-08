@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/useSettings';
 import { useToast } from '../context/useToast';
@@ -12,6 +13,7 @@ const MemberDashboard = () => {
   const { user } = useAuth();
   const { settings, isOnline } = useSettings();
   const toast = useToast();
+  const { t } = useTranslation();
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [memberRecord, setMemberRecord] = useState<any>(null);
@@ -103,7 +105,7 @@ const MemberDashboard = () => {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && user?.id) {
-      toast.success("Uploading photo...");
+      toast.info(t('my_account.uploading_photo', 'Uploading photo...'));
       try {
         const base64Data = await compressImage(file);
 
@@ -118,17 +120,17 @@ const MemberDashboard = () => {
           await setSetting(`profile_photo_${user.id}`, downloadUrl);
           await addToSyncQueue('UPDATE', 'users', { id: user.id, photo: downloadUrl });
           
-          toast.success("Profile photo updated");
+          toast.success(t('my_account.photo_updated', 'Profile photo updated'));
           window.dispatchEvent(new CustomEvent('sync-completed'));
         } else {
           setProfilePhoto(base64Data);
           await setSetting(`profile_photo_${user.id}`, base64Data);
-          toast.success("Profile photo saved locally");
+          toast.success(t('my_account.photo_saved_local', 'Profile photo saved locally'));
           window.dispatchEvent(new CustomEvent('sync-completed'));
         }
       } catch (error) {
         console.error(error);
-        toast.error("Failed to upload image.");
+        toast.error(t('my_account.photo_upload_failed', 'Failed to upload image.'));
       }
     }
   };
@@ -144,7 +146,7 @@ const MemberDashboard = () => {
       setProfilePhoto(null);
       await setSetting(`profile_photo_${user.id}`, null);
       setShowRemoveOption(false);
-      toast.success("Profile photo removed");
+      toast.success(t('my_account.photo_removed', 'Profile photo removed'));
       window.dispatchEvent(new CustomEvent('sync-completed'));
     }
   };
@@ -170,12 +172,12 @@ const MemberDashboard = () => {
     const isEmergency = newLoan.fundType === 'EMERGENCY';
     
     if (isEmergency && appliedEmergencyLoan) {
-      toast.error('System Rejected: You already have a pending/applied loan from the Emergency Fund.');
+      toast.error(t('my_account.pending_emergency_loan', 'You already have a pending Emergency Fund loan.'));
       return;
     }
     
     if (!isEmergency && appliedShareLoan) {
-      toast.error('System Rejected: You already have a pending/applied loan from the Share Fund.');
+      toast.error(t('my_account.pending_share_loan', 'You already have a pending Share Fund loan.'));
       return;
     }
 
@@ -186,7 +188,7 @@ const MemberDashboard = () => {
       const repaidAmount = activeLoan.expectedReturn - activeLoan.balance;
       const repaidRatio = repaidAmount / activeLoan.expectedReturn;
       if (repaidRatio < 0.75) {
-        toast.error('System Rejected: You must repay at least 75% of your active loan before requesting a top-up.');
+        toast.error(t('my_account.topup_requirement', 'You must repay at least 75% of your active loan before requesting a top-up.'));
         return;
       }
       isTopUp = true;
@@ -194,11 +196,11 @@ const MemberDashboard = () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rule = activeRules.find((r: any) => r.id === newLoan.ruleId);
-    if (!rule) { toast.error('Select a loan rule'); return; }
+    if (!rule) { toast.error(t('my_account.select_loan_rule', 'Select a loan rule')); return; }
     
     const principal = parseFloat(newLoan.principal);
     if (principal < rule.minAmount || principal > rule.maxAmount) {
-      toast.error(`Amount must be between ${rule.minAmount} and ${rule.maxAmount}`);
+      toast.error(t('my_account.loan_amount_range', { min: rule.minAmount, max: rule.maxAmount, defaultValue: `Amount must be between ${rule.minAmount} and ${rule.maxAmount}` }));
       return;
     }
 
@@ -225,7 +227,7 @@ const MemberDashboard = () => {
     };
     
     await addToSyncQueue('CREATE', 'loans', loan);
-    toast.success('Loan requested successfully. Awaiting Secretary verification.');
+    toast.success(t('my_account.loan_requested', 'Loan requested successfully. Awaiting Secretary verification.'));
     setIsLoanModalOpen(false);
     setNewLoan({ principal: '', ruleId: '', fundType: 'SHARE' });
     loadData();
@@ -237,8 +239,8 @@ const MemberDashboard = () => {
     <div className="w-full max-w-none space-y-8 pb-12 px-4 lg:px-8 pt-4 lg:pt-8">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">My Account</h1>
-          <p className="text-muted-foreground font-medium italic">Welcome back, {user?.name}</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('my_account.title')}</h1>
+          <p className="text-muted-foreground font-medium italic">{t('my_account.welcome')}{user?.name?.split('|')[0]?.split(' ')[0]}</p>
         </div>
         
         <div className="relative group shrink-0">
@@ -277,7 +279,7 @@ const MemberDashboard = () => {
         <button onClick={() => {
           setIsLoanModalOpen(true);
         }} className="flex-1 py-4 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-transform active:scale-95">
-          <Banknote className="w-5 h-5" /> Request Loan
+          <Banknote className="w-5 h-5" /> {t('my_account.request_loan')}
         </button>
         <div className="relative flex-1">
         </div>
@@ -292,26 +294,26 @@ const MemberDashboard = () => {
           <div className="glass p-8 rounded-[2.5rem] space-y-6 relative overflow-hidden group border border-emerald-500/10">
             <div className="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
             <h2 className="text-2xl font-bold tracking-tight flex items-center gap-3">
-              <Wallet className="text-emerald-500" /> Shares & Earnings
+              <Wallet className="text-emerald-500" /> {t('my_account.shares_earnings')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="p-5 bg-secondary/30 rounded-2xl">
-                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Total Shares</p>
+                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">{t('my_account.total_shares')}</p>
                 <h3 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{settings.currency} {memberShares.toLocaleString()}</h3>
               </div>
               <div className="p-5 bg-secondary/30 rounded-2xl">
-                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Total Earnings</p>
+                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">{t('my_account.total_earnings')}</p>
                 <h3 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4" /> {settings.currency} {shareEarnings.toLocaleString()}
                 </h3>
               </div>
               <div className="p-5 bg-secondary/30 rounded-2xl border border-amber-500/10">
-                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Applied Loan</p>
+                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">{t('my_account.applied_loan')}</p>
                 <h3 className="text-2xl font-bold text-amber-500">{settings.currency} {appliedShareLoan?.principal?.toLocaleString() || 0}</h3>
                 {appliedShareLoan && <p className="text-[10px] font-bold uppercase mt-1 text-amber-500/70">{appliedShareLoan.status} {appliedShareLoan.isTopUp ? '(TOP UP)' : ''}</p>}
               </div>
               <div className="p-5 bg-secondary/30 rounded-2xl border border-rose-500/10">
-                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Active Loan</p>
+                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">{t('my_account.active_loan')}</p>
                 <h3 className="text-2xl font-bold text-rose-500">{settings.currency} {activeShareLoan?.balance?.toLocaleString() || 0}</h3>
                 {activeShareLoan && <p className="text-[10px] font-bold uppercase mt-1 text-rose-500/70">{activeShareLoan.status}</p>}
               </div>
@@ -322,26 +324,26 @@ const MemberDashboard = () => {
           <div className="glass p-8 rounded-[2.5rem] space-y-6 relative overflow-hidden group border border-amber-500/10">
             <div className="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
             <h2 className="text-2xl font-bold tracking-tight flex items-center gap-3">
-              <ShieldAlert className="text-amber-500" /> Emergency Fund
+              <ShieldAlert className="text-amber-500" /> {t('my_account.emergency_fund')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="p-5 bg-secondary/30 rounded-2xl">
-                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Total Emergency</p>
+                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">{t('my_account.total_emergency')}</p>
                 <h3 className="text-2xl font-bold text-amber-600 dark:text-amber-400">{settings.currency} {memberEmergency.toLocaleString()}</h3>
               </div>
               <div className="p-5 bg-secondary/30 rounded-2xl">
-                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Total Earnings</p>
+                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">{t('my_account.total_earnings')}</p>
                 <h3 className="text-2xl font-bold text-amber-600 dark:text-amber-400 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4" /> {settings.currency} {emergencyEarnings.toLocaleString()}
                 </h3>
               </div>
               <div className="p-5 bg-secondary/30 rounded-2xl border border-amber-500/10">
-                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Applied Loan</p>
+                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">{t('my_account.applied_loan')}</p>
                 <h3 className="text-2xl font-bold text-amber-500">{settings.currency} {appliedEmergencyLoan?.principal?.toLocaleString() || 0}</h3>
                 {appliedEmergencyLoan && <p className="text-[10px] font-bold uppercase mt-1 text-amber-500/70">{appliedEmergencyLoan.status} {appliedEmergencyLoan.isTopUp ? '(TOP UP)' : ''}</p>}
               </div>
               <div className="p-5 bg-secondary/30 rounded-2xl border border-rose-500/10">
-                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">Active Loan</p>
+                <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-1">{t('my_account.active_loan')}</p>
                 <h3 className="text-2xl font-bold text-rose-500">{settings.currency} {activeEmergencyLoan?.balance?.toLocaleString() || 0}</h3>
                 {activeEmergencyLoan && <p className="text-[10px] font-bold uppercase mt-1 text-rose-500/70">{activeEmergencyLoan.status}</p>}
               </div>
@@ -355,34 +357,34 @@ const MemberDashboard = () => {
         {isLoanModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={() => setIsLoanModalOpen(false)}>
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-md bg-background rounded-[2.5rem] p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
-              <h2 className="text-2xl font-bold mb-6 tracking-tight">Request Loan</h2>
+              <h2 className="text-2xl font-bold mb-6 tracking-tight">{t('my_account.request_loan')}</h2>
               <form onSubmit={handleRequestLoan} className="space-y-5">
                 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">Fund Type</label>
+                  <label className="text-[10px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">{t('my_account.fund_type')}</label>
                   <select required value={newLoan.fundType} onChange={e => setNewLoan({...newLoan, fundType: e.target.value})} className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none font-bold focus:ring-2 focus:ring-primary">
-                    <option value="SHARE">Share Fund</option>
-                    <option value="EMERGENCY">Emergency Fund</option>
+                    <option value="SHARE">{t('my_account.share_fund')}</option>
+                    <option value="EMERGENCY">{t('my_account.emergency_fund_option')}</option>
                   </select>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">Loan Rule</label>
+                  <label className="text-[10px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">{t('my_account.loan_rule')}</label>
                   <select required value={newLoan.ruleId} onChange={e => setNewLoan({...newLoan, ruleId: e.target.value})} className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none font-bold focus:ring-2 focus:ring-primary">
-                    <option value="">Select Range</option>
+                    <option value="">{t('my_account.select_range')}</option>
                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {activeRules.map((r: any) => <option key={r.id} value={r.id}>{r.minAmount} - {r.maxAmount} ({r.durationMonths}m)</option>)}
                   </select>
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">Principal ({settings.currency})</label>
+                  <label className="text-[10px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">{t('my_account.principal')} ({settings.currency})</label>
                   <input required type="number" value={newLoan.principal} onChange={e => setNewLoan({...newLoan, principal: e.target.value})} className="w-full px-4 py-3 bg-secondary/50 rounded-2xl outline-none font-bold focus:ring-2 focus:ring-primary" />
                 </div>
                 
                 <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setIsLoanModalOpen(false)} className="flex-1 py-4 bg-secondary hover:bg-secondary/80 rounded-xl font-bold transition-colors">Cancel</button>
-                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg hover:shadow-xl transition-all">Submit Request</button>
+                  <button type="button" onClick={() => setIsLoanModalOpen(false)} className="flex-1 py-4 bg-secondary hover:bg-secondary/80 rounded-xl font-bold transition-colors">{t('my_account.cancel')}</button>
+                  <button type="submit" className="flex-1 py-4 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg hover:shadow-xl transition-all">{t('my_account.submit_request')}</button>
                 </div>
               </form>
             </motion.div>

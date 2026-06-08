@@ -77,23 +77,24 @@ const Members = () => {
     e.preventDefault();
     if (!canAddMember) return;
 
-    // Validate phone number: must be between 10 and 13 digits only
-    const digitsOnly1 = newMember.phone.replace(/\D/g, '');
-    if (digitsOnly1.length < 10 || digitsOnly1.length > 13) {
-      toast.error('Primary phone number must contain between 10 and 13 digits only.');
+    // Validate phone number: Malawian format (+265XXXXXXXXX = 13 digits or 0XXXXXXXXX = 10 digits)
+    const cleanPhone = newMember.phone.replace(/[\s\-]/g, '');
+    const isValidPhone = /^\+265\d{9}$/.test(cleanPhone) || /^0\d{9}$/.test(cleanPhone);
+    if (!isValidPhone) {
+      toast.error(t('members.invalid_phone', 'Phone number must be in Malawian format: +265XXXXXXXXX or 0XXXXXXXXX.'));
       return;
     }
 
     // Validate optional National ID: exactly 8 characters in uppercase
     const cleanNid = newMember.nationalId.trim().toUpperCase();
     if (cleanNid && !/^[A-Z0-9]{8}$/.test(cleanNid)) {
-      toast.error('National ID must be exactly 8 alphanumeric characters in uppercase.');
+      toast.error(t('members.invalid_national_id', 'National ID must be exactly 8 alphanumeric characters in uppercase.'));
       return;
     }
 
     // Validate required email
     if (!newMember.email || !newMember.email.includes('@')) {
-      toast.error('Please enter a valid email address.');
+      toast.error(t('members.invalid_email', 'Please enter a valid email address.'));
       return;
     }
 
@@ -103,22 +104,16 @@ const Members = () => {
       } catch (err: any) {
         // Only block if the server explicitly says the email is taken (400)
         if (err.response?.status === 400) {
-          toast.error(err.response.data?.error || 'This email address is already registered.');
+          toast.error(err.response.data?.error || t('members.email_taken', 'This email address is already registered.'));
           return;
         }
         // On server errors (500) or network failures, allow proceeding — backend will enforce on sync
-        console.warn('Email check failed, proceeding anyway:', err.message);
+        console.warn(t('members.email_check_failed', 'Email check failed, proceeding anyway:'), err.message);
       }
     } else {
       // Basic local check for offline mode using cached members list
       if (members.some((m: any) => (m.email || '').toLowerCase() === newMember.email.toLowerCase().trim())) {
-        toast.error('This email address is already registered locally.');
-        return;
-      }
-    }
-
-    // Generate temporary password
-    const tempPassword = Math.random().toString(36).slice(-8);
+        toast.error(t('members.email_registered_local', 'This email address is already registered locally.'));
 
     // Generate auto-assigned Member Number
     const generatedMemberNo = `MBR-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -147,7 +142,7 @@ const Members = () => {
       await addToSyncQueue('CREATE', 'members', member);
     }
     
-    toast.success(`Member registered successfully with ID: ${generatedMemberNo}`);
+    toast.success(t('members.member_registered', { memberId: generatedMemberNo, defaultValue: `Member registered successfully with ID: ${generatedMemberNo}` }));
     setIsModalOpen(false);
     setGeneratedCredentials({ password: tempPassword, phone: newMember.phone, email: newMember.email }); // Show modal with actions
     setNewMember({ 
@@ -160,10 +155,11 @@ const Members = () => {
     e.preventDefault();
     if (!editingMember) return;
 
-    // Validate phone number
-    const digitsOnly = editForm.phone.replace(/\D/g, '');
-    if (digitsOnly.length < 10 || digitsOnly.length > 13) {
-      toast.error('Primary phone number must contain between 10 and 13 digits only.');
+    // Validate phone number in Malawian format
+    const cleanPhoneEdit = editForm.phone.replace(/[\s\-]/g, '');
+    const isValidEditPhone = /^\+265\d{9}$/.test(cleanPhoneEdit) || /^0\d{9}$/.test(cleanPhoneEdit);
+    if (!isValidEditPhone) {
+      toast.error(t('members.invalid_phone', 'Phone number must be in Malawian format: +265XXXXXXXXX or 0XXXXXXXXX.'));
       return;
     }
 
@@ -176,7 +172,7 @@ const Members = () => {
 
     // Optional Email/Password updates if they want to modify login details
     if (editForm.email && !editForm.email.includes('@')) {
-      toast.error('Please enter a valid email address.');
+      toast.error(t('members.invalid_email', 'Please enter a valid email address.'));
       return;
     }
     if (editForm.password && editForm.password.length < 6) {
@@ -203,7 +199,7 @@ const Members = () => {
     // Queue sync update mutation
     await addToSyncQueue('UPDATE', 'members', updatedMember);
 
-    toast.success('Member details updated successfully');
+    toast.success(t('members.member_updated', 'Member details updated successfully'));
     setEditingMember(null);
   };
 
@@ -351,7 +347,7 @@ const Members = () => {
                       value={newMember.fullname}
                       onChange={e => setNewMember({...newMember, fullname: e.target.value})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
-                      placeholder="Official Name"
+                      placeholder={t('members.fullname_placeholder', 'Official Name')}
                     />
                   </div>
                   <div className="space-y-2">
@@ -380,7 +376,7 @@ const Members = () => {
                       value={newMember.address}
                       onChange={e => setNewMember({...newMember, address: e.target.value})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-medium"
-                      placeholder="City, Area"
+                      placeholder={t('members.address_placeholder', 'City, Area')}
                     />
                   </div>
                   <div className="space-y-2">
@@ -392,7 +388,7 @@ const Members = () => {
                       onChange={e => setNewMember({...newMember, nationalId: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
                       maxLength={8}
-                      placeholder="8 characters"
+                      placeholder={t('members.national_id_placeholder', '8 characters')}
                     />
                   </div>
                 </div>
@@ -407,7 +403,7 @@ const Members = () => {
                       value={newMember.phone}
                       onChange={e => setNewMember({...newMember, phone: e.target.value})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
-                      placeholder="+265..."
+                      placeholder={t('members.phone_placeholder', '+265...')}
                     />
                   </div>
                   <div className="space-y-2">
@@ -419,7 +415,7 @@ const Members = () => {
                       value={newMember.email}
                       onChange={e => setNewMember({...newMember, email: e.target.value})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
-                      placeholder="member@teachersbank.com"
+                      placeholder={t('members.email_placeholder', 'member@teachersbank.com')}
                     />
                   </div>
                 </div>
@@ -473,7 +469,7 @@ const Members = () => {
                       value={editForm.fullname}
                       onChange={e => setEditForm({...editForm, fullname: e.target.value})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
-                      placeholder="Official Name"
+                      placeholder={t('members.fullname_placeholder', 'Official Name')}
                     />
                   </div>
                   <div className="space-y-2">
@@ -500,7 +496,7 @@ const Members = () => {
                       value={editForm.address}
                       onChange={e => setEditForm({...editForm, address: e.target.value})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-medium"
-                      placeholder="City, Area"
+                      placeholder={t('members.address_placeholder', 'City, Area')}
                     />
                   </div>
                   <div className="space-y-2">
@@ -512,7 +508,7 @@ const Members = () => {
                       onChange={e => setEditForm({...editForm, nationalId: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
                       maxLength={8}
-                      placeholder="8 characters"
+                      placeholder={t('members.national_id_placeholder', '8 characters')}
                     />
                   </div>
                 </div>
@@ -539,7 +535,7 @@ const Members = () => {
                       value={editForm.email}
                       onChange={e => setEditForm({...editForm, email: e.target.value})}
                       className="w-full px-5 py-3 bg-secondary/50 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 font-bold"
-                      placeholder="member@teachersbank.com"
+                      placeholder={t('members.email_placeholder', 'member@teachersbank.com')}
                     />
                   </div>
                 </div>

@@ -202,9 +202,13 @@ const Reports = () => {
             <button onClick={handlePrint} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-secondary text-secondary-foreground font-bold rounded-2xl hover:bg-secondary/80 transition-all">
               <Printer className="w-5 h-5" /> Print Report
             </button>
-            <button onClick={() => handleShare()} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground font-bold rounded-2xl hover:opacity-90 transition-all shadow-lg shadow-primary/20">
-              <Share2 className="w-5 h-5" /> Share Document
-            </button>
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); handleShare(); }}
+              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 text-primary font-bold rounded-2xl border border-primary/10 hover:bg-primary/5 transition-all"
+            >
+              <Share2 className="w-5 h-5" /> {t('reports.share_document', 'Share Document')}
+            </a>
           </div>
 
         </div>

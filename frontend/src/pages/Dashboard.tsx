@@ -208,7 +208,7 @@ const Dashboard = () => {
     <div className="w-full max-w-none px-4 lg:px-8 pt-4 pb-8 lg:pt-8 lg:pb-12 space-y-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black tracking-tight">{t('dashboard_stats.welcome_back')}{user?.name}{t('dashboard_stats.command_center_ready')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('dashboard_stats.welcome_back')}{user?.name?.split('|')[0]?.split(' ')[0]}{t('dashboard_stats.command_center_ready')}</h1>
         </div>
         
         {(canConfirm || user?.role === 'SECRETARY') && data.pendingVerification > 0 && (

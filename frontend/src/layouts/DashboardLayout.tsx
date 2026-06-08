@@ -323,7 +323,7 @@ const DashboardLayout = () => {
       {/* Main Content */}
       <main className="flex-1 lg:ml-64 flex flex-col min-h-screen min-w-0">
         {/* Header */}
-        <header className="h-16 glass border-b flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
+        <header className="h-16 glass border-b border-border/40 bg-background/80 backdrop-blur-xl flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
           <div className="flex items-center gap-4">
             <button className="lg:hidden p-2 rounded-md hover:bg-muted" aria-label="Toggle menu" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
               <Menu className="w-6 h-6" />
@@ -357,7 +357,7 @@ const DashboardLayout = () => {
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    className="absolute right-0 mt-2 w-80 sm:w-96 z-50"
+                    className="fixed top-16 left-1/2 -translate-x-1/2 mt-2 w-[calc(100%-2rem)] max-w-sm sm:max-w-md z-50"
                   >
                    <div className="w-full bg-background border border-border rounded-2xl shadow-2xl overflow-hidden">
                     <div className="p-4 border-b border-border/50">
