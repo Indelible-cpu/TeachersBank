@@ -11,6 +11,7 @@ import { startRegistration } from '@simplewebauthn/browser';
 import { useTheme } from 'next-themes';
 import { storage } from '../services/firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import TranslationManager from './TranslationManager';
 
 const Settings = () => {
   const { settings, updateSettings, isOnline } = useSettings();
@@ -645,6 +646,17 @@ const Settings = () => {
           {isRegisteringBiometric ? t('settings.setting_up', 'Setting up...') : t('settings.setup_biometric', 'Set up Biometric')}
         </button>
       </motion.div>
+
+      {/* Translation Management Section (Admin Only) */}
+      {isAdmin && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass rounded-2xl p-6 md:p-8 shadow-sm mt-6"
+        >
+          <TranslationManager isEmbed={true} />
+        </motion.div>
+      )}
 
       {/* Master Reset Modal */}
       <AnimatePresence>

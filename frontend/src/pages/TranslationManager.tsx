@@ -10,7 +10,7 @@ interface TranslationEntry {
   ny: string | null;
 }
 
-const TranslationManager = () => {
+const TranslationManager = ({ isEmbed = false }: { isEmbed?: boolean }) => {
   const { t, i18n } = useTranslation();
   const { showToast } = useToast();
 
@@ -169,15 +169,22 @@ const TranslationManager = () => {
   const coverage = stats.total > 0 ? Math.round((stats.nyCount / stats.total) * 100) : 0;
 
   return (
-    <div className="w-full max-w-none px-4 lg:px-8 pt-4 pb-8 lg:pt-8 lg:pb-12 space-y-8">
+    <div className={isEmbed ? "space-y-6" : "w-full max-w-none px-4 lg:px-8 pt-4 pb-8 lg:pt-8 lg:pb-12 space-y-8"}>
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <Languages className="w-8 h-8 text-primary" />
-            {t('translations.title', 'Translation Management')}
-          </h1>
-          <p className="text-muted-foreground mt-1">Manage English and Nyanja dictionaries across the system.</p>
+          {isEmbed ? (
+            <h2 className="text-xl font-semibold flex items-center gap-3">
+              <Languages className="w-6 h-6 text-primary" />
+              {t('translations.title', 'Translation Management')}
+            </h2>
+          ) : (
+            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+              <Languages className="w-8 h-8 text-primary" />
+              {t('translations.title', 'Translation Management')}
+            </h1>
+          )}
+          <p className="text-sm text-muted-foreground mt-1">Manage English and Nyanja dictionaries across the system.</p>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={exportJson} className="btn-secondary flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold">

@@ -3,7 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/useSettings';
 import { useTranslation } from 'react-i18next';
-import { LogOut, Home, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wallet, CreditCard, Receipt, FileText, Shield, User as UserIcon, Moon, Sun, History as HistoryIcon, Sliders, Bell, Languages } from 'lucide-react';
+import { LogOut, Settings as SettingsIcon, Wifi, WifiOff, Menu, Users, Wallet, CreditCard, Receipt, FileText, Shield, User as UserIcon, Moon, Sun, History as HistoryIcon, Sliders, Bell, Languages } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSetting } from '../services/db';
@@ -121,7 +121,6 @@ const DashboardLayout = () => {
     { to: '/dashboard/users', label: t('users.title'), icon: Shield, roles: ['ADMIN'] },
     { to: '/dashboard/loan-configurations', label: t('loan_configs.title'), icon: Sliders, roles: ['ADMIN'] },
     { to: '/dashboard/settings', label: t('settings.title'), icon: SettingsIcon, roles: ['ADMIN', 'TREASURER', 'SECRETARY', 'MEMBER'] },
-    { to: '/dashboard/translations', label: t('translations.title', 'Translation Management'), icon: Languages, roles: ['ADMIN'] }
   ].filter(item => item.roles.includes(user?.role || ''));
 
   const closeSidebar = () => setIsSidebarOpen(false);
@@ -357,35 +356,31 @@ const DashboardLayout = () => {
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    className="fixed top-16 left-1/2 -translate-x-1/2 mt-2 w-[calc(100%-2rem)] max-w-sm sm:max-w-md z-50"
+                    className="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center w-full max-w-sm sm:max-w-md px-4 mt-2"
                   >
-                   <div className="w-full bg-background border border-border rounded-2xl shadow-2xl overflow-hidden">
-                    <div className="p-4 border-b border-border/50">
-                      <h3 className="font-black text-sm">{t('dashboard_layout.notifications')}</h3>
+                    <div className="w-full bg-background border border-border rounded-2xl shadow-2xl overflow-hidden">
+                      <div className="p-4 border-b border-border/50 flex items-center justify-between">
+                        <h3 className="font-black text-sm">{t('dashboard_layout.notifications')}</h3>
+                        <button onClick={() => setShowNotifications(false)} className="text-muted-foreground hover:text-foreground text-xs font-bold">{t('dashboard_layout.close', 'Close')}</button>
+                      </div>
+                      <div className="max-h-[60vh] overflow-y-auto">
+                        {notifications.length > 0 ? notifications.map(n => (
+                          <div key={n.id} className={`px-4 py-3 border-b border-border/30 last:border-0 ${!n.isRead ? 'bg-primary/5' : ''}`}>
+                            <p className="text-xs font-bold">{n.title}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                            <p className="text-[10px] text-muted-foreground/60 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        )) : (
+                          <p className="text-xs text-muted-foreground italic text-center py-6">{t('dashboard_layout.no_notifications')}</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="max-h-[60vh] overflow-y-auto">
-                      {notifications.length > 0 ? notifications.map(n => (
-                        <div key={n.id} className={`px-4 py-3 border-b border-border/30 last:border-0 ${!n.isRead ? 'bg-primary/5' : ''}`}>
-                          <p className="text-xs font-bold">{n.title}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
-                          <p className="text-[10px] text-muted-foreground/60 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
-                        </div>
-                      )) : (
-                        <p className="text-xs text-muted-foreground italic text-center py-6">{t('dashboard_layout.no_notifications')}</p>
-                      )}
-                    </div>
-                   </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            <button 
-              onClick={toggleLanguage}
-              className="block px-3 py-1.5 text-xs font-black tracking-widest border border-primary/20 rounded-full hover:bg-primary/10 transition-colors"
-            >
-              {i18n.language.startsWith('en') ? 'Eng' : 'Ny'}
-            </button>
+
             
             <button 
               onClick={handleLogout}

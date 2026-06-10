@@ -131,7 +131,7 @@ const Reports = () => {
     
     try {
       const pdfOptions = generatePDFOptions();
-      const pdfBlob = await html2pdf().set(pdfOptions).from(reportRef.current).output('blob');
+      const pdfBlob = await html2pdf().set(pdfOptions).from(reportRef.current).outputPdf('blob');
       const file = new File([pdfBlob], pdfOptions.filename, { type: 'application/pdf' });
       
       let shareText = `Financial Report for ${selectedMonth}`;
